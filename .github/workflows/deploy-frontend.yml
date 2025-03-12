@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - dev
+      - feature/workflows
     paths:
       - 'frontend/**'
-      - '.github/workflows/**'
+      - '.github/workflows/deploy-frontend.yml'
 
 permissions:
   id-token: write
@@ -58,7 +59,7 @@ jobs:
       - name: Deploy to S3
         run: |
           echo "Deploying to S3 bucket: $BUCKET_NAME"
-          aws s3 sync build/ s3://$BUCKET_NAME --delete
+          aws s3 sync dist/ s3://$BUCKET_NAME --delete
         working-directory: ./frontend
         env:
           AWS_EC2_METADATA_DISABLED: true
