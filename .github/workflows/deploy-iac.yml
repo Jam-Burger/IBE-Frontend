@@ -34,26 +34,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Terraform Init
-        run: terraform init -backend-config=backend.config
-        working-directory: ./iac
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        working-directory: ./iac
-
-      - name: Terraform Apply
-        id: apply
-        run: terraform apply -auto-approve tfplan
-        working-directory: ./iac
+#      - name: Terraform Init
+#        run: terraform init -backend-config=backend.config
+#        working-directory: ./iac
+#
+#      - name: Terraform Plan
+#        run: terraform plan -out=tfplan
+#        working-directory: ./iac
+#
+#      - name: Terraform Apply
+#        id: apply
+#        run: terraform apply -auto-approve tfplan
+#        working-directory: ./iac
 
       - name: Get Terraform Outputs
         id: terraform-outputs
         run: |
-          echo "::set-output name=distribution_id::$(terraform output -raw cloudfront_distribution_id || echo 'not-found')"
-          echo "::set-output name=bucket_name::$(terraform output -raw frontend_bucket_name || echo 'not-found')"
+            echo "distribution_id=$(terraform output cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+            echo "bucket_name=$(terraform output frontend_bucket_name)" >> $GITHUB_OUTPUT
         working-directory: ./iac
-      
+
       - name: Update GitHub Variables
         uses: actions/github-script@v6
         with:
@@ -62,11 +62,11 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'CLOUDFRONT_DISTRIBUTION_ID',
-              value: steps.terraform-outputs.outputs.distribution_id
+              value: '${{ steps.terraform-outputs.outputs.distribution_id }}'
             });
             await github.rest.actions.createOrUpdateRepoVariable({
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'FRONTEND_BUCKET_NAME',
-              value: steps.terraform-outputs.outputs.bucket_name
+              value: '${{ steps.terraform-outputs.outputs.bucket_name }}'
             });
