@@ -1,0 +1,8 @@
+{
+    "title": "Student Information",
+    "name": "Name: {{name}}",
+    "email": "Email: {{email}}",
+    "age": "Age: {{age}}",
+    "course": "Course: {{course}}"
+  }
+  
