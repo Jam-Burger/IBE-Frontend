@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket         = "${var.project_name}-${var.team_name}-terraform-frontend-state"
+    bucket         = "ibe-hufflepuff-terraform-frontend-state"
     key            = "terraform.tfstate"
     region         = var.aws_region
-    dynamodb_table = "${var.project_name}-${var.team_name}-terraform-frontend-locks"
+    dynamodb_table = "ibe-hufflepuff-terraform-frontend-locks"
     encrypt        = true
   }
 
