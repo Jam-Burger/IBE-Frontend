@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "frontend" {
   bucket = "${var.project_name}-${var.team_name}-frontend"
+  tags   = var.tags
 }
 
 resource "aws_cloudfront_origin_access_control" "oac" {
@@ -70,6 +71,8 @@ resource "aws_cloudfront_distribution" "cdn" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+
+  tags   = var.tags
 }
 
 resource "aws_s3_bucket_policy" "frontend_policy" {
@@ -88,7 +91,7 @@ resource "aws_s3_bucket_cors_configuration" "frontend" {
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "HEAD"]
-    allowed_origins = ["*"]  # In production, you might want to restrict this to your domain
+    allowed_origins = ["*"]
     expose_headers = ["ETag"]
     max_age_seconds = 3600
   }

@@ -1,0 +1,52 @@
+name: Deploy Frontend
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+
+jobs:
+  deploy-iac:
+    uses: ./.github/workflows/deploy-iac.yml
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    env:
+      BUCKET_NAME: ${{ vars.FRONTEND_BUCKET_NAME }}
+      DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: ./frontend
+
+      - name: Build application
+        run: yarn build
+        working-directory: ./frontend
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync build/ s3://$BUCKET_NAME --delete
+        working-directory: ./frontend
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
