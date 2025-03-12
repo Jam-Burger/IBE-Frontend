@@ -6,7 +6,7 @@ on:
       - dev
     paths:
       - 'frontend/**'
-      - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/**'
 
 jobs:
   deploy-iac:
