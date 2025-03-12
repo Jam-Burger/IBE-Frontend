@@ -1,4 +1,5 @@
 name: Deploy IaC
+
 on:
   push:
     branches:
@@ -7,12 +8,13 @@ on:
       - 'iac/**'
       - '.github/workflows/deploy-iac.yml'
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
     env:
       TF_VAR_aws_region: ${{ vars.AWS_REGION }}
       TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
@@ -37,35 +39,25 @@ jobs:
       - name: Terraform Init
         run: terraform init -backend-config=backend.config
         working-directory: ./iac
-#
+
       - name: Terraform Plan
         run: terraform plan -out=tfplan
         working-directory: ./iac
-#
+
       - name: Terraform Apply
         id: apply
         run: terraform apply -auto-approve tfplan
         working-directory: ./iac
 
-      - name: Set Repository Variables
+      - name: Get Terraform Outputs
+        id: terraform-outputs
         run: |
-          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id || echo "")
-          BUCKET_NAME=$(terraform output -raw frontend_bucket_name || echo "")
-
-          # Using GitHub API directly
-          curl -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/variables/CLOUDFRONT_DISTRIBUTION_ID" \
-            -d "{\"value\":\"$DISTRIBUTION_ID\"}"
-
-          curl -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/variables/FRONTEND_BUCKET_NAME" \
-            -d "{\"value\":\"$BUCKET_NAME\"}"
+          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
+          BUCKET_NAME=$(terraform output -raw frontend_bucket_name)
+          
+          # Create or update variables using GitHub CLI
+          gh variable set CLOUDFRONT_DISTRIBUTION_ID --body "$DISTRIBUTION_ID"
+          gh variable set FRONTEND_BUCKET_NAME --body "$BUCKET_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: ./iac
-
-permissions:
-  contents: read
-  actions: write
