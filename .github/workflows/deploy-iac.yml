@@ -34,13 +34,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
-#      - name: Terraform Init
-#        run: terraform init -backend-config=backend.config
-#        working-directory: ./iac
+      - name: Terraform Init
+        run: terraform init -backend-config=backend.config
+        working-directory: ./iac
 #
-#      - name: Terraform Plan
-#        run: terraform plan -out=tfplan
-#        working-directory: ./iac
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        working-directory: ./iac
 #
 #      - name: Terraform Apply
 #        id: apply
