@@ -72,7 +72,7 @@ resource "aws_cloudfront_distribution" "cdn" {
     cloudfront_default_certificate = true
   }
 
-  tags   = var.tags
+  tags = var.tags
 }
 
 resource "aws_s3_bucket_policy" "frontend_policy" {
