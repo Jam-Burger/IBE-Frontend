@@ -50,12 +50,10 @@ jobs:
       - name: Get Terraform Outputs
         id: terraform-outputs
         run: |
-          {
-            echo "distribution_id=$(terraform output -raw cloudfront_distribution_id)"
-            echo "bucket_name=$(terraform output -raw frontend_bucket_name)"
-          } >> "$GITHUB_OUTPUT"
+          echo "distribution_id=$(terraform output -raw cloudfront_distribution_id)" > outputs.tmp
+          echo "bucket_name=$(terraform output -raw frontend_bucket_name)" >> outputs.tmp
+          cat outputs.tmp >> $GITHUB_OUTPUT
         working-directory: ./iac
-
 
       - name: Update GitHub Variables
         uses: actions/github-script@v6
