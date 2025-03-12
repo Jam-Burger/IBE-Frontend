@@ -33,6 +33,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Generate Backend Config
+        id: backend-config
+        run: |
+          chmod +x generate_backend_config.sh
+          ./generate_backend_config.sh
+        working-directory: ./iac
+
       - name: Terraform Init
         id: init
         run: terraform init -backend-config=backend.config
