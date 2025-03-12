@@ -50,9 +50,8 @@ jobs:
       - name: Get Terraform Outputs
         id: terraform-outputs
         run: |
-          echo "distribution_id=$(terraform output -raw cloudfront_distribution_id)" > outputs.tmp
-          echo "bucket_name=$(terraform output -raw frontend_bucket_name)" >> outputs.tmp
-          cat outputs.tmp >> $GITHUB_OUTPUT
+          echo "distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_ENV
+          echo "bucket_name=$(terraform output -raw frontend_bucket_name)" >> $GITHUB_ENV
         working-directory: ./iac
 
       - name: Update GitHub Variables
@@ -63,11 +62,11 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'CLOUDFRONT_DISTRIBUTION_ID',
-              value: '${{ steps.terraform-outputs.outputs.distribution_id }}'
+              value: process.env.distribution_id
             });
             await github.rest.actions.createOrUpdateRepoVariable({
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'FRONTEND_BUCKET_NAME',
-              value: '${{ steps.terraform-outputs.outputs.bucket_name }}'
+              value: process.env.bucket_name
             });
