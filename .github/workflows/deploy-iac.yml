@@ -8,10 +8,6 @@ on:
       - 'iac/**'
       - '.github/workflows/deploy-iac.yml'
 
-permissions:
-  contents: read
-  actions: write
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
