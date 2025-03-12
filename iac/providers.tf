@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     bucket         = "ibe-hufflepuff-terraform-frontend-state"
     key            = "terraform.tfstate"
-    region         = var.aws_region
+    region         = "ap-northeast-2"
     dynamodb_table = "ibe-hufflepuff-terraform-frontend-locks"
     encrypt        = true
   }
