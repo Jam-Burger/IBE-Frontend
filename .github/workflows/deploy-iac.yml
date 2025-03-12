@@ -50,8 +50,8 @@ jobs:
       - name: Get Terraform Outputs
         id: terraform-outputs
         run: |
-          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
-          BUCKET_NAME=$(terraform output -raw frontend_bucket_name)
+          DISTRIBUTION_ID=$(terraform output cloudfront_distribution_id)
+          BUCKET_NAME=$(terraform output frontend_bucket_name)
           echo "distribution_id=${DISTRIBUTION_ID}" >> $GITHUB_OUTPUT
           echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
         working-directory: ./iac
