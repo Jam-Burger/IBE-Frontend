@@ -48,16 +48,3 @@ jobs:
         id: apply
         run: terraform apply -auto-approve tfplan
         working-directory: ./iac
-
-      - name: Get Terraform Outputs
-        id: terraform-outputs
-        run: |
-          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
-          BUCKET_NAME=$(terraform output -raw frontend_bucket_name)
-          
-          # Create or update variables using GitHub CLI
-          gh variable set CLOUDFRONT_DISTRIBUTION_ID --body "$DISTRIBUTION_ID"
-          gh variable set FRONTEND_BUCKET_NAME --body "$BUCKET_NAME"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: ./iac
