@@ -1,14 +1,14 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 
-interface data{
+export interface Student{
     name: string;
     email: string;
     age: number
 }
 
 interface DataState {
-  data: data[]; 
+  data: Student[]; 
   loading: boolean;
   error: string | null; 
 }
@@ -35,7 +35,7 @@ const dataSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchData.fulfilled, (state, action: PayloadAction<data[]>) => {
+      .addCase(fetchData.fulfilled, (state, action: PayloadAction<Student[]>) => {
         state.loading = false;
         state.data = action.payload;
       })
