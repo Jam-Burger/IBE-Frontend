@@ -4,7 +4,7 @@ import { RootState } from "../redux/store";
 import { setLanguage } from "../redux/languageSlice";
 import language from "../assets/enicon.png";
 import currency from "../assets/currency.png";
-import kickLogo from "../assets/KickLogo.png";
+import kickLogo from "../assets/kickLogo.png";
 import { useTranslation } from "react-i18next";
 
 const Header: React.FC = () => {
