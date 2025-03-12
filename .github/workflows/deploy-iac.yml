@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - dev
+      - feature/workflows
     paths:
       - 'iac/**'
       - '.github/workflows/deploy-iac.yml'

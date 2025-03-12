@@ -1,21 +1,30 @@
 name: Deploy Frontend
+
 on:
   push:
     branches:
       - dev
+      - feature/workflows
     paths:
       - 'frontend/**'
-      - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/**'
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   deploy-iac:
     uses: ./.github/workflows/deploy-iac.yml
+    secrets: inherit
 
   deploy-frontend:
+    needs: deploy-iac
     runs-on: ubuntu-latest
     env:
       BUCKET_NAME: ${{ vars.FRONTEND_BUCKET_NAME }}
       DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
 
     steps:
       - name: Checkout code
@@ -26,13 +35,15 @@ jobs:
         with:
           node-version: '18'
           cache: 'yarn'
+          cache-dependency-path: './frontend/yarn.lock'
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
+          mask-aws-account-id: true
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -41,12 +52,21 @@ jobs:
       - name: Build application
         run: yarn build
         working-directory: ./frontend
+        env:
+          CI: true
+          NODE_ENV: production
 
       - name: Deploy to S3
         run: |
+          echo "Deploying to S3 bucket: $BUCKET_NAME"
           aws s3 sync build/ s3://$BUCKET_NAME --delete
         working-directory: ./frontend
+        env:
+          AWS_EC2_METADATA_DISABLED: true
 
       - name: Invalidate CloudFront cache
         run: |
+          echo "Invalidating CloudFront distribution: $DISTRIBUTION_ID"
           aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
+        env:
+          AWS_EC2_METADATA_DISABLED: true
