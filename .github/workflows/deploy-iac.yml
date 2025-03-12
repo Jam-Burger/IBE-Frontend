@@ -33,12 +33,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: ./iac
+        continue-on-error: true
+
       - name: Terraform Init
+        id: init
         run: terraform init -backend-config=backend.config
         working-directory: ./iac
 
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./iac
+
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        id: plan
+        run: terraform plan -out=tfplan -no-color
         working-directory: ./iac
 
       - name: Terraform Apply

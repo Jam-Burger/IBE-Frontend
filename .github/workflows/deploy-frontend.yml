@@ -13,6 +13,7 @@ jobs:
     uses: ./.github/workflows/deploy-iac.yml
 
   deploy-frontend:
+    needs: deploy-iac
     runs-on: ubuntu-latest
     env:
       BUCKET_NAME: ${{ vars.FRONTEND_BUCKET_NAME }}
@@ -27,6 +28,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'yarn'
+          cache-dependency-path: './frontend/yarn.lock'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -42,12 +44,17 @@ jobs:
       - name: Build application
         run: yarn build
         working-directory: ./frontend
+        env:
+          CI: true
+          NODE_ENV: production
 
       - name: Deploy to S3
         run: |
+          echo "Deploying to S3 bucket: $BUCKET_NAME"
           aws s3 sync build/ s3://$BUCKET_NAME --delete
         working-directory: ./frontend
 
       - name: Invalidate CloudFront cache
         run: |
+          echo "Invalidating CloudFront distribution: $DISTRIBUTION_ID"
           aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
