@@ -42,31 +42,30 @@ jobs:
         run: terraform plan -out=tfplan
         working-directory: ./iac
 #
-#      - name: Terraform Apply
-#        id: apply
-#        run: terraform apply -auto-approve tfplan
-#        working-directory: ./iac
-
-      - name: Get Terraform Outputs
-        id: terraform-outputs
-        run: |
-            echo "distribution_id=$(terraform output cloudfront_distribution_id)" >> $GITHUB_OUTPUT
-            echo "bucket_name=$(terraform output frontend_bucket_name)" >> $GITHUB_OUTPUT
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve tfplan
         working-directory: ./iac
 
-      - name: Update GitHub Variables
-        uses: actions/github-script@v6
-        with:
-          script: |
-            await github.rest.actions.createOrUpdateRepoVariable({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'CLOUDFRONT_DISTRIBUTION_ID',
-              value: '${{ steps.terraform-outputs.outputs.distribution_id }}'
-            });
-            await github.rest.actions.createOrUpdateRepoVariable({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'FRONTEND_BUCKET_NAME',
-              value: '${{ steps.terraform-outputs.outputs.bucket_name }}'
-            });
+      - name: Set Repository Variables
+        run: |
+          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id || echo "")
+          BUCKET_NAME=$(terraform output -raw frontend_bucket_name || echo "")
+
+          # Using GitHub API directly
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/variables/CLOUDFRONT_DISTRIBUTION_ID" \
+            -d "{\"value\":\"$DISTRIBUTION_ID\"}"
+
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/variables/FRONTEND_BUCKET_NAME" \
+            -d "{\"value\":\"$BUCKET_NAME\"}"
+        working-directory: ./iac
+
+permissions:
+  contents: read
+  actions: write
