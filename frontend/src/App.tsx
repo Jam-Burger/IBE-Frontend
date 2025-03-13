@@ -9,11 +9,9 @@ import Footer from './components/Footer';
 const App: React.FC = () => {
   return (
     <Router>
-      <Header />
       <Routes>
         <Route path="/" element={<HomePage />} />
       </Routes>
-      <Footer />
     </Router>
   );
 };

@@ -1,7 +1,9 @@
+// components/Header.tsx
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { setLanguage } from "../redux/languageSlice";
+import { setSelectedCurrency } from "../redux/currencySlice";
 import language from "../assets/enicon.png";
 import currency from "../assets/currency.png";
 import kickLogo from "../assets/KickLogo.png";
@@ -12,9 +14,10 @@ const Header: React.FC = () => {
   const { t } = useTranslation("navbar");
 
   const selectedLanguage = useSelector((state: RootState) => state.language.language);
+  const selectedCurrency = useSelector((state: RootState) => state.currency.selectedCurrency);
+
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
 
   const languages = ["en", "fr"];
   const currencies = ["USD", "EUR"];
@@ -35,7 +38,7 @@ const Header: React.FC = () => {
   };
 
   const selectCurrency = (curr: string) => {
-    setSelectedCurrency(curr);
+    dispatch(setSelectedCurrency(curr));
     setCurrencyDropdownOpen(false);
   };
 
@@ -91,22 +94,21 @@ const Header: React.FC = () => {
           </button>
 
           {currencyDropdownOpen && (
-           <ul className="absolute right-0 mt-2 w-24 bg-white border border-gray-200 shadow-md rounded-md z-10">
-           {currencies.map((curr) => (
-             <li key={curr} className="px-4 py-2">
-               <button
-                 className="w-full text-left hover:bg-gray-100 cursor-pointer text-[#26266D] focus:outline-none"
-                 onClick={() => selectCurrency(curr)}
-                 onKeyDown={(e) => {
-                   if (e.key === "Enter" || e.key === " ") selectCurrency(curr);
-                 }}
-               >
-                 {curr}
-               </button>
-             </li>
-           ))}
-         </ul>
-         
+            <ul className="absolute right-0 mt-2 w-24 bg-white border border-gray-200 shadow-md rounded-md z-10">
+              {currencies.map((curr) => (
+                <li key={curr} className="px-4 py-2">
+                  <button
+                    className="w-full text-left hover:bg-gray-100 cursor-pointer text-[#26266D] focus:outline-none"
+                    onClick={() => selectCurrency(curr)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") selectCurrency(curr);
+                    }}
+                  >
+                    {curr}
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>
