@@ -3,6 +3,11 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import HttpApi from "i18next-http-backend";
 
+
+const browserLanguage = navigator.language.split('-')[0];
+
+const storedLanguage =  browserLanguage || "en";
+
 i18n
   .use(HttpApi)
   .use(LanguageDetector)
@@ -15,10 +20,13 @@ i18n
       caches: ["localStorage", "cookie"],
     },
     backend: {
-      loadPath: "/i18n/locales/{{lng}}/{{ns}}.json", 
+      loadPath: "/i18n/locales/{{lng}}/{{ns}}.json",
     },
     ns: ["navbar", "footer", "student"],
     defaultNS: "student",
   });
+
+
+i18n.changeLanguage(storedLanguage);
 
 export default i18n;

@@ -5,7 +5,7 @@ const Footer: React.FC = () => {
   const { t } = useTranslation("footer");
 
   return (
-    <footer className="bg-[#0d0524] text-white py-4 w-full absolute bottom-0 w-full">
+    <footer className="bg-[#0d0524] text-white py-4 w-full">
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-4 md:px-10 text-center md:text-left">
         {/* Logo / Title */}
         <span className="font-bold text-lg md:text-2xl flex items-center">
