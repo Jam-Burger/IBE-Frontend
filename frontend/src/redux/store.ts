@@ -1,14 +1,13 @@
-import { configureStore } from '@reduxjs/toolkit';
+import {configureStore} from '@reduxjs/toolkit';
 import languageReducer from './languageSlice';
-;
-import currencySlice,{fetchExchangeRates} from './currencySlice';
+import currencySlice, {fetchExchangeRates} from './currencySlice';
 
 const store = configureStore({
-  reducer: {
-    language: languageReducer,
-  
-    currency: currencySlice
-  }
+    reducer: {
+        language: languageReducer,
+
+        currency: currencySlice
+    }
 });
 
 

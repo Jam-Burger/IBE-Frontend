@@ -1,7 +1,7 @@
 {
-    "title": "Informations sur l'étudiant",
-    "name": "Nom: {{name}}",
-    "email": "E-mail: {{email}}",
-    "age": "Âge: {{age}}",
-    "course": "Cours: {{course}}"
+  "title": "Informations sur l'étudiant",
+  "name": "Nom: {{name}}",
+  "email": "E-mail: {{email}}",
+  "age": "Âge: {{age}}",
+  "course": "Cours: {{course}}"
 }
