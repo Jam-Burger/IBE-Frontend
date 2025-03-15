@@ -19,7 +19,8 @@ const Header: React.FC = () => {
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
 
-  const languages = ["en", "hi"];
+  const languages = ["en","fr"];
+
   const currencies = ["USD", "EUR"];
 
   const toggleLanguageDropdown = () => {

@@ -1,0 +1,10 @@
+{
+    "title": "Hotel Information",
+    "hotelName": "Hotel Name: {{name}}",
+    "address": "Address",
+    "description": "Description",
+    "starRating": "Star Rating",
+    "pricePerNight": "Price Per Night",
+    "createdAt": "Created At"
+  }
+  
