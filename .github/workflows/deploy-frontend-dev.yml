@@ -29,7 +29,6 @@ jobs:
     env:
       BUCKET_NAME: ${{ needs.deploy-iac.outputs.bucket_name }}
       DISTRIBUTION_ID: ${{ needs.deploy-iac.outputs.cloudfront_id }}
-      AWS_DEFAULT_REGION: ${{ needs.deploy-iac.outputs.aws_region }}
 
     steps:
       - name: Checkout code
@@ -47,7 +46,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ needs.deploy-iac.outputs.aws_region }}
+          aws-region: ${{ vars.AWS_REGION }}
           mask-aws-account-id: true
 
       - name: Install dependencies
