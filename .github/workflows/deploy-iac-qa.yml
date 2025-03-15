@@ -26,11 +26,9 @@ jobs:
     defaults:
       run:
         working-directory: ./iac
-
     outputs:
       bucket_name: ${{ steps.output-vars.outputs.bucket_name }}
       cloudfront_id: ${{ steps.output-vars.outputs.cloudfront_id }}
-      aws_region: ${{ steps.output-vars.outputs.aws_region }}
     env:
       TF_VAR_aws_region: ${{ vars.AWS_REGION }}
       TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
