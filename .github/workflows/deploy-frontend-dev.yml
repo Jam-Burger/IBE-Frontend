@@ -57,6 +57,7 @@ jobs:
         env:
           CI: true
           NODE_ENV: dev
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - name: Deploy to S3
         run: |
