@@ -70,9 +70,5 @@ jobs:
       - name: Output Variables
         id: output-vars
         run: |
-          terraform output -json > tf_output.json
-          jq -r .s3_bucket_name.value tf_output.json
-          jq -r .cloudfront_distribution_id.value tf_output.json
-          echo "bucket_name=$(jq -r .s3_bucket_name.value tf_output.json)" >> $GITHUB_OUTPUT
-          echo "cloudfront_id=$(jq -r .cloudfront_distribution_id.value tf_output.json)" >> $GITHUB_OUTPUT
-        working-directory: ./iac
+          echo "bucket_name=$(terraform output -raw frontend_bucket_name | sed 's/::debug::Terraform.*//')" >> $GITHUB_OUTPUT
+          echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id | sed 's/::debug::Terraform.*//')" >> $GITHUB_OUTPUT
