@@ -1,19 +1,27 @@
-// pages/HomePage.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
-import { Student } from '../redux/dataSlice';
+import {  useSelector } from 'react-redux';
+import {  RootState } from '../redux/store';
+
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import axios from 'axios';
+
+interface Student {
+  name: string;
+  age: number;
+  email: string;
+}
+
 const HomePage: React.FC = () => {
   const { t } = useTranslation("student");
-  const { data, loading, error } = useSelector((state: RootState) => state.data);
+ 
   const { rates, selectedCurrency } = useSelector((state: RootState) => state.currency);
+  const language=useSelector((state: RootState) => state.language.language);
 
-  if (loading) return <p>{t('loading')}</p>;
-  if (error) return <p>{t('error')}: {error}</p>;
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const getCurrencyDisplay = (): string => {
     if (selectedCurrency === "USD") {
@@ -22,6 +30,36 @@ const HomePage: React.FC = () => {
     return `1 USD = ${rates[selectedCurrency] || 'N/A'} ${selectedCurrency}`;
   };
 
+  const [students,setStudents]=useState<Student[]>([]);
+
+  
+  
+ 
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL;
+    const fetchStudents = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get<Student[]>(`${API_URL}/students`, {
+          headers: {
+            "Accept-Language": language, // Replace this with dynamic language if needed
+          },
+        });
+        setStudents(response.data);
+      } catch (err) {
+        setError("Failed to fetch students");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, [language]);
+  
+  const handleError = () => {
+    
+    throw new Error('This is a test error for Sentry');
+  };
   const currencyDisplay = getCurrencyDisplay();
 
   return (
@@ -29,31 +67,45 @@ const HomePage: React.FC = () => {
       <Header />
       <main className="flex-grow container mx-auto p-4 w-full">
         <h1 className="text-2xl font-bold mb-6">{t('title')}</h1>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data?.map((student: Student, index: number) => (
-            <div
-              key={student?.email ?? index}
-              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
-            >
-              <div className="p-4">
-                <h2 className="text-xl font-semibold mb-2">{student?.name}</h2>
-                <div className="text-gray-700">
-                  <p className="mb-1">
-                    <span className="font-medium">{t('age', { age: student?.age })}</span>
-                  </p>
-                  <p className="mb-1">
-                    <span className="font-medium">{t('email', { email: student?.email })}</span>
-                  </p>
+          {loading ? (
+            // Centered Loader inside the grid
+            <div className="col-span-full flex justify-center items-center h-40">
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            students?.data?.map((student:Student, index: number) => (
+              <div
+                key={student?.email ?? index}
+                className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
+              >
+                <div className="p-4">
+                  <h2 className="text-xl font-semibold mb-2">{t('name', { name: student?.name })}</h2>
+                  <div className="text-gray-700">
+                    <p className="mb-1">
+                      <span className="font-medium">{t('age', { age: student?.age })}</span>
+                    </p>
+                    <p className="mb-1">
+                      <span className="font-medium">{t('email', { email: student?.email })}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
+
         <h1 className="text-3xl mt-6">
           The Current Currency Price is: {currencyDisplay}
         </h1>
+        <div>
+      <button onClick={handleError}>Test Sentry</button>
+    </div>
       </main>
+
       <Footer />
+
     </div>
   );
 };
