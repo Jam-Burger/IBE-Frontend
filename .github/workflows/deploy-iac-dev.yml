@@ -71,6 +71,7 @@ jobs:
         id: output-vars
         run: |
           terraform output -json > tf_output.json
+          cat tf_output.json
           echo "bucket_name=$(jq -r .s3_bucket_name.value tf_output.json)" >> $GITHUB_OUTPUT
           echo "cloudfront_id=$(jq -r .cloudfront_distribution_id.value tf_output.json)" >> $GITHUB_OUTPUT
         working-directory: ./iac
