@@ -1,13 +1,12 @@
-name: Deploy Frontend
+name: Deploy Frontend - Dev
 
 on:
   push:
     branches:
       - dev
-      - feature/workflows
     paths:
       - 'frontend/**'
-      - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/deploy-frontend-dev.yml'
 
 permissions:
   id-token: write
@@ -15,16 +14,22 @@ permissions:
 
 jobs:
   deploy-iac:
-    uses: ./.github/workflows/deploy-iac.yml
+    uses: ./.github/workflows/deploy-iac-dev.yml
     secrets: inherit
 
   deploy-frontend:
     needs: deploy-iac
     runs-on: ubuntu-latest
+    name: Deploy Frontend
+    environment: dev
+    defaults:
+      run:
+        working-directory: ./frontend
+
     env:
-      BUCKET_NAME: ${{ vars.FRONTEND_BUCKET_NAME }}
-      DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
-      AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+      BUCKET_NAME: ${{ needs.deploy-iac.outputs.bucket_name }}
+      DISTRIBUTION_ID: ${{ needs.deploy-iac.outputs.cloudfront_id }}
+      AWS_DEFAULT_REGION: ${{ needs.deploy-iac.outputs.aws_region }}
 
     steps:
       - name: Checkout code
@@ -42,25 +47,22 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ needs.deploy-iac.outputs.aws_region }}
           mask-aws-account-id: true
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-        working-directory: ./frontend
 
       - name: Build application
         run: yarn build
-        working-directory: ./frontend
         env:
           CI: true
-          NODE_ENV: production
+          NODE_ENV: dev
 
       - name: Deploy to S3
         run: |
           echo "Deploying to S3 bucket: $BUCKET_NAME"
           aws s3 sync dist/ s3://$BUCKET_NAME --delete
-        working-directory: ./frontend
         env:
           AWS_EC2_METADATA_DISABLED: true
 
@@ -69,4 +71,4 @@ jobs:
           echo "Invalidating CloudFront distribution: $DISTRIBUTION_ID"
           aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
         env:
-          AWS_EC2_METADATA_DISABLED: true
+          AWS_EC2_METADATA_DISABLED: true 

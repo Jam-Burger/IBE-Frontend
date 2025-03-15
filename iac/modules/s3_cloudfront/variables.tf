@@ -10,5 +10,5 @@ variable "team_name" {
 
 variable "tags" {
   description = "Tags"
-  type = map(string)
+  type        = map(string)
 }
