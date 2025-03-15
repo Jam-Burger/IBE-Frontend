@@ -12,14 +12,14 @@ import { useTranslation } from "react-i18next";
 const Header: React.FC = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation("navbar");
-
+ 
   const selectedLanguage = useSelector((state: RootState) => state.language.language);
   const selectedCurrency = useSelector((state: RootState) => state.currency.selectedCurrency);
 
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
 
-  const languages = ["en", "fr"];
+  const languages = ["en", "hi"];
   const currencies = ["USD", "EUR"];
 
   const toggleLanguageDropdown = () => {
@@ -57,6 +57,7 @@ const Header: React.FC = () => {
           <button
             className="flex items-center text-blue-900 text-xs md:text-sm cursor-pointer"
             onClick={toggleLanguageDropdown}
+            
           >
             <img src={language} alt="Language" className="w-5 h-5 md:w-6 md:h-6" />
             <span className="text-sm md:text-base text-[#26266D] ml-1">{selectedLanguage.toUpperCase()}</span>
@@ -79,7 +80,7 @@ const Header: React.FC = () => {
             </div>
           )}
         </div>
-
+         
         {/* Currency Dropdown */}
         <div className="relative">
           <button
