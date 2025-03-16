@@ -4,6 +4,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import { Route, Routes } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
+import LoginPage from './pages/LoginPage';
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -17,6 +18,7 @@ const App: React.FC = () => {
       <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </Router>
     </Sentry.ErrorBoundary>
