@@ -1,11 +1,11 @@
 // redux/currencySlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
-const API_URL = "https://api.frankfurter.app/latest?from=USD&to=EUR";
 
 export const fetchExchangeRates = createAsyncThunk(
   "currency/fetchExchangeRates",
   async () => {
+    const API_URL=import.meta.env.VITE_CURRENCY_API_URL;
     const response = await fetch(API_URL);
     const data = await response.json();
     return data.rates; 

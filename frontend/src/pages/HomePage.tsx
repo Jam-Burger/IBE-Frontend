@@ -9,15 +9,8 @@ import Footer from '../components/Footer';
 import axios from 'axios';
 import ErrorComponent from '../components/ErrorComponent';
 
-interface Hotel {
-  id: string;
-  name: string;
-  address: string;
-  description: string;
-  pricePerNight: number;
-  starRating: number;
-  createdAt: string;
-}
+import { Hotel } from '../types/Hotel'
+
 
 
 const HomePage: React.FC = () => {
@@ -29,7 +22,7 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 
+  
   
   const [hotels, setHotels] = useState<Hotel[]>([]);
 
@@ -48,13 +41,13 @@ const HomePage: React.FC = () => {
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        const response = await axios.get<Hotel[]>(`${API_URL}/hotels`, {
+        const response = await axios.get<{ data: Hotel[] }>(`${API_URL}/hotels`, {
           headers: {
             "Accept-Language": language,
           },
         });
       
-       console.log(response.data);
+       
        setHotels(response.data.data);
       
       } catch (err) {
