@@ -9,11 +9,7 @@ export default defineConfig({
         sentryVitePlugin({
             org: "kdu",
             project: "hufflepuff_ibe",
-
-            // Auth tokens can be obtained from sentry.io
             authToken: process.env.SENTRY_AUTH_TOKEN,
-
-
         })
     ],
 });

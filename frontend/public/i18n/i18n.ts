@@ -22,8 +22,8 @@ i18n
         backend: {
             loadPath: "/i18n/locales/{{lng}}/{{ns}}.json",
         },
-        ns: ["navbar", "footer", "student"],
-        defaultNS: "student",
+        ns: ["navbar", "footer", "hotel"],
+        defaultNS: "hotel",
     });
 
 

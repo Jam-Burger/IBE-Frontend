@@ -6,5 +6,5 @@ export interface Hotel {
     pricePerNight: number;
     starRating: number;
     createdAt: string;
-  }
+}
   
