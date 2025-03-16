@@ -12,7 +12,6 @@ import ErrorComponent from '../components/ErrorComponent';
 import { Hotel } from '../types/Hotel'
 
 
-
 const HomePage: React.FC = () => {
   const { t } = useTranslation("hotel");
 
@@ -22,11 +21,8 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  
-  
   const [hotels, setHotels] = useState<Hotel[]>([]);
 
-  
   const convertPrice = (amount: number): string => {
     if (selectedCurrency === "USD") {
       return `$${amount.toFixed(2)}`;
@@ -47,7 +43,7 @@ const HomePage: React.FC = () => {
           },
         });
       
-       
+  
        setHotels(response.data.data);
       
       } catch (err) {
