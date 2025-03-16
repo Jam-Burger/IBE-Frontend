@@ -1,17 +1,12 @@
+import React from "react";
 
 const ErrorComponent: React.FC = () => {
   return (
-    <div className="flex flex-col items-center justify-center p-4 bg-red-100 text-red-700 rounded-2xl shadow-md w-full max-w-md mx-auto">
-        <svg
-            className="w-12 h-12 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-        />
-      
-      <p className="text-sm text-center mt-1">{  "Something went wrong. Please try again."}</p>
-      
+    <div className="flex flex-col items-center justify-center min-h-screen text-center p-6 bg-red-200 text-white">
+      <div className="bg-white p-8 rounded-lg shadow-lg text-red-700 max-w-md w-full">
+        <h2 className="text-2xl font-semibold">Oops! Something went wrong.</h2>
+        <p className="mt-2 text-lg">An unexpected error occurred. Please try again.</p>
+      </div>
     </div>
   );
 };
