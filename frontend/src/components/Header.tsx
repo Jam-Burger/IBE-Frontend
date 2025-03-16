@@ -85,7 +85,7 @@ const Header: React.FC = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
                 {/* My Bookings Link */}
-                <a href="#bookings" className="text-sm font-medium uppercase text-[#26266D]">MY BOOKINGS</a>
+                <a href="/#" className="text-sm font-medium uppercase text-[#26266D]">MY BOOKINGS</a>
 
                 {/* Language Dropdown */}
                 <div className="relative">

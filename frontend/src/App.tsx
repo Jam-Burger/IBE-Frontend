@@ -1,9 +1,8 @@
 import React from 'react';
 import './App.css';
 import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
-import HomePage from './pages/HomePage';
 import * as Sentry from '@sentry/react';
-import LoginPage from './pages/LoginPage';
+import { HomePage, LoginPage, RoomsPage } from './pages';
 
 Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -18,6 +17,7 @@ const App: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<HomePage/>}/>
                     <Route path="/login" element={<LoginPage/>}/>
+                    <Route path="/property/:propertyId/rooms" element={<RoomsPage/>}/>
                 </Routes>
             </Router>
         </Sentry.ErrorBoundary>
