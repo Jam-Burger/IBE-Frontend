@@ -3,7 +3,7 @@ import './App.css';
 import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import { HomePage, LoginPage, RoomsPage } from './pages';
-
+import { Button } from './components/ui/button';
 Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     integrations: [Sentry.browserTracingIntegration()],
@@ -20,6 +20,7 @@ const App: React.FC = () => {
                     <Route path="/property/:propertyId/rooms" element={<RoomsPage/>}/>
                 </Routes>
             </Router>
+            <Button/>
         </Sentry.ErrorBoundary>
     );
 };
