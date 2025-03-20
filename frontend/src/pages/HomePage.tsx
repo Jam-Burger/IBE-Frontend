@@ -1,26 +1,30 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
+import {useTranslation} from 'react-i18next';
+
+import { Header, Footer } from '../components';
+
+
+import CardWithForm  from '../components/ui/CardWithForm';
 
 const HomePage: React.FC = () => {
-  const { t } = useTranslation();
-  const { data, loading, error } = useSelector((state: RootState) => state.data);
+    const {t} = useTranslation("hotel");
 
-  if (loading) return <p>{t('loading')}</p>;
-  if (error) return <p>{t('error')}: {error}</p>;
+    // const handleError = () => {
+    //     throw new Error('This is a test error for Sentry');
+    // };
 
-  return (
-    <div className="text-1xl font-bold underline">
-      
-      {/* Student Information */}
-      {data.length > 0 && (
-       
-          <h1>{t("name", { name: data[1]?.name })}</h1>
-        
-      )}
-    </div>
-  );
+   
+    return (
+        <div className="min-h-screen flex flex-col overflow-hidden">
+            <Header/>
+            <main className="flex-grow container mx-auto p-4 w-full">
+                <h1 className="text-2xl font-bold mb-6">{t('title')}</h1>
+                <CardWithForm/>
+                {/* <Button onClick={handleError}>Test Sentry</Button> */}
+            </main>
+            <Footer/>
+        </div>
+    );
 };
 
 export default HomePage;

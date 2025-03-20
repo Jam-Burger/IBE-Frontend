@@ -1,0 +1,74 @@
+name: Deploy Frontend - QA
+
+on:
+  push:
+    branches:
+      - qa
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/**-qa.yml'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-iac:
+    uses: ./.github/workflows/deploy-iac-qa.yml
+    secrets: inherit
+
+  deploy-frontend:
+    needs: deploy-iac
+    runs-on: ubuntu-latest
+    name: Deploy Frontend
+    environment: qa
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    env:
+      BUCKET_NAME: ${{ needs.deploy-iac.outputs.bucket_name }}
+      DISTRIBUTION_ID: ${{ needs.deploy-iac.outputs.cloudfront_id }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: './frontend/yarn.lock'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build application
+        run: yarn build
+        env:
+          CI: true
+          NODE_ENV: qa
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+
+      - name: Deploy to S3
+        run: |
+          echo "Deploying to S3 bucket: $BUCKET_NAME"
+          aws s3 sync dist/ s3://$BUCKET_NAME --delete
+        env:
+          AWS_EC2_METADATA_DISABLED: true
+
+      - name: Invalidate CloudFront cache
+        run: |
+          echo "Invalidating CloudFront distribution: $DISTRIBUTION_ID"
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
+        env:
+          AWS_EC2_METADATA_DISABLED: true 
