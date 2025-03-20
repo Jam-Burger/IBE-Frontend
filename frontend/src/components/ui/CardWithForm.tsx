@@ -18,7 +18,7 @@ import { Checkbox } from "./checkbox";
 
 export default function CardWithForm() {
   return (
-    <Card className="w-[350px] p-4 shadow-lg rounded-lg">
+    <Card className="w-[380px] h-[623px] p-4 shadow-lg rounded-lg gap-50">
       <CardContent>
         <form className="space-y-4">
           {/* Property Name */}
@@ -86,7 +86,7 @@ export default function CardWithForm() {
       </CardContent>
 
       <CardFooter className="flex justify-center">
-        <Button className="bg-[#2A1D64] text-white px-6 py-2 rounded-lg w-full">
+        <Button className="bg-[#2A1D64] text-white px-6 py-6 rounded-lg w-[50%]">
           SEARCH
         </Button>
       </CardFooter>
