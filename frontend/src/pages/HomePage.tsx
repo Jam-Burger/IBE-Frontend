@@ -9,13 +9,11 @@ import CardWithForm  from '../components/ui/CardWithForm';
 const HomePage: React.FC = () => {
     const {t} = useTranslation("hotel");
 
-
     // const handleError = () => {
     //     throw new Error('This is a test error for Sentry');
     // };
 
    
-
     return (
         <div className="min-h-screen flex flex-col overflow-hidden">
             <Header/>
