@@ -3,7 +3,7 @@ terraform {
     bucket         = "ibe-hufflepuff-terraform-frontend-state"
     key            = "terraform.tfstate"
     region         = "ap-northeast-2"
-    dynamodb_table = "ibe-hufflepuff-terraform-frontend-locks"
+    use_lockfile   = true
     encrypt        = true
   }
 
