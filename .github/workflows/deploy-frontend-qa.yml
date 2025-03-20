@@ -3,7 +3,7 @@ name: Deploy Frontend - QA
 on:
   push:
     branches:
-      - qa
+      - main
     paths:
       - 'frontend/**'
       - '.github/workflows/**-qa.yml'
