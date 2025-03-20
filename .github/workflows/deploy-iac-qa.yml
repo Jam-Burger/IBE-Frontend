@@ -1,12 +1,6 @@
 name: Deploy IaC - QA
 
 on:
-  push:
-    branches:
-      - qa
-    paths:
-      - 'iac/**'
-      - '.github/workflows/deploy-iac-qa.yml'
   workflow_call:
     outputs:
       bucket_name:

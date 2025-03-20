@@ -1,12 +1,6 @@
 name: Deploy IaC - Dev
 
 on:
-  push:
-    branches:
-      - dev
-    paths:
-      - 'iac/**'
-      - '.github/workflows/deploy-iac-dev.yml'
   workflow_call:
     outputs:
       bucket_name:
