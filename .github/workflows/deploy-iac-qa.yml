@@ -1,12 +1,6 @@
 name: Deploy IaC - QA
 
 on:
-  push:
-    branches:
-      - qa
-    paths:
-      - 'iac/**'
-      - '.github/workflows/deploy-iac-qa.yml'
   workflow_call:
     outputs:
       bucket_name:
@@ -41,7 +35,6 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.7
           terraform_wrapper: false
 
       - name: Configure AWS credentials

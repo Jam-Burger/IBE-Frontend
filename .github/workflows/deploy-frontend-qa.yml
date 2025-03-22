@@ -6,7 +6,7 @@ on:
       - qa
     paths:
       - 'frontend/**'
-      - '.github/workflows/deploy-frontend-qa.yml'
+      - '.github/workflows/**-qa.yml'
 
 permissions:
   id-token: write

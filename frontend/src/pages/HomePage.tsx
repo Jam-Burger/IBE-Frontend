@@ -6,7 +6,6 @@ import { Header, Footer } from '../components';
 import CardWithForm  from '../components/ui/CardWithForm';
 
 const HomePage: React.FC = () => {
-      
 
     return (
         <div className="min-h-screen flex flex-col overflow-hidden">
