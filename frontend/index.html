@@ -81,12 +81,10 @@
         
         if (langCode === 'en') {
           document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-          document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname;
           return;
         }
         
         document.cookie = `googtrans=/auto/${langCode}; path=/;`;
-        document.cookie = `googtrans=/auto/${langCode}; path=/; domain=` + location.hostname;
         
         hideGoogleElements();
       };

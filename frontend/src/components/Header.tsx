@@ -1,23 +1,26 @@
 import React, {useEffect, useState} from "react";
-import {setLanguage} from "../redux/languageSlice";
 import {fetchExchangeRates, updateCurrency} from "../redux/currencySlice";
 import languageIcon from "../assets/enicon.png";
 import currencyIcon from "../assets/currency.png";
-import {useTranslation} from "react-i18next";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "../redux/hooks";
 import {PulseLoader} from "react-spinners";
-import {DEFAULT_TENANT_ID} from "../lib/api-client";
+
+declare global {
+    interface Window {
+        translatePage?: (langCode: string) => void;
+    }
+}
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
-    const {t} = useTranslation("navbar");
     const navigate = useNavigate();
+    const {tenantId} = useParams<{tenantId: string}>();
 
-    const selectedLanguage = useAppSelector(state => state.language.language);
+    const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
     const {selectedCurrency, rates, status: currencyStatus} = useAppSelector(state => state.currency);
-    const {globalConfig, status} = useAppSelector(state => state.config);
-    const isLoading = status === "loading" || !globalConfig || currencyStatus === "loading";
+    const {globalConfig, landingConfig, status} = useAppSelector(state => state.config);
+    const isLoading = status === "loading" || !globalConfig || !landingConfig || currencyStatus === "loading";
 
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState<boolean>(false);
     const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState<boolean>(false);
@@ -47,8 +50,13 @@ const Header: React.FC = () => {
     };
 
     const selectLanguage = (lang: string) => {
-        dispatch(setLanguage(lang));
+        if (window.translatePage) {
+            window.translatePage(lang);
+            localStorage.setItem('selectedLanguage', lang);
+        }
+
         setLanguageDropdownOpen(false);
+        window.location.reload();
     };
 
     const selectCurrency = (curr: string) => {
@@ -80,13 +88,13 @@ const Header: React.FC = () => {
 
     const {brand} = globalConfig.configData;
     const brandLogo = brand.logoUrl;
-    const companyName = brand.companyName;
+    const pageTitle = landingConfig.configData.pageTitle;
 
     return (
         <header className="relative flex justify-between items-center py-4 px-6 bg-white shadow-md">
             <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
-                <img src={brandLogo} alt={`${companyName} Logo`} className="w-28 h-6 md:w-36 md:h-7"/>
-                <span className="font-bold text-lg md:text-xl text-[#26266D]">{t(companyName)}</span>
+                <img src={brandLogo} alt={pageTitle} className="w-28 h-6 md:w-36 md:h-7"/>
+                <span className="font-bold text-lg md:text-xl text-[#26266D]">{pageTitle}</span>
             </div>
 
             <div className="md:hidden">
@@ -158,14 +166,7 @@ const Header: React.FC = () => {
                 <button
                     className="bg-[#26266D] hover:bg-blue-800 text-white px-6 py-2 uppercase font-medium text-sm rounded"
                     onClick={() => {
-                        // Extract tenant ID from URL
-                        const path = window.location.pathname;
-                        const pathParts = path.split('/').filter(Boolean);
-
-                        // Use the first part of the path as tenant ID, or default if not available
-                        const currentTenantId = pathParts.length > 0 ? pathParts[0] : DEFAULT_TENANT_ID;
-
-                        navigate(`/${currentTenantId}/login`);
+                        navigate(`/${tenantId}/login`);
                     }}>
                     LOGIN
                 </button>

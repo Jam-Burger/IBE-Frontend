@@ -72,7 +72,7 @@ export function GuestSelector({onChange}: Readonly<GuestSelectorProps>) {
                             {/* Counter controls */}
                             <div className="flex items-center justify-between mb-1">
                                 <span className="font-medium text-base text-[#2F2F2F]">
-                                    {t(category.name.toLowerCase())}
+                                    {t(category.name)}
                                 </span>
                                 <div className="flex items-center">
                                     <Button
@@ -100,7 +100,7 @@ export function GuestSelector({onChange}: Readonly<GuestSelectorProps>) {
 
                             {/* Age range label below */}
                             <div className="text-xs text-gray-500">
-                                {t('ages')}: {category.label}
+                                {category.label}
                             </div>
                         </div>
                     )

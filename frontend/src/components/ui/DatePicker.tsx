@@ -5,6 +5,7 @@ import {addDays, addMonths, differenceInDays, format, isBefore, isSameMonth, sta
 import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {CalendarIcon, ChevronLeft, ChevronRight} from "lucide-react";
 import {DateRange} from "react-day-picker";
+import {useParams} from 'react-router-dom';
 
 import {cn} from "../../lib/utils";
 import {Button} from "./Button";
@@ -32,6 +33,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     const {data: roomRates, loading, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
     const {globalConfig} = useAppSelector(state => state.config);
+    const {tenantId} = useParams<{tenantId: string}>();
 
     const today = startOfToday();
     const [date, setDate] = React.useState<DateRange | undefined>({
@@ -81,7 +83,8 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                 const response = await api.getSpecialDiscounts({
                     propertyId,
                     startDate,
-                    endDate
+                    endDate,
+                    tenantId
                 });
 
                 if (response.statusCode === "OK" && Array.isArray(response.data)) {
@@ -99,7 +102,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         };
 
         fetchSpecialDiscounts();
-    }, [propertyId, currentMonth]);
+    }, [propertyId, currentMonth, tenantId]);
 
     React.useEffect(() => {
         if (date?.from && !isSameMonth(date.from, currentMonth) && !isSameMonth(date.from, rightMonth)) {

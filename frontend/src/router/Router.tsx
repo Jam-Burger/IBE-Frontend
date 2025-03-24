@@ -2,8 +2,8 @@ import {createHashRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
 import {HomePage, LoginPage, NotFoundPage} from "../pages";
 import {Routes} from "./routes";
-import {DEFAULT_TENANT_ID} from "../lib/api-client";
 
+const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID || '1';
 // Create a redirect component to handle the default tenant redirection
 const DefaultTenantRedirect = () => {
     return <Navigate to={`/${DEFAULT_TENANT_ID}`} replace/>;
