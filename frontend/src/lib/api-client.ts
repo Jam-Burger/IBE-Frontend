@@ -42,7 +42,7 @@ export const api = {
 
     // Room Rates API
     getRoomRates: async (params: RoomRateParams & { tenantId?: string }) => {
-        const {propertyId, startDate, endDate, tenantId = DEFAULT_TENANT_ID} = params;
+        const { propertyId, startDate, endDate, tenantId = DEFAULT_TENANT_ID } = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-rates/daily-minimum`,
             {params: {startDate, endDate}}
@@ -52,7 +52,7 @@ export const api = {
 
     // Special Discounts API
     getSpecialDiscounts: async (params: SpecialDiscountParams & { tenantId?: string }) => {
-        const {propertyId, startDate, endDate, tenantId = DEFAULT_TENANT_ID} = params;
+        const { propertyId, startDate, endDate, tenantId = DEFAULT_TENANT_ID } = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts`,
             {params: {startDate, endDate}}

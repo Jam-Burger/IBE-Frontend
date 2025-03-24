@@ -27,7 +27,7 @@ interface Property {
 }
 
 const CardWithForm = () => {
-    const {tenantId} = useParams<{ tenantId: string }>();
+    const {tenantId} = useParams<{tenantId: string}>();
     const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -66,13 +66,13 @@ const CardWithForm = () => {
     // Handle property selection change
     const handlePropertyChange = (propertyIdString: string) => {
         const propertyId = parseInt(propertyIdString, 10);
-        setSelectedPropertyId(isNaN(propertyId) ? '' : propertyId.toString());
+        setSelectedPropertyId(isNaN(propertyId) ? null : propertyId);
     };
 
     // Get selected property name for display
     const getSelectedPropertyName = () => {
-        if (selectedPropertyId === '') return "";
-        const property = properties.find(p => p.propertyId.toString() === selectedPropertyId);
+        if (selectedPropertyId === null) return "";
+        const property = properties.find(p => p.propertyId === selectedPropertyId);
         return property ? property.propertyName : "";
     };
 
@@ -96,8 +96,8 @@ const CardWithForm = () => {
                                 id="property"
                                 className="w-full min-h-[48px] text-gray-500 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
                             >
-                                {selectedPropertyId === '' && <p>Select Property</p>}
-                                {selectedPropertyId !== '' && (
+                                {selectedPropertyId === null && <p>Select Property</p>}
+                                {selectedPropertyId !== null && (
                                     <span>{getSelectedPropertyName()}</span>
                                 )}
                             </SelectTrigger>
@@ -124,10 +124,15 @@ const CardWithForm = () => {
 
                     <div className="flex flex-col space-y-2">
                         <Label>Select dates</Label>
-                        {selectedPropertyId !== '' && (
+                        {selectedPropertyId !== null ? (
                             <DatePickerWithRange
-                                propertyId={parseInt(selectedPropertyId, 10)}
+                                propertyId={selectedPropertyId}
                                 disabled={false}
+                            />
+                        ) : (
+                            <DatePickerWithRange
+                                propertyId={0}
+                                disabled={true}
                             />
                         )}
                     </div>
@@ -195,7 +200,7 @@ const CardWithForm = () => {
             <CardFooter className="flex justify-center mt-[100px]">
                 <Button
                     className="bg-[#2A1D64] text-white px-6 py-6 rounded-lg w-[140px] h-[44px]"
-                    disabled={selectedPropertyId === ''}
+                    disabled={selectedPropertyId === null}
                 >
                     SEARCH
                 </Button>

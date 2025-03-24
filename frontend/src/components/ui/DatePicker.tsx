@@ -33,7 +33,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     const {data: roomRates, loading, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
     const {globalConfig} = useAppSelector(state => state.config);
-    const {tenantId} = useParams<{ tenantId: string }>();
+    const {tenantId} = useParams<{tenantId: string}>();
 
     const today = startOfToday();
     const [date, setDate] = React.useState<DateRange | undefined>({
