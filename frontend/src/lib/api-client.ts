@@ -83,7 +83,7 @@ export const api = {
 
     // Currency API (external service)
     getCurrencyRates: async (base: string) => {
-        const response = await axios.get(`${import.meta.env.VITE_CURRENCY_API_URL}?base=${base}`);
+        const response = await axios.get(`https://api.frankfurter.app/latest?from=${base}`);
         return response.data;
     }
 };

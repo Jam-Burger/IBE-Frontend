@@ -2,13 +2,14 @@ import {createAsyncThunk, createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {api} from "../lib/api-client";
 import {RootState} from "./store";
 
-// Always fetch rates with USD as base
+// Fetch rates with USD as base from Frankfurter API
 export const fetchExchangeRates = createAsyncThunk(
     "currency/fetchExchangeRates",
     async (_, {rejectWithValue}) => {
         try {
             // Always use USD as the base currency for consistency
             const data = await api.getCurrencyRates("USD");
+            // Frankfurter API returns rates in data.rates
             return data.rates;
         } catch (error) {
             return rejectWithValue(error instanceof Error ? error.message : "Unknown error");
