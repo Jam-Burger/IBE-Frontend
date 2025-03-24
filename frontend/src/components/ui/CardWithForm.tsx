@@ -28,7 +28,7 @@ interface Property {
 
 const CardWithForm = () => {
     const {tenantId} = useParams<{tenantId: string}>();
-    const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+    const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     // Choose which icon to use (can be changed to any of the imported icons)
@@ -66,7 +66,7 @@ const CardWithForm = () => {
     // Handle property selection change
     const handlePropertyChange = (propertyIdString: string) => {
         const propertyId = parseInt(propertyIdString, 10);
-        setSelectedPropertyId(isNaN(propertyId) ? null : propertyId);
+        setSelectedPropertyId(propertyId);
     };
 
     // Get selected property name for display
