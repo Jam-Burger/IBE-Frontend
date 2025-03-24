@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "frontend" {
 }
 
 resource "aws_cloudfront_origin_access_control" "oac" {
-  name                              = "${var.project_name}-oac"
+  name                              = "${var.project_name}-frontend-oac"
   description                       = "Origin Access Control for S3 bucket"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
