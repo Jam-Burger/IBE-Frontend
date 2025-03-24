@@ -11,6 +11,8 @@ import { Checkbox } from "./checkbox";
 import { GuestSelector } from "./GuestSelector";
 import axios from "axios";
 
+import { FaWheelchair } from "react-icons/fa";
+
 interface Property {
   propertyId: number;
   propertyName: string;
@@ -145,8 +147,10 @@ export default function CardWithForm() {
           {landingConfig?.accessibility?.enabled && (
             <div className="flex items-center space-x-2">
               <Checkbox id="accessible-room" />
+              {/* <Wheelchair size={30} color="blue" strokeWidth={2} /> */}
+              <FaWheelchair size={15} color="#2A1D64" />
               <Label htmlFor="accessible-room" className="text-sm">
-                {landingConfig.accessibility.label}
+               {landingConfig.accessibility.label}
               </Label>
             </div>
           )}

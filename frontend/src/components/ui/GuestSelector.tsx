@@ -69,38 +69,53 @@ export function GuestSelector({ onChange }: GuestSelectorProps) {
         />
       </SelectTrigger>
       <SelectContent className="p-3">
-        {guestOptions.categories.map((category) => (
-          category.enabled && (
-            <div key={category.name} className="flex items-center justify-between py-2 px-3">
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-[#2F2F2F]">
-                  {category.label}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-6 w-6 p-0 hover:bg-transparent"
-                  onClick={() => handleChange(category.name, false)}
-                  disabled={counts[category.name] <= category.min}
-                >
-                  -
-                </Button>
-                <span className="w-4 text-center">{counts[category.name] || 0}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-6 w-6 p-0 hover:bg-transparent"
-                  onClick={() => handleChange(category.name, true)}
-                  disabled={counts[category.name] >= category.max}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-          )
-        ))}
+      {guestOptions.categories.map((category) => {
+  if (!category.enabled) return null;
+
+  // Extract category label and age range
+  const match = category.label.match(/^(.+?)\s*\((.+?)\)$/); 
+  const categoryName = match ? match[1] : category.label; 
+  const ageRange = match ? match[2] : ""; 
+
+  return (
+    <div key={category.name} className="flex items-center justify-between py-2 px-3">
+      {/* Label and Age Range (stacked) */}
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-[#2F2F2F]">
+          {categoryName}
+        </span>
+        {ageRange && (
+          <span className="text-xs text-gray-500">
+          {ageRange}
+        </span>
+        )}
+      </div>
+
+      {/* Buttons for count */}
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-6 w-6 p-0 hover:bg-transparent"
+          onClick={() => handleChange(category.name, false)}
+          disabled={counts[category.name] <= category.min}
+        >
+          -
+        </Button>
+        <span className="w-4 text-center">{counts[category.name] || 0}</span>
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-6 w-6 p-0 hover:bg-transparent"
+          onClick={() => handleChange(category.name, true)}
+          disabled={counts[category.name] >= category.max}
+        >
+          +
+        </Button>
+      </div>
+    </div>
+  );
+})}
       </SelectContent>
     </Select>
   );
