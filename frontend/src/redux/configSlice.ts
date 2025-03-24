@@ -1,80 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
-interface GlobalConfigResponse {
-    statusCode: string;
-    message: string;
-    timestamp: string;
-    data: {
-        tenantId: string;
-        configType: string;
-        updatedAt: number;
-        configData: {
-            brand: {
-                logoUrl: string;
-                companyName: string;
-            };
-            languages: { code: string; name: string }[];
-            currencies: { code: string; symbol: string }[];
-            properties: string[];
-        };
-    };
-}
-
-interface LandingConfigResponse {
-    statusCode: string;
-    message: string;
-    timestamp: string;
-    data: {
-        tenantId: string;
-        configType: string;
-        updatedAt: number;
-        configData: {
-            pageTitle: string;
-            banner: {
-                enabled: boolean;
-                imageUrl: string;
-            };
-            searchForm: {
-                lengthOfStay: {
-                    min: number;
-                    max: number;
-                };
-                guestOptions: {
-                    enabled: boolean;
-                    min: number;
-                    max: number;
-                    categories: {
-                        name: string;
-                        enabled: boolean;
-                        min: number;
-                        max: number;
-                        label: string;
-                        default: number;
-                    }[];
-                };
-                roomOptions: {
-                    enabled: boolean;
-                    min: number;
-                    max: number;
-                    default: number;
-                };
-                accessibility: {
-                    enabled: boolean;
-                    label: string;
-                };
-            };
-        };
-    };
-}
-
-
-export interface ConfigState {
-  globalConfig: GlobalConfigResponse|null;
-  landingConfig: LandingConfigResponse|null;
-  status: "idle" | "loading" | "failed";
-}
+import { ConfigState } from "../types";
 
 const initialState: ConfigState = {
   globalConfig: null,
@@ -82,14 +9,12 @@ const initialState: ConfigState = {
   status: "idle",
 };
 
-// Base API URL
-const API_BASE_URL = "http://localhost:8080/api/v1/config/1";
+
+const API_BASE_URL = import.meta.env.VITE_CONFIG_API_URL;
 
 // Fetch GLOBAL config
 export const fetchGlobalConfig = createAsyncThunk("config/fetchGlobalConfig", async () => {
-console.log("fetchGlobalConfig is called");
   const response = await axios.get(`${API_BASE_URL}/GLOBAL`);
-    
   return response.data;
 });
 

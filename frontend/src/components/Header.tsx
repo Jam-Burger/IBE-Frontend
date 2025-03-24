@@ -44,11 +44,13 @@ const Header: React.FC = () => {
     };
 
     const selectLanguage = (lang: string) => {
+        
         dispatch(setLanguage(lang));
         setLanguageDropdownOpen(false);
     };
 
     const selectCurrency = (curr: string) => {
+        
         dispatch(setSelectedCurrency(curr));
         setCurrencyDropdownOpen(false);
     };
@@ -111,8 +113,8 @@ const Header: React.FC = () => {
                     {currencyDropdownOpen && (
                         <ul className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-md rounded-md z-10">
                             {globalConfig?.currencies?.map((curr: { code: string; symbol: string }) => (
-                                <li key={curr.code} className="px-4 py-2">
-                                    <button className="w-full text-left hover:bg-gray-100 cursor-pointer text-[#26266D] focus:outline-none" onClick={() => selectCurrency(curr.code)}>
+                                <li key={curr.code} className="px-4 py-2" onClick={() => selectCurrency(curr.code)}>
+                                    <button className="w-full text-left hover:bg-gray-100 cursor-pointer text-[#26266D] focus:outline-none">
                                         {curr.code} ({curr.symbol})
                                     </button>
                                 </li>
