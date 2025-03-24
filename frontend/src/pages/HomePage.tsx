@@ -3,8 +3,10 @@ import CardWithForm from '../components/ui/CardWithForm';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {fetchGlobalConfig, fetchLandingConfig} from '../redux/configSlice';
 import {PulseLoader} from 'react-spinners';
+import {useParams} from 'react-router-dom';
 
 const HomePage: React.FC = () => {
+    const {tenantId} = useParams<{ tenantId: string }>();
     const dispatch = useAppDispatch();
     const {status, globalConfig, landingConfig} = useAppSelector(state => state.config);
 
@@ -12,10 +14,10 @@ const HomePage: React.FC = () => {
 
     const fetchConfigs = useCallback(async () => {
         await Promise.all([
-            dispatch(fetchGlobalConfig()),
-            dispatch(fetchLandingConfig())
+            dispatch(fetchGlobalConfig(tenantId)),
+            dispatch(fetchLandingConfig(tenantId))
         ]);
-    }, [dispatch]);
+    }, [dispatch, tenantId]);
 
     useEffect(() => {
         fetchConfigs();

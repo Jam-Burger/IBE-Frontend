@@ -9,14 +9,20 @@ const initialState: ConfigState = {
 };
 
 // Fetch GLOBAL config
-export const fetchGlobalConfig = createAsyncThunk("config/fetchGlobalConfig", async () => {
-    return api.getGlobalConfig();
-});
+export const fetchGlobalConfig = createAsyncThunk(
+    "config/fetchGlobalConfig",
+    async (tenantId?: string) => {
+        return api.getGlobalConfig(tenantId);
+    }
+);
 
 // Fetch LANDING config
-export const fetchLandingConfig = createAsyncThunk("config/fetchLandingConfig", async () => {
-    return api.getLandingConfig();
-});
+export const fetchLandingConfig = createAsyncThunk(
+    "config/fetchLandingConfig",
+    async (tenantId?: string) => {
+        return api.getLandingConfig(tenantId);
+    }
+);
 
 const configSlice = createSlice({
     name: "config",

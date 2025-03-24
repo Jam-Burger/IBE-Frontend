@@ -19,6 +19,7 @@ import {useAppSelector} from "../../redux/hooks";
 import {PulseLoader} from "react-spinners";
 // Import multiple accessibility icons from different icon sets
 import {FaWheelchair} from "react-icons/fa";
+import {useParams} from 'react-router-dom';
 
 interface Property {
     propertyId: number;
@@ -26,7 +27,8 @@ interface Property {
 }
 
 const CardWithForm = () => {
-    const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+    const {tenantId} = useParams<{ tenantId: string }>();
+    const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     // Choose which icon to use (can be changed to any of the imported icons)
@@ -42,7 +44,7 @@ const CardWithForm = () => {
     const fetchProperties = async () => {
         setLoading(true);
         try {
-            const propertiesData = await api.getProperties();
+            const propertiesData = await api.getProperties(tenantId);
             setProperties(propertiesData);
         } catch (err) {
             console.error("Error fetching properties:", err);
@@ -53,7 +55,7 @@ const CardWithForm = () => {
 
     useEffect(() => {
         fetchProperties();
-    }, []);
+    }, [tenantId]);
 
     // Check if a property is enabled based on config
     const isPropertyEnabled = (propertyId: number): boolean => {
@@ -64,13 +66,13 @@ const CardWithForm = () => {
     // Handle property selection change
     const handlePropertyChange = (propertyIdString: string) => {
         const propertyId = parseInt(propertyIdString, 10);
-        setSelectedPropertyId(isNaN(propertyId) ? null : propertyId);
+        setSelectedPropertyId(isNaN(propertyId) ? '' : propertyId.toString());
     };
 
     // Get selected property name for display
     const getSelectedPropertyName = () => {
-        if (selectedPropertyId === null) return "";
-        const property = properties.find(p => p.propertyId === selectedPropertyId);
+        if (selectedPropertyId === '') return "";
+        const property = properties.find(p => p.propertyId.toString() === selectedPropertyId);
         return property ? property.propertyName : "";
     };
 
@@ -94,8 +96,8 @@ const CardWithForm = () => {
                                 id="property"
                                 className="w-full min-h-[48px] text-gray-500 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
                             >
-                                {selectedPropertyId === null && <p>Select Property</p>}
-                                {selectedPropertyId !== null && (
+                                {selectedPropertyId === '' && <p>Select Property</p>}
+                                {selectedPropertyId !== '' && (
                                     <span>{getSelectedPropertyName()}</span>
                                 )}
                             </SelectTrigger>
@@ -122,15 +124,10 @@ const CardWithForm = () => {
 
                     <div className="flex flex-col space-y-2">
                         <Label>Select dates</Label>
-                        {selectedPropertyId !== null ? (
+                        {selectedPropertyId !== '' && (
                             <DatePickerWithRange
-                                propertyId={selectedPropertyId}
+                                propertyId={parseInt(selectedPropertyId, 10)}
                                 disabled={false}
-                            />
-                        ) : (
-                            <DatePickerWithRange
-                                propertyId={0}
-                                disabled={true}
                             />
                         )}
                     </div>
@@ -149,7 +146,7 @@ const CardWithForm = () => {
                                     }`}
                                 >
                                     <Label htmlFor="guests">Guests</Label>
-                                    <GuestSelector onChange={(counts) => console.log(counts)}/>
+                                    <GuestSelector/>
                                 </div>
                             )}
 
@@ -198,7 +195,7 @@ const CardWithForm = () => {
             <CardFooter className="flex justify-center mt-[100px]">
                 <Button
                     className="bg-[#2A1D64] text-white px-6 py-6 rounded-lg w-[140px] h-[44px]"
-                    disabled={selectedPropertyId === null}
+                    disabled={selectedPropertyId === ''}
                 >
                     SEARCH
                 </Button>

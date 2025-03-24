@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-// Default tenant ID from environment variable or use 1 as fallback
-export const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID || '1';
-
 // Create API client instance with base configuration
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -10,20 +7,6 @@ const apiClient = axios.create({
         'Content-Type': 'application/json',
     },
 });
-
-// Get current tenant ID from URL path
-export const getCurrentTenantId = (): string => {
-    const path = window.location.pathname;
-    const pathParts = path.split('/').filter(Boolean);
-
-    // If path starts with a tenant ID, use it
-    if (pathParts.length > 0) {
-        return pathParts[0];
-    }
-
-    // Otherwise return default
-    return DEFAULT_TENANT_ID;
-};
 
 interface RoomRateParams {
     propertyId: number;
@@ -37,32 +20,29 @@ interface SpecialDiscountParams {
     endDate: string;
 }
 
+const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID || '1';
 // Export functions for different API operations
 export const api = {
     // Config APIs
-    getGlobalConfig: async () => {
-        const tenantId = getCurrentTenantId();
+    getGlobalConfig: async (tenantId: string = DEFAULT_TENANT_ID) => {
         const response = await apiClient.get(`${tenantId}/config/GLOBAL`);
         return response.data;
     },
 
-    getLandingConfig: async () => {
-        const tenantId = getCurrentTenantId();
+    getLandingConfig: async (tenantId: string = DEFAULT_TENANT_ID) => {
         const response = await apiClient.get(`${tenantId}/config/LANDING`);
         return response.data;
     },
 
     // Property APIs
-    getProperties: async () => {
-        const tenantId = getCurrentTenantId();
+    getProperties: async (tenantId: string = DEFAULT_TENANT_ID) => {
         const response = await apiClient.get(`${tenantId}/properties`);
         return response.data;
     },
 
     // Room Rates API
-    getRoomRates: async (params: RoomRateParams) => {
-        const tenantId = getCurrentTenantId();
-        const {propertyId, startDate, endDate} = params;
+    getRoomRates: async (params: RoomRateParams & { tenantId?: string }) => {
+        const {propertyId, startDate, endDate, tenantId = DEFAULT_TENANT_ID} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-rates/daily-minimum`,
             {params: {startDate, endDate}}
@@ -71,9 +51,8 @@ export const api = {
     },
 
     // Special Discounts API
-    getSpecialDiscounts: async (params: SpecialDiscountParams) => {
-        const tenantId = getCurrentTenantId();
-        const {propertyId, startDate, endDate} = params;
+    getSpecialDiscounts: async (params: SpecialDiscountParams & { tenantId?: string }) => {
+        const {propertyId, startDate, endDate, tenantId = DEFAULT_TENANT_ID} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts`,
             {params: {startDate, endDate}}

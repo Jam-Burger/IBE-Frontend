@@ -7,11 +7,12 @@ import {api} from '../lib/api-client';
 interface FetchRoomRatesParams {
     currentMonth: Date;
     propertyId?: number;
+    tenantId?: string;
 }
 
 export const fetchRoomRates = createAsyncThunk(
     'roomRates/fetchRoomRates',
-    async ({currentMonth, propertyId}: FetchRoomRatesParams, {rejectWithValue}) => {
+    async ({currentMonth, propertyId, tenantId}: FetchRoomRatesParams, {rejectWithValue}) => {
         try {
             // Return early if no propertyId is provided
             if (!propertyId) {
@@ -24,7 +25,8 @@ export const fetchRoomRates = createAsyncThunk(
             const result = await api.getRoomRates({
                 propertyId,
                 startDate,
-                endDate
+                endDate,
+                tenantId
             });
 
             return result.data;

@@ -2,18 +2,12 @@ import {useEffect, useState} from 'react';
 import {useAppSelector} from '../../redux/hooks';
 import {Select, SelectContent, SelectTrigger, SelectValue,} from './Select';
 import {Button} from './Button';
-import {useTranslation} from 'react-i18next';
 
 interface GuestCount {
     [key: string]: number;
 }
 
-interface GuestSelectorProps {
-    onChange: (counts: GuestCount) => void;
-}
-
-export function GuestSelector({onChange}: Readonly<GuestSelectorProps>) {
-    const {t} = useTranslation('hotel');
+export function GuestSelector() {
     const guestOptions = useAppSelector(state => state.config.landingConfig?.configData.searchForm.guestOptions);
 
     const [counts, setCounts] = useState<GuestCount>({});
@@ -46,7 +40,6 @@ export function GuestSelector({onChange}: Readonly<GuestSelectorProps>) {
         }
 
         setCounts(newCounts);
-        onChange(newCounts);
     };
 
     const totalGuests = Object.values(counts).reduce((sum, count) => sum + count, 0);
@@ -59,9 +52,7 @@ export function GuestSelector({onChange}: Readonly<GuestSelectorProps>) {
                 className="w-full px-[1.1875rem] py-[0.75rem] !h-[3rem] text-[#858685] rounded-[0.25rem] border border-gray-300"
             >
                 <SelectValue
-                    placeholder={totalGuests > 0 ?
-                        `${totalGuests} ${totalGuests === 1 ? t('guest') : t('guests')}` :
-                        t('guests')}
+                    placeholder={`${totalGuests} ${totalGuests === 1 ? 'guest' : 'guests'}`}
                     style={{fontStyle: 'italic', color: '#2F2F2F', fontWeight: 'normal'}}
                 />
             </SelectTrigger>
@@ -72,7 +63,7 @@ export function GuestSelector({onChange}: Readonly<GuestSelectorProps>) {
                             {/* Counter controls */}
                             <div className="flex items-center justify-between mb-1">
                                 <span className="font-medium text-base text-[#2F2F2F]">
-                                    {t(category.name.toLowerCase())}
+                                    {category.name}
                                 </span>
                                 <div className="flex items-center">
                                     <Button
@@ -100,7 +91,7 @@ export function GuestSelector({onChange}: Readonly<GuestSelectorProps>) {
 
                             {/* Age range label below */}
                             <div className="text-xs text-gray-500">
-                                {t('ages')}: {category.label}
+                                {category.label}
                             </div>
                         </div>
                     )
