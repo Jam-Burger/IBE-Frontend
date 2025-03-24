@@ -1,10 +1,10 @@
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import {ApolloClient, createHttpLink, InMemoryCache} from '@apollo/client';
 
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_API_URL + '/graphql',
+    uri: import.meta.env.VITE_API_URL + '/graphql',
 });
 
 export const client = new ApolloClient({
-  link: httpLink,
-  cache: new InMemoryCache(),
+    link: httpLink,
+    cache: new InMemoryCache(),
 }); 

@@ -5,6 +5,12 @@
   "description": "Description",
   "starRating": "Star Rating",
   "pricePerNight": "Price Per Night",
-  "createdAt": "Created At"
+  "createdAt": "Created At",
+  "guest": "Guest",
+  "guests": "Guests",
+  "adults": "Adults",
+  "teens": "Teens",
+  "kids": "Kids",
+  "ages": "Ages"
 }
   
