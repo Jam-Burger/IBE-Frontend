@@ -1,4 +1,4 @@
-import {createBrowserRouter, Navigate} from "react-router-dom";
+import {createHashRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
 import {HomePage, LoginPage, NotFoundPage} from "../pages";
 import {Routes} from "./routes";
@@ -9,7 +9,8 @@ const DefaultTenantRedirect = () => {
     return <Navigate to={`/${DEFAULT_TENANT_ID}`} replace/>;
 };
 
-export const Router = createBrowserRouter([
+// Using createHashRouter instead of createBrowserRouter for better CloudFront compatibility
+export const Router = createHashRouter([
     {
         // Root path redirects to default tenant
         path: Routes.ROOT,

@@ -3,4 +3,4 @@ export const Routes = {
     HOME: "/:tenantId",
     LOGIN: "/:tenantId/login",
     NOT_FOUND: "*",
-} as const; 
+} as const;
