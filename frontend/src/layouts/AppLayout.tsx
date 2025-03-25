@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/react';
 export const AppLayout: React.FC = () => {
     return (
         <Sentry.ErrorBoundary fallback={<ErrorComponent/>}>
-            <div className="flex flex-col min-h-screen">
+            <div className="w-full flex flex-col min-h-screen">
                 <Header/>
                 <main className="flex-grow">
                     <Outlet/>

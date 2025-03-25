@@ -17,7 +17,7 @@ const Header: React.FC = () => {
     const navigate = useNavigate();
     const {tenantId} = useParams<{ tenantId: string }>();
 
-    const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+    const selectedLanguage = localStorage.getItem('selectedLanguage') ?? 'en';
     const {selectedCurrency, rates, status: currencyStatus} = useAppSelector(state => state.currency);
     const {globalConfig, landingConfig, status} = useAppSelector(state => state.config);
     const isLoading = status === "loading" || !globalConfig || !landingConfig || currencyStatus === "loading";

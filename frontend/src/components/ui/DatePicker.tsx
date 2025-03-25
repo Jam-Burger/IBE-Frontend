@@ -32,13 +32,13 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     const dispatch = useAppDispatch();
     const {data: roomRates, loading, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
-    const {globalConfig} = useAppSelector(state => state.config);
-    const {tenantId} = useParams<{tenantId: string}>();
+    const {globalConfig, landingConfig} = useAppSelector(state => state.config);
+    const {tenantId} = useParams<{ tenantId: string }>();
 
     const today = startOfToday();
     const [date, setDate] = React.useState<DateRange | undefined>({
         from: today,
-        to: addDays(today, 7),
+        to: addDays(today, 1),
     });
 
     const [currentMonth, setCurrentMonth] = React.useState<Date>(today);
@@ -50,7 +50,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     const handleSelect = (newRange: DateRange | undefined) => {
         if (newRange?.from && newRange?.to) {
             const diff = differenceInDays(newRange.to, newRange.from);
-            if (diff > 14) return;
+            if (diff > (landingConfig?.configData.searchForm.lengthOfStay.max ?? 0)) return;
         }
         setDate(newRange);
     };
@@ -58,7 +58,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     const isDisabled = (day: Date): boolean => {
         return (
             isBefore(day, today) ||
-            (date?.from && !date.to ? differenceInDays(day, date.from) > 14 : false)
+            (date?.from && !date.to ? differenceInDays(day, date.from) > (landingConfig?.configData.searchForm.lengthOfStay.max ?? 0) : false)
         );
     };
 

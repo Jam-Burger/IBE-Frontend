@@ -34,9 +34,15 @@ const HomePage: React.FC = () => {
 
     return (
         <div className="min-h-screen flex flex-col overflow-hidden">
-            <main
-                className="bg-[url('/banner.avif')] bg-cover bg-center h-screen w-full flex-grow container mx-auto p-4">
-                <CardWithForm/>
+            <main className="relative h-screen w-full flex-grow p-9">
+                <img
+                    src={landingConfig.configData.banner.imageUrl}
+                    alt="Background"
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                />
+                <div className="relative z-10 w-fit">
+                    <CardWithForm />
+                </div>
             </main>
         </div>
     );
