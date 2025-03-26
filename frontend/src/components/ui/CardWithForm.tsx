@@ -17,7 +17,6 @@ import {
 import {api} from "../../lib/api-client";
 import {useAppSelector} from "../../redux/hooks";
 import {PulseLoader} from "react-spinners";
-// Import multiple accessibility icons from different icon sets
 import {FaWheelchair} from "react-icons/fa";
 import {useParams} from 'react-router-dom';
 
@@ -27,7 +26,7 @@ interface Property {
 }
 
 const CardWithForm = () => {
-    const {tenantId} = useParams<{tenantId: string}>();
+    const {tenantId} = useParams<{ tenantId: string }>();
     const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -78,25 +77,26 @@ const CardWithForm = () => {
 
     if (loading || configLoading) {
         return (
-            <Card className="w-[380px] min-h-[585px] p-4 shadow-lg rounded-lg flex items-center justify-center">
-                <PulseLoader color="#26266D" size={10}/>
+            <Card className="w-[380px] h-[585px] p-4 shadow-lg rounded-lg flex items-center justify-center">
+                <PulseLoader color="var(--primary)" size={10}/>
             </Card>
         );
     }
 
     return (
-        <Card className="w-[380px] min-h-[585px] p-4 shadow-lg rounded-lg">
-            <CardContent>
-                <form className="space-y-4">
+        <Card className="w-[380px] h-[585px] py-8 sm:py-12 px-4 sm:px-8 shadow-lg rounded-lg mx-auto">
+            <CardContent className="flex flex-col h-full">
+                <form className="space-y-4 flex-1">
                     {/* Property Name */}
                     <div className="flex flex-col space-y-2">
                         <Label htmlFor="property">Property name</Label>
                         <Select onValueChange={handlePropertyChange}>
                             <SelectTrigger
                                 id="property"
-                                className="w-full min-h-[48px] text-gray-500 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
+                                className="w-full min-h-[48px] text-gray-700 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
                             >
-                                {selectedPropertyId === null && <p>Select Property</p>}
+                                {selectedPropertyId === null &&
+                                    <p className="text-muted-foreground italic font-light">Search all properties</p>}
                                 {selectedPropertyId !== null && (
                                     <span>{getSelectedPropertyName()}</span>
                                 )}
@@ -110,7 +110,7 @@ const CardWithForm = () => {
                                         disabled={!isPropertyEnabled(property.propertyId)}
                                     >
                                         <Checkbox
-                                            className="mr-2 data-[state=checked]:bg-[#26266D] text-white data-[state=checked]:text-white border-[#C1C2C2]"
+                                            className="mr-2 data-[state=checked]:bg-primary text-white data-[state=checked]:text-white border-[#C1C2C2]"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                             }}
@@ -140,13 +140,13 @@ const CardWithForm = () => {
                     {/* Guests & Rooms */}
                     {searchForm.guestOptions && searchForm.roomOptions && (
                         <div className={searchForm.guestOptions.enabled && searchForm.roomOptions.enabled
-                            ? "grid grid-cols-12 gap-2"
+                            ? "flex gap-2"
                             : "w-full"
                         }>
                             {searchForm.guestOptions.enabled && (
                                 <div
                                     className={`flex flex-col space-y-1 ${searchForm.roomOptions.enabled
-                                        ? 'col-span-8'
+                                        ? 'flex-6'
                                         : 'w-full'
                                     }`}
                                 >
@@ -158,7 +158,7 @@ const CardWithForm = () => {
                             {searchForm.roomOptions.enabled && (
                                 <div
                                     className={`flex flex-col space-y-1 ${searchForm.guestOptions.enabled
-                                        ? 'col-span-4'
+                                        ? 'flex-4'
                                         : 'w-full'
                                     }`}
                                 >
@@ -186,7 +186,7 @@ const CardWithForm = () => {
                         <div className="flex items-center space-x-2">
                             <Checkbox id="accessible-room"/>
                             <div className="flex items-center space-x-2">
-                                <AccessibilityIcon className="text-[#26266D] text-lg" aria-hidden="true"/>
+                                <AccessibilityIcon className="text-primary text-lg" aria-hidden="true"/>
                                 <Label htmlFor="accessible-room" className="text-sm">
                                     {searchForm.accessibility.label}
                                 </Label>
@@ -197,7 +197,7 @@ const CardWithForm = () => {
             </CardContent>
 
             {/* Submit Button */}
-            <CardFooter className="flex justify-center mt-[100px]">
+            <CardFooter className="flex justify-center mt-[60px] sm:mt-[100px]">
                 <Button
                     className="bg-[#2A1D64] text-white px-6 py-6 rounded-lg w-[140px] h-[44px]"
                     disabled={selectedPropertyId === null}

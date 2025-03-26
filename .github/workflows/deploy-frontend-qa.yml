@@ -67,6 +67,8 @@ jobs:
           VITE_CURRENCY_API_URL: ${{ vars.VITE_CURRENCY_API_URL }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          VITE_LOCATION_API_URL: ${{ vars.VITE_LOCATION_API_URL }}
+          VITE_TENANT_ID: ${{ vars.VITE_TENANT_ID }}
 
       - name: Deploy to S3
         run: |

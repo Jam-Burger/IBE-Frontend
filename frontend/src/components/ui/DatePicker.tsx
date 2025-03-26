@@ -1,13 +1,14 @@
-"use client";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {addDays, addMonths, differenceInDays, format, isBefore, isSameMonth, startOfToday, subMonths,} from "date-fns";
+import {addDays, addMonths, differenceInDays, format, isBefore, startOfToday, subMonths} from "date-fns";
 import {useAppDispatch, useAppSelector} from "../../redux/hooks";
-import {CalendarIcon, ChevronLeft, ChevronRight} from "lucide-react";
+import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
+import {MdOutlineCalendarMonth} from "react-icons/md";
 import {DateRange} from "react-day-picker";
 import {useParams} from 'react-router-dom';
+import {StateStatus} from "../../types/common";
 
-import {cn} from "../../lib/utils";
+import {cn, formatPrice} from "../../lib/utils";
 import {Button} from "./Button";
 import {Calendar} from "./Calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
@@ -28,12 +29,24 @@ interface DatePickerWithRangeProps {
     disabled: boolean;
 }
 
+interface RoomRates {
+    [date: string]: number;
+}
+
 export function DatePickerWithRange({className, propertyId, disabled}: Readonly<DatePickerWithRangeProps>) {
     const dispatch = useAppDispatch();
-    const {data: roomRates, loading, error} = useAppSelector(state => state.roomRates);
+    const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
-    const {globalConfig, landingConfig} = useAppSelector(state => state.config);
+    const {landingConfig} = useAppSelector(state => state.config);
     const {tenantId} = useParams<{ tenantId: string }>();
+
+    const formattedRoomRates = React.useMemo(() => {
+        const rates: RoomRates = {};
+        roomRates.forEach(rate => {
+            rates[rate.date] = rate.minimumRate;
+        });
+        return rates;
+    }, [roomRates]);
 
     const today = startOfToday();
     const [date, setDate] = React.useState<DateRange | undefined>({
@@ -41,44 +54,99 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         to: addDays(today, 1),
     });
 
-    const [currentMonth, setCurrentMonth] = React.useState<Date>(today);
+    // Set fixed date range from March to July
+    const startMonth = new Date(new Date().getFullYear(), 2, 1); // March
+    const endMonth = new Date(new Date().getFullYear(), 6, 1); // June
+    const [currentMonth, setCurrentMonth] = React.useState<Date>(startMonth);
     const [specialDiscounts, setSpecialDiscounts] = useState<Record<string, number>>({});
     const [loadingDiscounts, setLoadingDiscounts] = useState<boolean>(false);
-
-    const rightMonth = addMonths(currentMonth, 1);
-
     const handleSelect = (newRange: DateRange | undefined) => {
-        if (newRange?.from && newRange?.to) {
-            const diff = differenceInDays(newRange.to, newRange.from);
-            if (diff > (landingConfig?.configData.searchForm.lengthOfStay.max ?? 0)) return;
+        if (!newRange) {
+            setDate(undefined);
+            return;
         }
-        setDate(newRange);
+
+        // Reset selection if clicking the same cell
+        if (date?.from && date?.to &&
+            newRange.from?.getTime() === date.from.getTime() &&
+            newRange.to?.getTime() === date.to.getTime()) {
+            setDate(undefined);
+            return;
+        }
+
+        const minNights = landingConfig?.configData.searchForm.lengthOfStay.min ?? 0;
+        const maxNights = landingConfig?.configData.searchForm.lengthOfStay.max ?? 0;
+
+        if (newRange.from && !newRange.to) {
+            setDate(newRange);
+            return;
+        }
+
+        if (newRange.from && newRange.to) {
+            const diff = differenceInDays(newRange.to, newRange.from);
+            if (diff < minNights) {
+                // If selected range is less than minimum nights, adjust end date
+                const adjustedTo = addDays(newRange.from, minNights);
+                setDate({
+                    from: newRange.from,
+                    to: adjustedTo
+                });
+            } else if (diff > maxNights) {
+                // If selected range is more than maximum nights, adjust end date
+                const adjustedTo = addDays(newRange.from, maxNights);
+                setDate({
+                    from: newRange.from,
+                    to: adjustedTo
+                });
+            } else {
+                setDate(newRange);
+            }
+        }
     };
 
     const isDisabled = (day: Date): boolean => {
-        return (
-            isBefore(day, today) ||
-            (date?.from && !date.to ? differenceInDays(day, date.from) > (landingConfig?.configData.searchForm.lengthOfStay.max ?? 0) : false)
-        );
+        if (isBefore(day, today)) return true;
+
+        if (date?.from && !date.to) {
+            const diff = differenceInDays(day, date.from);
+            const minNights = landingConfig?.configData.searchForm.lengthOfStay.min ?? 1;
+            const maxNights = landingConfig?.configData.searchForm.lengthOfStay.max ?? 14;
+            return diff < minNights || diff > maxNights;
+        }
+
+        return false;
     };
 
-    const prevMonth = () => {
-        setCurrentMonth((prev) => subMonths(prev, 1));
+    const handleMonthChange = (newMonth: Date) => {
+        // Only allow navigation between March and June
+        if (newMonth >= startMonth && newMonth <= endMonth) {
+            setCurrentMonth(newMonth);
+        }
     };
 
-    const nextMonth = () => {
-        setCurrentMonth((prev) => addMonths(prev, 1));
-    };
+    // Fetch all prices when property changes
+    React.useEffect(() => {
+        if (propertyId) {
+            // Fetch prices for March to June
+            dispatch(fetchRoomRates({
+                currentMonth: startMonth,
+                propertyId,
+                endMonth
+            }));
+        } else {
+            dispatch(clearRoomRates());
+        }
+    }, [propertyId, dispatch]);
 
-    // Fetch special discounts
+    // Fetch special discounts for the entire range
     useEffect(() => {
         const fetchSpecialDiscounts = async () => {
             if (!propertyId) return;
 
             setLoadingDiscounts(true);
             try {
-                const startDate = format(subMonths(currentMonth, 1), "yyyy-MM-dd");
-                const endDate = format(addMonths(currentMonth, 3), "yyyy-MM-dd");
+                const startDate = format(startMonth, "yyyy-MM-dd");
+                const endDate = format(endMonth, "yyyy-MM-dd");
 
                 const response = await api.getSpecialDiscounts({
                     propertyId,
@@ -102,85 +170,48 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         };
 
         fetchSpecialDiscounts();
-    }, [propertyId, currentMonth, tenantId]);
+    }, [propertyId, tenantId]);
 
-    React.useEffect(() => {
-        if (date?.from && !isSameMonth(date.from, currentMonth) && !isSameMonth(date.from, rightMonth)) {
-            setCurrentMonth(date.from);
-        }
-    }, [date?.from, currentMonth, rightMonth]);
-
-
-    React.useEffect(() => {
-        if (propertyId) {
-            try {
-                dispatch(fetchRoomRates({
-                    currentMonth,
-                    propertyId
-                }));
-            } catch (error) {
-                console.error("Error parsing property ID:", error);
-            }
-        } else {
-            dispatch(clearRoomRates());
-        }
-    }, [propertyId, currentMonth, dispatch]);
-
-    // Custom day content renderer - separated from the Day component
     const renderDayContents = (day: Date) => {
-        const formattedDate = format(day, "yyyy-MM-dd");
-        const rateInfo = roomRates.find(rate => rate.date === formattedDate);
-        const isPastDate = isBefore(day, today);
-
-        // Only show the date number for past dates
-        if (isPastDate) {
-            return <div className="flex flex-col items-center justify-center h-full">{format(day, "d")}</div>;
+        // Don't show prices for past dates
+        if (isBefore(day, today)) {
+            return (
+                <div className="flex flex-col items-center justify-start h-full">
+                    <div>{format(day, "d")}</div>
+                </div>
+            );
         }
 
-        if (!rateInfo) return <div
-            className="flex flex-col items-center justify-center h-full">{format(day, "d")}</div>; // If no rate, just show the date
-
-        // Convert prices using the currency multiplier
-        const originalPrice = rateInfo.minimumRate * multiplier;
-        const discountPercentage = specialDiscounts[formattedDate] || 0;
-        const discountedPrice = discountPercentage > 0
-            ? Math.round(originalPrice * (1 - discountPercentage / 100) * 100) / 100
-            : originalPrice;
-
-        // Get the currency symbol
-        let currencySymbol = '$';
-        if (globalConfig?.configData?.currencies) {
-            const currencyObj = globalConfig.configData.currencies.find(c => c.code === selectedCurrency);
-            if (currencyObj) {
-                currencySymbol = currencyObj.symbol;
-            }
-        }
+        const dayStr = format(day, "yyyy-MM-dd");
+        const originalPrice = formattedRoomRates[dayStr] * multiplier;
+        const discountPercentage = specialDiscounts[dayStr];
+        const discountedPrice = originalPrice * (1 - discountPercentage / 100);
+        const currencySymbol = selectedCurrency.symbol;
 
         const isRangeEnd = date?.from && date?.to &&
             (day.getTime() === date.from.getTime() || day.getTime() === date.to.getTime());
 
-        const textColor = isRangeEnd ? 'text-white' : '';
+        const textColor = isRangeEnd ? 'text-white' : 'text-gray-600';
 
         return (
-            <div className="flex flex-col items-center justify-center h-full">
+            <div className="flex flex-col items-center justify-start h-full">
                 <div>{format(day, "d")}</div>
                 {discountPercentage > 0 ? (
-                    <div className={`text-xs mt-1 ${textColor}`}>
-                        <div className="line-through text-gray-500">{currencySymbol}{originalPrice.toFixed(2)}</div>
-                        <div>{currencySymbol}{discountedPrice.toFixed(2)}</div>
+                    <div className={`${textColor}`}>
+                        <div className="line-through text-gray-500 text-sm">
+                            {currencySymbol}{formatPrice(originalPrice)}
+                        </div>
+                        <div className="text-sm">
+                            {currencySymbol}{formatPrice(discountedPrice)}
+                        </div>
                     </div>
                 ) : (
-                    <div className={`text-xs mt-1 ${textColor}`}>
-                        {currencySymbol}{originalPrice.toFixed(2)}
+                    <div className={`${textColor} text-sm`}>
+                        {currencySymbol}{formatPrice(originalPrice)}
                     </div>
                 )}
             </div>
         );
-    };
-
-    // Format day cells
-    const formatDay = (day: Date) => {
-        return renderDayContents(day);
     };
 
     return (
@@ -190,114 +221,251 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                     <Button
                         id="date"
                         variant="outline"
-                        className="w-full max-w-md h-14 justify-start text-left font-normal rounded-md border border-gray-200 shadow-sm px-4 py-3 flex items-center gap-2 min-h-[48px]"
+                        className="w-full text-gray-700 disabled:text-gray-500 max-w-md min-h-[48px] justify-start text-left font-normal rounded-md border border-gray-200 shadow-sm px-4 py-3 flex items-center gap-2"
                         disabled={disabled}
                     >
                         <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-2 sm:gap-6 text-sm sm:text-base">
                                 <div className="flex flex-col">
-                                    <span className="text-gray-500 font-medium">Check-in</span>
+                                    <span>Check-in</span>
                                 </div>
-                                <div className="text-gray-500">→</div>
+                                <div>→</div>
                                 <div className="flex flex-col">
-                                    <span className="text-gray-500 font-medium">Check out</span>
+                                    <span>Check out</span>
                                 </div>
                             </div>
-                            <CalendarIcon className="h-5 w-5 text-gray-500"/>
+                            <MdOutlineCalendarMonth className="h-5 w-5 "/>
                         </div>
                     </Button>
                 </PopoverTrigger>
 
                 <PopoverContent
-                    className="absolute left-0 top-full mt-2 w-[896px] bg-white shadow-md z-50"
-                    align="start"
+                    className="w-[90vw] sm:w-[896px] bg-white shadow-md z-50 p-0 border rounded-md"
+                    align="center"
                     side="bottom"
                     sideOffset={5}
                 >
-                    <div className="p-4">
-                        <div className="flex space-x-8">
-                            <div className="w-full">
-                                <div className="flex items-center mb-4 justify-start">
-                                    <span className="text-lg font-medium mx-2">{format(currentMonth, "MMMM")}</span>
-                                    <button
-                                        onClick={prevMonth}
-                                        className="h-6 w-6 flex items-center justify-center mx-1"
-                                    >
-                                        <ChevronLeft className="w-4 h-4"/>
-                                    </button>
-
-                                    <button
-                                        onClick={nextMonth}
-                                        className="h-6 w-6 flex items-center justify-center mx-1"
-                                    >
-                                        <ChevronRight className="w-4 h-4"/>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="w-full">
-                                <div className="flex items-center mb-4 justify-start">
-                                    <span className="text-lg font-medium mr-2">{format(rightMonth, "MMMM")}</span>
-                                    <button
-                                        onClick={prevMonth}
-                                        className="h-6 w-6 flex items-center justify-center mx-1"
-                                    >
-                                        <ChevronLeft className="w-4 h-4"/>
-                                    </button>
-                                    <button
-                                        onClick={nextMonth}
-                                        className="h-6 w-6 flex items-center justify-center mx-1"
-                                    >
-                                        <ChevronRight className="w-4 h-4"/>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {loading || loadingDiscounts ? (
+                    <div className="p-2 sm:p-4">
+                        {status === StateStatus.LOADING || loadingDiscounts ? (
                             <div className="flex justify-center p-4">Loading rates and discounts...</div>
                         ) : (
-                            <Calendar
-                                initialFocus
-                                mode="range"
-                                defaultMonth={currentMonth}
-                                month={currentMonth}
-                                selected={date}
-                                onSelect={handleSelect}
-                                numberOfMonths={2}
-                                disabled={isDisabled}
-                                modifiersStyles={{
-                                    day_range_start: {backgroundColor: "#26266D", color: "white", fontWeight: "bold"},
-                                    day_range_end: {backgroundColor: "#26266D", color: "white", fontWeight: "bold"},
-                                    day_range_middle: {backgroundColor: "#C1C2C2", color: "black"}
-                                }}
-                                classNames={{
-                                    months: "flex space-x-9",
-                                    month: "w-full relative",
-                                    caption: "hidden",
-                                    nav: "hidden",
-                                    table: "w-full border-collapse",
-                                    head_row: "flex justify-between text-gray-600 text-sm font-medium mb-2",
-                                    head_cell: "w-10 text-center",
-                                    row: "flex justify-between gap-2 mb-3",
-                                    cell: "w-[3.125rem] h-[3.75rem] flex flex-col items-center justify-center",
-                                    day: "h-[3.75rem] w-[3.125rem] flex flex-col items-center justify-center p-0",
-                                    day_selected: "!bg-[#26266D] !text-white !font-bold",
-                                    day_range_start: "!bg-[#26266D] !text-white !font-bold",
-                                    day_range_end: "!bg-[#26266D] !text-white !font-bold",
-                                    day_range_middle: "!bg-[#C1C2C2] !text-black",
-                                    day_disabled: "!text-gray-400 !cursor-not-allowed",
-                                }}
-                                formatters={{
-                                    formatDay: (date) => {
-                                        return (
-                                            <div className="h-full">
-                                                {formatDay(date)}
-                                            </div>
-                                        );
-                                    }
-                                }}
-                            />
+                            <div className="flex flex-col">
+                                <div className="flex items-center my-4 md:hidden px-4">
+                                    <span className="text-sm font-medium mr-2 text-gray-500">
+                                        {format(currentMonth, "MMMM")}
+                                    </span>
+                                    <button
+                                        onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
+                                        className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
+                                    >
+                                        <FaChevronLeft className="w-4 h-4"/>
+                                    </button>
+                                    <button
+                                        onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
+                                        className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
+                                    >
+                                        <FaChevronRight className="w-4 h-4"/>
+                                    </button>
+                                </div>
+                                <div className="hidden md:flex md:space-x-8 justify-center">
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center mb-4">
+                                            <span className="text-sm font-medium mr-2 text-gray-500">
+                                                {format(currentMonth, "MMMM")}
+                                            </span>
+                                            <button
+                                                onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
+                                                className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
+                                            >
+                                                <FaChevronLeft className="w-4 h-4"/>
+                                            </button>
+                                            <button
+                                                onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
+                                                className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
+                                            >
+                                                <FaChevronRight className="w-4 h-4"/>
+                                            </button>
+                                        </div>
+                                        <Calendar
+                                            initialFocus
+                                            mode="range"
+                                            defaultMonth={currentMonth}
+                                            month={currentMonth}
+                                            selected={date}
+                                            onSelect={handleSelect}
+                                            onMonthChange={handleMonthChange}
+                                            numberOfMonths={1}
+                                            disabled={isDisabled}
+                                            fromDate={today}
+                                            modifiersStyles={{
+                                                day_range_start: {
+                                                    backgroundColor: "var(--primary)",
+                                                    color: "white",
+                                                    fontWeight: "bold"
+                                                },
+                                                day_range_end: {
+                                                    backgroundColor: "var(--primary)",
+                                                    color: "white",
+                                                    fontWeight: "bold"
+                                                },
+                                                day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
+                                            }}
+                                            classNames={{
+                                                months: "flex flex-col",
+                                                month: "w-full relative",
+                                                caption: "hidden",
+                                                nav: "hidden",
+                                                table: "w-full border-collapse",
+                                                head_row: "flex justify-between",
+                                                head_cell: "w-[50px] text-center font-medium text-gray-500",
+                                                row: "flex justify-between mb-3",
+                                                cell: "w-[50px] h-[60px] flex flex-col items-center justify-center mx-0.5",
+                                                day: "h-[60px] w-[50px] flex flex-col items-center justify-center p-0",
+                                                day_today: "bg-none",
+                                                day_range_middle: "!bg-[#AAA] text-black font-normal",
+                                                day_disabled: "!text-gray-400 font-light !cursor-not-allowed",
+                                            }}
+                                            formatters={{
+                                                formatWeekdayName: (date) => {
+                                                    return format(date, "EEEEEE").toUpperCase();
+                                                },
+                                                formatDay: (date) => {
+                                                    return (
+                                                        <div className="h-full">
+                                                            {renderDayContents(date)}
+                                                        </div>
+                                                    );
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center mb-4">
+                                            <span className="text-sm font-medium mr-2 text-gray-500">
+                                                {format(addMonths(currentMonth, 1), "MMMM")}
+                                            </span>
+                                            <button
+                                                onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
+                                                className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
+                                            >
+                                                <FaChevronLeft className="w-4 h-4"/>
+                                            </button>
+                                            <button
+                                                onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
+                                                className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
+                                            >
+                                                <FaChevronRight className="w-4 h-4"/>
+                                            </button>
+                                        </div>
+                                        <Calendar
+                                            initialFocus
+                                            mode="range"
+                                            defaultMonth={addMonths(currentMonth, 1)}
+                                            month={addMonths(currentMonth, 1)}
+                                            selected={date}
+                                            onSelect={handleSelect}
+                                            onMonthChange={handleMonthChange}
+                                            numberOfMonths={1}
+                                            disabled={isDisabled}
+                                            fromDate={today}
+                                            modifiersStyles={{
+                                                day_range_start: {
+                                                    backgroundColor: "var(--primary)",
+                                                    color: "white",
+                                                    fontWeight: "bold"
+                                                },
+                                                day_range_end: {
+                                                    backgroundColor: "var(--primary)",
+                                                    color: "white",
+                                                    fontWeight: "bold"
+                                                },
+                                                day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
+                                            }}
+                                            classNames={{
+                                                months: "flex flex-col",
+                                                month: "w-full relative",
+                                                caption: "hidden",
+                                                nav: "hidden",
+                                                table: "w-full border-collapse",
+                                                head_row: "flex justify-between",
+                                                head_cell: "w-[50px] text-center font-medium text-gray-500",
+                                                row: "flex justify-between mb-3",
+                                                cell: "w-[50px] h-[60px] flex flex-col items-center justify-center mx-0.5",
+                                                day: "h-[60px] w-[50px] flex flex-col items-center justify-center p-0",
+                                                day_today: "bg-none",
+                                                day_range_middle: "!bg-[#AAA] text-black font-normal",
+                                                day_disabled: "!text-gray-400 font-light !cursor-not-allowed",
+                                            }}
+                                            formatters={{
+                                                formatWeekdayName: (date) => {
+                                                    return format(date, "EEEEEE").toUpperCase();
+                                                },
+                                                formatDay: (date) => {
+                                                    return (
+                                                        <div className="h-full">
+                                                            {renderDayContents(date)}
+                                                        </div>
+                                                    );
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="md:hidden">
+                                    <Calendar
+                                        initialFocus
+                                        mode="range"
+                                        defaultMonth={currentMonth}
+                                        month={currentMonth}
+                                        selected={date}
+                                        onSelect={handleSelect}
+                                        onMonthChange={handleMonthChange}
+                                        numberOfMonths={1}
+                                        disabled={isDisabled}
+                                        fromDate={today}
+                                        modifiersStyles={{
+                                            day_range_start: {
+                                                backgroundColor: "var(--primary)",
+                                                color: "white",
+                                                fontWeight: "bold"
+                                            },
+                                            day_range_end: {
+                                                backgroundColor: "var(--primary)",
+                                                color: "white",
+                                                fontWeight: "bold"
+                                            },
+                                            day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
+                                        }}
+                                        classNames={{
+                                            months: "flex flex-col",
+                                            month: "w-full relative",
+                                            caption: "hidden",
+                                            nav: "hidden",
+                                            table: "w-full border-collapse",
+                                            head_row: "flex justify-between",
+                                            head_cell: "w-[50px] text-center font-medium text-gray-500",
+                                            row: "flex justify-between mb-3",
+                                            cell: "w-[50px] h-[60px] flex flex-col items-center justify-center mx-0.5",
+                                            day: "h-[60px] w-[50px] flex flex-col items-center justify-center p-0",
+                                            day_today: "bg-none",
+                                            day_range_middle: "!bg-[#AAA] text-black font-normal",
+                                            day_disabled: "!text-gray-400 font-light !cursor-not-allowed",
+                                        }}
+                                        formatters={{
+                                            formatWeekdayName: (date) => {
+                                                return format(date, "EEEEEE").toUpperCase();
+                                            },
+                                            formatDay: (date) => {
+                                                return (
+                                                    <div className="h-full">
+                                                        {renderDayContents(date)}
+                                                    </div>
+                                                );
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
                         )}
                         {error && (
                             <div className="text-red-500 text-center p-2">
@@ -305,16 +473,17 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                             </div>
                         )}
                     </div>
-                    <div className="p-4 border-t border-gray-200 flex justify-between items-center">
-                        <div className="flex items-center">
-              <span className="text-red-500 text-xs mr-4">
-                {date?.from && date?.to && differenceInDays(date.to, date.from) > 14
-                    ? "Max. length of stay: 14 days"
-                    : ""}
-              </span>
+                    <div
+                        className="p-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
+                        <div className="flex items-center mb-2 sm:mb-0">
+                            <span className="text-red-500 text-xs mr-4">
+                                {date?.from && date?.to && differenceInDays(date.to, date.from) > 14
+                                    ? "Max. length of stay: 14 days"
+                                    : ""}
+                            </span>
                         </div>
                         <Button
-                            className="bg-[#26266D] h-8 text-sm"
+                            className="bg-primary h-8 text-sm px-6 w-fit"
                             disabled={!date?.from || !date?.to}
                         >
                             APPLY DATES

@@ -6,6 +6,7 @@ export interface GlobalConfig {
         brand: {
             logoUrl: string;
             companyName: string;
+            pageTitle: string;
         };
         languages: { code: string; name: string }[];
         currencies: { code: string; symbol: string }[];
