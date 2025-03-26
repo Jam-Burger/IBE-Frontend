@@ -5,7 +5,7 @@ import {HiGlobeAlt} from "react-icons/hi";
 import {TbCurrencyDollar} from "react-icons/tb";
 import {updateLanguage} from "../redux/languageSlice";
 import {fetchExchangeRates, setSelectedCurrency} from "../redux/currencySlice";
-import {useNavigate, useParams} from "react-router-dom";
+import {useNavigate, useParams, Link} from "react-router-dom";
 import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
 import {FiMenu} from "react-icons/fi";
 import {BiLogIn} from "react-icons/bi";
@@ -72,10 +72,12 @@ const Header: React.FC = () => {
     const {brand} = globalConfig.configData;
 
     return (
-        <header className="relative flex justify-between items-center py-4 px-6 bg-white shadow-md">
+        <header className="relative flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
             <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
-                <img src={brand.logoUrl} alt={brand.companyName} className="w-28 h-6 md:w-36 md:h-7"/>
-                <span className="font-bold text-lg md:text-xl text-primary">{brand.pageTitle}</span>
+                <Link to={`/${tenantId}`} className="flex items-center space-x-2 md:space-x-4">
+                    <img src={brand.logoUrl} alt={brand.companyName} className="w-28 h-6 md:w-36 md:h-7"/>
+                    <span className="font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">{brand.pageTitle}</span>
+                </Link>
             </div>
 
             <div className="md:hidden">
@@ -171,9 +173,9 @@ const Header: React.FC = () => {
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
                 <a href="/#" className="text-sm font-medium uppercase text-primary">MY BOOKINGS</a>
                 <div className="relative">
-                    <button className="flex items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                    <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                             onClick={toggleLanguageDropdown}>
-                        <HiGlobeAlt className="w-5 h-5 text-primary md:w-6 md:h-6"/>
+                        <HiGlobeAlt width="18px" className="text-primary"/>
                         <span
                             className="text-sm md:text-base text-primary ml-1 capitalize">{selectedLanguage.code}</span>
                     </button>
@@ -193,9 +195,9 @@ const Header: React.FC = () => {
                     )}
                 </div>
                 <div className="relative">
-                    <button className="flex items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                    <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                             onClick={toggleCurrencyDropdown}>
-                        <TbCurrencyDollar className="w-5 h-5 text-primary md:w-6 md:h-6"/>
+                        <TbCurrencyDollar width="18px" className="text-primary"/>
                         <span
                             className="text-sm md:text-base text-primary ml-1">{selectedCurrency.code}</span>
                     </button>
@@ -215,7 +217,7 @@ const Header: React.FC = () => {
                     )}
                 </div>
                 <button
-                    className="bg-primary hover:bg-blue-800 text-white px-6 py-2 uppercase font-medium text-sm rounded"
+                    className="bg-primary hover:bg-blue-800 text-white w-[85px] h-[35px] uppercase font-medium text-sm rounded"
                     onClick={() => {
                         navigate(`/${tenantId}/login`);
                     }}>
