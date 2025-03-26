@@ -23,3 +23,15 @@ export {
 } from './Popover';
 export {DatePickerWithRange} from './DatePicker';
 export {GuestSelector} from './GuestSelector';
+export {Separator} from './Separator';
+
+export {
+    Sheet,
+    SheetTrigger,
+    SheetClose,
+    SheetContent,
+    SheetHeader,
+    SheetFooter,
+    SheetTitle,
+    SheetDescription,
+} from './Sheet';

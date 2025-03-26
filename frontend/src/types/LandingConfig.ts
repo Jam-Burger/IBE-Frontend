@@ -3,7 +3,6 @@ export interface LandingConfig {
     configType: string;
     updatedAt: number;
     configData: {
-        pageTitle: string;
         banner: {
             enabled: boolean;
             imageUrl: string;

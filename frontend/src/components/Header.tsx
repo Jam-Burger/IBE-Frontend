@@ -1,37 +1,37 @@
 import React, {useEffect, useState} from "react";
-import {fetchExchangeRates, updateCurrency} from "../redux/currencySlice";
-import languageIcon from "../assets/enicon.png";
-import currencyIcon from "../assets/currency.png";
-import {useNavigate, useParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "../redux/hooks";
 import {PulseLoader} from "react-spinners";
-
-declare global {
-    interface Window {
-        translatePage?: (langCode: string) => void;
-    }
-}
+import {HiGlobeAlt} from "react-icons/hi";
+import {TbCurrencyDollar} from "react-icons/tb";
+import {fetchLocationInfo, updateLanguage} from "../redux/languageSlice";
+import {fetchExchangeRates, setSelectedCurrency} from "../redux/currencySlice";
+import {useNavigate, useParams} from "react-router-dom";
+import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
+import {FiMenu} from "react-icons/fi";
+import {BiLogIn} from "react-icons/bi";
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {tenantId} = useParams<{ tenantId: string }>();
 
-    const selectedLanguage = localStorage.getItem('selectedLanguage') ?? 'en';
-    const {selectedCurrency, rates, status: currencyStatus} = useAppSelector(state => state.currency);
-    const {globalConfig, landingConfig, status} = useAppSelector(state => state.config);
-    const isLoading = status === "loading" || !globalConfig || !landingConfig || currencyStatus === "loading";
+    const {selectedLanguage} = useAppSelector(state => state.language);
+    const {selectedCurrency} = useAppSelector(state => state.currency);
+    const {globalConfig} = useAppSelector(state => state.config);
+    const isLoading = !globalConfig;
 
-    const [languageDropdownOpen, setLanguageDropdownOpen] = useState<boolean>(false);
-    const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState<boolean>(false);
+    const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+    const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
-    // Fetch exchange rates on component mount
     useEffect(() => {
-        if (Object.keys(rates).length === 0) {
-            dispatch(fetchExchangeRates());
+        if (selectedCurrency) {
+            dispatch(setSelectedCurrency(selectedCurrency));
+            if (selectedCurrency.code !== 'USD') {
+                dispatch(fetchExchangeRates());
+            }
         }
-    }, [dispatch, rates]);
+    }, [dispatch, selectedCurrency]);
 
     const toggleLanguageDropdown = () => {
         setLanguageDropdownOpen(!languageDropdownOpen);
@@ -49,122 +49,173 @@ const Header: React.FC = () => {
         setCurrencyDropdownOpen(false);
     };
 
-    const selectLanguage = (lang: string) => {
-        if (window.translatePage) {
-            window.translatePage(lang);
-            localStorage.setItem('selectedLanguage', lang);
-        }
-
+    const selectLanguage = (language: { code: string; name: string }) => {
+        dispatch(updateLanguage(language));
         setLanguageDropdownOpen(false);
-        window.location.reload();
     };
 
-    const selectCurrency = (curr: string) => {
-        dispatch(updateCurrency(curr));
+    const selectCurrency = (currency: { code: string; symbol: string }) => {
+        dispatch(setSelectedCurrency(currency));
         setCurrencyDropdownOpen(false);
-    };
-
-    const getLanguageName = (code: string): string => {
-        if (!globalConfig?.configData.languages) return code;
-        const lang = globalConfig.configData.languages.find(l => l.code === code);
-        return lang ? lang.name : code;
-    };
-
-    const getCurrencySymbol = (code: string): string => {
-        if (!globalConfig?.configData.currencies) return code;
-        const curr = globalConfig.configData.currencies.find(c => c.code === code);
-        return curr ? `${code} (${curr.symbol})` : code;
     };
 
     if (isLoading) {
         return (
             <header className="relative flex justify-between items-center py-4 px-6 bg-white shadow-md">
                 <div className="w-full flex justify-center items-center h-16">
-                    <PulseLoader color="#26266D" size={10}/>
+                    <PulseLoader color="var(--primary)" size={10}/>
                 </div>
             </header>
         );
     }
 
     const {brand} = globalConfig.configData;
-    const brandLogo = brand.logoUrl;
-    const pageTitle = landingConfig.configData.pageTitle;
 
     return (
         <header className="relative flex justify-between items-center py-4 px-6 bg-white shadow-md">
             <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
-                <img src={brandLogo} alt={pageTitle} className="w-28 h-6 md:w-36 md:h-7"/>
-                <span className="font-bold text-lg md:text-xl text-[#26266D]">{pageTitle}</span>
+                <img src={brand.logoUrl} alt={brand.companyName} className="w-28 h-6 md:w-36 md:h-7"/>
+                <span className="font-bold text-lg md:text-xl text-primary">{brand.pageTitle}</span>
             </div>
 
             <div className="md:hidden">
-                <button
-                    className="text-[#26266D] focus:outline-none"
-                    onClick={toggleMobileMenu}
-                    aria-label="Toggle menu"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        {mobileMenuOpen ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"/>
-                        ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M4 6h16M4 12h16M4 18h16"/>
-                        )}
-                    </svg>
-                </button>
+                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                    <SheetTrigger asChild>
+                        <button
+                            className="text-primary focus:outline-none"
+                            onClick={toggleMobileMenu}
+                            aria-label="Toggle menu"
+                        >
+                            <FiMenu className="h-6 w-6"/>
+                        </button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-[300px] sm:w-[350px] p-0">
+                        <div className="flex flex-col h-full overflow-auto p-4 pt-12">
+                            <div className="flex flex-col space-y-2">
+                                <Button
+                                    variant="ghost"
+                                    className="w-full justify-start text-primary font-medium"
+                                    onClick={() => {
+                                        setMobileMenuOpen(false);
+                                    }}
+                                >
+                                    MY BOOKINGS
+                                </Button>
+
+                                <Button
+                                    className="w-full bg-primary hover:bg-blue-800 text-white uppercase font-medium text-sm rounded"
+                                    onClick={() => {
+                                        navigate(`/${tenantId}/login`);
+                                        setMobileMenuOpen(false);
+                                    }}
+                                >
+                                    <BiLogIn className="mr-2 h-4 w-4"/>
+                                    LOGIN
+                                </Button>
+                            </div>
+
+                            <Separator className="my-4"/>
+
+                            <div className="space-y-4">
+                                {/* Language selection */}
+                                <div>
+                                    <div className="flex items-center mb-2">
+                                        <HiGlobeAlt className="w-5 h-5 text-primary mr-2"/>
+                                        <h3 className="font-medium text-sm text-primary">Language</h3>
+                                    </div>
+                                    <div className="space-y-1 pl-7">
+                                        {globalConfig.configData.languages.map((lang) => (
+                                            <Button
+                                                key={lang.code}
+                                                variant="ghost"
+                                                className={`w-full justify-start py-1 h-auto ${selectedLanguage.code === lang.code ? 'bg-gray-100 font-medium text-primary' : 'text-gray-700'}`}
+                                                onClick={() => {
+                                                    selectLanguage(lang);
+                                                    setMobileMenuOpen(false);
+                                                }}
+                                            >
+                                                {lang.name}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Currency selection */}
+                                <div>
+                                    <div className="flex items-center mb-2">
+                                        <TbCurrencyDollar className="w-5 h-5 text-primary mr-2"/>
+                                        <h3 className="font-medium text-sm text-primary">Currency</h3>
+                                    </div>
+                                    <div className="space-y-1 pl-7">
+                                        {globalConfig.configData.currencies.map((curr) => (
+                                            <Button
+                                                key={curr.code}
+                                                variant="ghost"
+                                                className={`w-full justify-start py-1 h-auto ${selectedCurrency.code === curr.code ? 'bg-gray-100 font-medium text-primary' : 'text-gray-700'}`}
+                                                onClick={() => {
+                                                    selectCurrency(curr);
+                                                    setMobileMenuOpen(false);
+                                                }}
+                                            >
+                                                {curr.code} ({curr.symbol})
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </SheetContent>
+                </Sheet>
             </div>
 
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
-                <a href="/#" className="text-sm font-medium uppercase text-[#26266D]">MY BOOKINGS</a>
-                {globalConfig.configData.languages && (
-                    <div className="relative">
-                        <button className="flex items-center text-blue-900 text-xs md:text-sm cursor-pointer"
-                                onClick={toggleLanguageDropdown}>
-                            <img src={languageIcon} alt="Language" className="w-5 h-5 md:w-6 md:h-6"/>
-                            <span
-                                className="text-sm md:text-base text-[#26266D] ml-1">{getLanguageName(selectedLanguage)}</span>
-                        </button>
-                        {languageDropdownOpen && (
-                            <div
-                                className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-md rounded-md z-10">
-                                {globalConfig.configData.languages.map((lang) => (
-                                    <button key={lang.code}
-                                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-[#26266D] w-full text-left"
-                                            onClick={() => selectLanguage(lang.code)}>
+                <a href="/#" className="text-sm font-medium uppercase text-primary">MY BOOKINGS</a>
+                <div className="relative">
+                    <button className="flex items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                            onClick={toggleLanguageDropdown}>
+                        <HiGlobeAlt className="w-5 h-5 text-primary md:w-6 md:h-6"/>
+                        <span
+                            className="text-sm md:text-base text-primary ml-1 capitalize">{selectedLanguage.code}</span>
+                    </button>
+                    {languageDropdownOpen && globalConfig?.configData.languages && (
+                        <div
+                            className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                            {globalConfig.configData.languages.map((lang) => (
+                                <div key={lang.code} className="px-4 py-2">
+                                    <button
+                                        className="w-full text-left hover:bg-gray-100 cursor-pointer text-primary focus:outline-none"
+                                        onClick={() => selectLanguage(lang)}>
                                         {lang.name}
                                     </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-                {globalConfig.configData.currencies && (
-                    <div className="relative">
-                        <button className="flex items-center text-blue-900 text-xs md:text-sm cursor-pointer"
-                                onClick={toggleCurrencyDropdown}>
-                            <img src={currencyIcon} alt="Currency" className="w-5 h-5 md:w-6 md:h-6"/>
-                            <span
-                                className="text-sm md:text-base text-[#26266D] ml-1">{getCurrencySymbol(selectedCurrency)}</span>
-                        </button>
-                        {currencyDropdownOpen && (
-                            <ul className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-md rounded-md z-10">
-                                {globalConfig.configData.currencies.map((curr) => (
-                                    <li key={curr.code} className="px-4 py-2">
-                                        <button
-                                            className="w-full text-left hover:bg-gray-100 cursor-pointer text-[#26266D] focus:outline-none"
-                                            onClick={() => selectCurrency(curr.code)}>
-                                            {curr.code} ({curr.symbol})
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="relative">
+                    <button className="flex items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                            onClick={toggleCurrencyDropdown}>
+                        <TbCurrencyDollar className="w-5 h-5 text-primary md:w-6 md:h-6"/>
+                        <span
+                            className="text-sm md:text-base text-primary ml-1">{selectedCurrency.code}</span>
+                    </button>
+                    {currencyDropdownOpen && globalConfig?.configData.currencies && (
+                        <div
+                            className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                            {globalConfig.configData.currencies.map((curr) => (
+                                <div key={curr.code} className="px-4 py-2">
+                                    <button
+                                        className="w-full text-left hover:bg-gray-100 cursor-pointer text-primary focus:outline-none"
+                                        onClick={() => selectCurrency(curr)}>
+                                        {curr.code} ({curr.symbol})
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
                 <button
-                    className="bg-[#26266D] hover:bg-blue-800 text-white px-6 py-2 uppercase font-medium text-sm rounded"
+                    className="bg-primary hover:bg-blue-800 text-white px-6 py-2 uppercase font-medium text-sm rounded"
                     onClick={() => {
                         navigate(`/${tenantId}/login`);
                     }}>
