@@ -7,7 +7,8 @@ const apiClient = axios.create({
         'Content-Type': 'application/json',
     },
 });
-
+const CURRENCY_API_URL = import.meta.env.VITE_CURRENCY_API_URL;
+const LOCATION_API_URL = import.meta.env.VITE_LOCATION_API_URL;
 interface RoomRateParams {
     propertyId: number;
     startDate: string;
@@ -59,9 +60,13 @@ export const api = {
         return response.data;
     },
 
-    // Currency API (external service)
     getCurrencyRates: async () => {
-        const response = await axios.get(`https://api.frankfurter.app/latest?from=USD`);
+        const response = await axios.get(`${CURRENCY_API_URL}?from=USD`);
+        return response.data;
+    },
+
+    getLocationInfo: async () => {
+        const response = await axios.get(`${LOCATION_API_URL}`);
         return response.data;
     }
 };

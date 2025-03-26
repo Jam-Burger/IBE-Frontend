@@ -3,7 +3,7 @@ import {useAppDispatch, useAppSelector} from "../redux/hooks";
 import {PulseLoader} from "react-spinners";
 import {HiGlobeAlt} from "react-icons/hi";
 import {TbCurrencyDollar} from "react-icons/tb";
-import {fetchLocationInfo, updateLanguage} from "../redux/languageSlice";
+import {updateLanguage} from "../redux/languageSlice";
 import {fetchExchangeRates, setSelectedCurrency} from "../redux/currencySlice";
 import {useNavigate, useParams} from "react-router-dom";
 import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";

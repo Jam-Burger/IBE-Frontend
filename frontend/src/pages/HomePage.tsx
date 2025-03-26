@@ -21,7 +21,6 @@ const HomePage: React.FC = () => {
             dispatch(fetchLandingConfig(tenantId))
         ]);
         
-        // Only fetch location info if we haven't initialized language yet
         if (!languageInitialized) {
             dispatch(fetchLocationInfo());
         }
@@ -34,7 +33,7 @@ const HomePage: React.FC = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center">
-                <PulseLoader color="#26266D" size={15}/>
+                <PulseLoader color="var(--primary-color)" size={15}/>
                 <p className="mt-4 text-gray-600">Loading application configuration...</p>
             </div>
         );

@@ -2,6 +2,7 @@ import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {BaseState, StateStatus} from "../types/common";
 import {RootState} from "./store";
 import {setSelectedCurrency} from "./currencySlice";
+import { api } from "../lib/api-client";
 
 export interface Language {
     code: string;
@@ -33,16 +34,14 @@ export const fetchLocationInfo = createAsyncThunk(
     "location/fetchInfo",
     async (_, {dispatch, getState}) => {
         try {
-            // Check if we already initialized the language and currency
             const state = getState() as RootState;
             if (state.language.hasInitialized) {
                 return null;
             }
 
-            const response = await fetch("https://freeipapi.com/api/json");
-            const data = await response.json();
+            const response = await api.getLocationInfo();
             const globalConfig = state.config.globalConfig;
-            const languageName = data.language;
+            const languageName = response.language;
 
             let language;
             if (globalConfig?.configData?.languages) {
@@ -56,7 +55,7 @@ export const fetchLocationInfo = createAsyncThunk(
 
             dispatch(setLanguage(language));
             
-            const currencyCode = data.currency?.code;
+            const currencyCode = response.currency?.code;
             let currency;
             if (globalConfig?.configData.currencies) {
                 currency = globalConfig.configData.currencies.find(c => c.code === currencyCode);
@@ -67,8 +66,7 @@ export const fetchLocationInfo = createAsyncThunk(
                 currency = {code: "USD", symbol: "$"};
             }
             dispatch(setSelectedCurrency(currency));
-
-            return data;
+            return response;
         } catch (error) {
             console.error("Error fetching location info:", error);
             return null;
@@ -82,12 +80,10 @@ const languageSlice = createSlice({
     reducers: {
         setLanguage: (state, action) => {
             state.selectedLanguage = action.payload;
-            // Just set the language without reloading
             window.translatePage?.(action.payload.code);
         },
         updateLanguage: (state, action) => {
             state.selectedLanguage = action.payload;
-            // Apply translation and then reload if needed
             window.translatePage?.(action.payload.code);
             window.location.reload();
         }
