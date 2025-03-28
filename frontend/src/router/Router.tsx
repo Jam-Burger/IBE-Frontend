@@ -27,10 +27,6 @@ export const Router = createHashRouter([
         path: Routes.LOGIN,
         element: <LoginPage/>,
     },
-    // {
-    //     path: Routes.DEMO,
-    //     element: <Demo/>,
-    // },
     {
         path: Routes.ROOMPAGE,
         element: <AppLayout/>,
