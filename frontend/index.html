@@ -1,20 +1,27 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Internet Booking Engine</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+        rel="stylesheet">
     <style>
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             overflow-x: hidden;
             width: 100%;
             height: 100%;
-            font-family: 'Mulish', sans-serif;
+
         }
 
         #root {
@@ -75,68 +82,70 @@
         }
     </style>
 </head>
+
 <body>
-<div id="root"></div>
-<div id="google_translate_element" style="display:none;"></div>
-<script src="/src/main.tsx" type="module"></script>
-<script>
-    window.googleTranslateReady = false;
+    <div id="root"></div>
+    <div id="google_translate_element" style="display:none;"></div>
+    <script src="/src/main.tsx" type="module"></script>
+    <script>
+        window.googleTranslateReady = false;
 
-    window.translatePage = function (langCode) {
-        if (!langCode) return;
+        window.translatePage = function (langCode) {
+            if (!langCode) return;
 
-        if (langCode === 'en') {
-            document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            return;
+            if (langCode === 'en') {
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                return;
+            }
+
+            document.cookie = `googtrans=/auto/${langCode}; path=/;`;
+
+            hideGoogleElements();
+        };
+
+        function hideGoogleElements() {
+            const elementsToHide = document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, .goog-te-menu-frame');
+            elementsToHide.forEach(el => {
+                if (el) {
+                    el.style.display = 'none';
+                    el.style.visibility = 'hidden';
+                }
+            });
+
+            document.body.style.top = '0px';
+            document.body.style.position = 'static';
         }
 
-        document.cookie = `googtrans=/auto/${langCode}; path=/;`;
+        function googleTranslateElementInit() {
+            const savedLanguage = localStorage.getItem('selectedLanguage');
 
-        hideGoogleElements();
-    };
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                autoDisplay: false,
+                includedLanguages: 'es,fr,de,it',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
 
-    function hideGoogleElements() {
-        const elementsToHide = document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, .goog-te-menu-frame');
-        elementsToHide.forEach(el => {
-            if (el) {
-                el.style.display = 'none';
-                el.style.visibility = 'hidden';
-            }
-        });
+            setTimeout(() => {
+                window.googleTranslateReady = true;
+                hideGoogleElements();
 
-        document.body.style.top = '0px';
-        document.body.style.position = 'static';
-    }
+                if (savedLanguage && savedLanguage !== 'en') {
+                    window.translatePage(savedLanguage);
+                }
 
-    function googleTranslateElementInit() {
-        const savedLanguage = localStorage.getItem('selectedLanguage');
+                const observer = new MutationObserver(hideGoogleElements);
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true
+                });
+            }, 1000);
+        }
 
-        new google.translate.TranslateElement({
-            pageLanguage: 'en',
-            autoDisplay: false,
-            includedLanguages: 'es,fr,de,it',
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-        }, 'google_translate_element');
-
-        setTimeout(() => {
-            window.googleTranslateReady = true;
-            hideGoogleElements();
-
-            if (savedLanguage && savedLanguage !== 'en') {
-                window.translatePage(savedLanguage);
-            }
-
-            const observer = new MutationObserver(hideGoogleElements);
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true,
-                attributes: true
-            });
-        }, 1000);
-    }
-
-    document.addEventListener('DOMContentLoaded', hideGoogleElements);
-</script>
-<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+        document.addEventListener('DOMContentLoaded', hideGoogleElements);
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
+
 </html>

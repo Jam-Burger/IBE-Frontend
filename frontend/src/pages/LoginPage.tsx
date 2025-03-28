@@ -42,7 +42,7 @@ const LoginPage = () => {
                         </Link>
                     </div>
                     <button
-                        className="w-full bg-[#26266D] text-white p-3 rounded-xl font-semibold hover:bg-[#1f1f5f] transition">
+                        className="w-full bg-primary text-white p-3 rounded-xl font-semibold hover:bg-[#1f1f5f] transition">
                         Login
                     </button>
                 </form>
