@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import {useAppDispatch, useAppSelector} from "../redux/hooks";
 import {PulseLoader} from "react-spinners";
 import {HiGlobeAlt} from "react-icons/hi";
-import {TbCurrencyDollar} from "react-icons/tb";
 import {updateLanguage} from "../redux/languageSlice";
 import {fetchExchangeRates, setSelectedCurrency} from "../redux/currencySlice";
 import {useNavigate, useParams, Link} from "react-router-dom";
@@ -145,7 +144,9 @@ const Header: React.FC = () => {
                                 {/* Currency selection */}
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <TbCurrencyDollar className="w-5 h-5 text-primary mr-2"/>
+                                        <span className="w-4 h-4 text-primary mr-2 flex items-center justify-center font-medium text-base">
+                                            {selectedCurrency.symbol}
+                                        </span>
                                         <h3 className="font-medium text-sm text-primary">Currency</h3>
                                     </div>
                                     <div className="space-y-1 pl-7">
@@ -175,7 +176,8 @@ const Header: React.FC = () => {
                 <div className="relative">
                     <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                             onClick={toggleLanguageDropdown}>
-                        <HiGlobeAlt width="18px" className="text-primary"/>
+                       <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125" />
+
                         <span
                             className="text-sm md:text-base text-primary ml-1 capitalize">{selectedLanguage.code}</span>
                     </button>
@@ -197,9 +199,12 @@ const Header: React.FC = () => {
                 <div className="relative">
                     <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                             onClick={toggleCurrencyDropdown}>
-                        <TbCurrencyDollar width="18px" className="text-primary"/>
-                        <span
-                            className="text-sm md:text-base text-primary ml-1">{selectedCurrency.code}</span>
+                        <span className="text-primary font-medium w-4 h-4 flex items-center justify-center text-base">
+                            {selectedCurrency.symbol}
+                        </span>
+                        <span className="text-sm md:text-base text-primary ml-1">
+                            {selectedCurrency.code}
+                        </span>
                     </button>
                     {currencyDropdownOpen && globalConfig?.configData.currencies && (
                         <div
