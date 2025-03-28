@@ -6,5 +6,6 @@ export const Routes = {
     LOGIN: "/:tenantId/login",
     DEMO: "/:tenantId/demo",
     ROOMPAGE:"/:tenantId/roompage",
+    ROOMDETAILMODAL:"/:tenantId/roomdetail",
     NOT_FOUND: "*",
 } as const;
