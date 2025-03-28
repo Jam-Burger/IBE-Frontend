@@ -59,10 +59,21 @@ const RoomPage = () => {
         {/* Stepper component with exact dimensions from the image */}
         <div className="w-[417px] relative">
           <div className="flex items-center justify-between relative">
-            {/* First circle to last circle connecting line */}
+            {/* Background line (gray) */}
             <div className="absolute top-[14px] h-[2px] bg-gray-300" style={{
               left: '32px',
               right: '32px',
+              zIndex: -1
+            }}></div>
+            
+            {/* Progress line (primary color) */}
+            <div className="absolute top-[14px] h-[2px] bg-primary" style={{
+              left: '32px',
+              width: currentStep === 0 
+                ? '0%' 
+                : currentStep === 2 
+                  ? 'calc(100% - 64px)' 
+                  : `calc(${currentStep * 50}% - 16px)`,
               zIndex: -1
             }}></div>
             
