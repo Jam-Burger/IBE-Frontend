@@ -7,7 +7,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Mulish', 'sans-serif'],
+                sans: ['Lato', 'sans-serif'],
             },
         },
     },

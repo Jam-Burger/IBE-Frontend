@@ -1,22 +1,22 @@
-import React, {useEffect, useState} from "react";
-import {useAppDispatch, useAppSelector} from "../redux/hooks";
-import {PulseLoader} from "react-spinners";
-import {HiGlobeAlt} from "react-icons/hi";
-import {updateLanguage} from "../redux/languageSlice";
-import {fetchExchangeRates, setSelectedCurrency} from "../redux/currencySlice";
-import {useNavigate, useParams, Link} from "react-router-dom";
-import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
-import {FiMenu} from "react-icons/fi";
-import {BiLogIn} from "react-icons/bi";
+import React, { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { PulseLoader } from "react-spinners";
+import { HiGlobeAlt } from "react-icons/hi";
+import { updateLanguage } from "../redux/languageSlice";
+import { fetchExchangeRates, setSelectedCurrency } from "../redux/currencySlice";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { Button, Separator, Sheet, SheetContent, SheetTrigger } from "./ui";
+import { FiMenu } from "react-icons/fi";
+import { BiLogIn } from "react-icons/bi";
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const {tenantId} = useParams<{ tenantId: string }>();
+    const { tenantId } = useParams<{ tenantId: string }>();
 
-    const {selectedLanguage} = useAppSelector(state => state.language);
-    const {selectedCurrency} = useAppSelector(state => state.currency);
-    const {globalConfig} = useAppSelector(state => state.config);
+    const { selectedLanguage } = useAppSelector(state => state.language);
+    const { selectedCurrency } = useAppSelector(state => state.currency);
+    const { globalConfig } = useAppSelector(state => state.config);
     const isLoading = !globalConfig;
 
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
@@ -62,19 +62,19 @@ const Header: React.FC = () => {
         return (
             <header className="relative flex justify-between items-center py-4 px-6 bg-white shadow-md">
                 <div className="w-full flex justify-center items-center h-16">
-                    <PulseLoader color="var(--primary)" size={10}/>
+                    <PulseLoader color="var(--primary)" size={10} />
                 </div>
             </header>
         );
     }
 
-    const {brand} = globalConfig.configData;
+    const { brand } = globalConfig.configData;
 
     return (
         <header className="relative flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
             <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
                 <Link to={`/${tenantId}`} className="flex items-center space-x-2 md:space-x-4">
-                    <img src={brand.logoUrl} alt={brand.companyName} className="w-28 h-6 md:w-36 md:h-7"/>
+                    <img src={brand.logoUrl} alt={brand.companyName} className="w-28 h-6 md:w-36 md:h-7" />
                     <span className="font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">{brand.pageTitle}</span>
                 </Link>
             </div>
@@ -87,7 +87,7 @@ const Header: React.FC = () => {
                             onClick={toggleMobileMenu}
                             aria-label="Toggle menu"
                         >
-                            <FiMenu className="h-6 w-6"/>
+                            <FiMenu className="h-6 w-6" />
                         </button>
                     </SheetTrigger>
                     <SheetContent side="right" className="w-[300px] sm:w-[350px] p-0">
@@ -110,18 +110,18 @@ const Header: React.FC = () => {
                                         setMobileMenuOpen(false);
                                     }}
                                 >
-                                    <BiLogIn className="mr-2 h-4 w-4"/>
+                                    <BiLogIn className="mr-2 h-4 w-4" />
                                     LOGIN
                                 </Button>
                             </div>
 
-                            <Separator className="my-4"/>
+                            <Separator className="my-4" />
 
                             <div className="space-y-4">
                                 {/* Language selection */}
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <HiGlobeAlt className="w-5 h-5 text-primary mr-2"/>
+                                        <HiGlobeAlt className="w-5 h-5 text-primary mr-2" />
                                         <h3 className="font-medium text-sm text-primary">Language</h3>
                                     </div>
                                     <div className="space-y-1 pl-7">
@@ -172,11 +172,11 @@ const Header: React.FC = () => {
             </div>
 
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
-                <a href="/#" className="text-sm font-medium uppercase text-primary">MY BOOKINGS</a>
+                <a href="/#" className="text-[14px] font-bold uppercase text-primary h-[20px] w-[102px]">MY BOOKINGS</a>
                 <div className="relative">
                     <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
-                            onClick={toggleLanguageDropdown}>
-                       <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125" />
+                        onClick={toggleLanguageDropdown}>
+                        <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125" />
 
                         <span
                             className="text-sm md:text-base text-primary ml-1 capitalize">{selectedLanguage.code}</span>
@@ -198,7 +198,7 @@ const Header: React.FC = () => {
                 </div>
                 <div className="relative">
                     <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
-                            onClick={toggleCurrencyDropdown}>
+                        onClick={toggleCurrencyDropdown}>
                         <span className="text-primary font-medium w-4 h-4 flex items-center justify-center text-base">
                             {selectedCurrency.symbol}
                         </span>
@@ -222,12 +222,14 @@ const Header: React.FC = () => {
                     )}
                 </div>
                 <button
-                    className="bg-primary hover:bg-blue-800 text-white w-[85px] h-[35px] uppercase font-medium text-sm rounded"
+                    className="bg-primary hover:bg-blue-800 text-white w-[85px] h-[35px] uppercase font-bold text-sm rounded"
                     onClick={() => {
                         navigate(`/${tenantId}/login`);
-                    }}>
+                    }}
+                >
                     LOGIN
                 </button>
+
             </div>
         </header>
     );
