@@ -1,6 +1,6 @@
 import {createHashRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
-import {HomePage, LoginPage, NotFoundPage} from "../pages";
+import {HomePage, LoginPage, NotFoundPage, RoomPage} from "../pages";
 import {Routes} from "./routes";
 
 const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID || '1';
@@ -17,7 +17,6 @@ export const Router = createHashRouter([
         element: <DefaultTenantRedirect/>
     },
     {
-        // AppLayout will now capture the tenantId from the URL
         path: Routes.HOME,
         element: <AppLayout/>,
         children: [
@@ -28,6 +27,18 @@ export const Router = createHashRouter([
         path: Routes.LOGIN,
         element: <LoginPage/>,
     },
+    // {
+    //     path: Routes.DEMO,
+    //     element: <Demo/>,
+    // },
+    {
+        path: Routes.ROOMPAGE,
+        element: <AppLayout/>,
+        children: [
+            {index: true, element: <RoomPage/>},
+        ],
+    },
+
     {
         path: Routes.NOT_FOUND,
         element: <NotFoundPage/>,

@@ -70,7 +70,7 @@ const Header: React.FC = () => {
     }
 
     const {brand} = globalConfig.configData;
-
+    console.log(brand);
     return (
         <header className="relative flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
             <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
