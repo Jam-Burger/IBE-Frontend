@@ -19,7 +19,7 @@ const initialState: ConfigState = {
 // Fetch GLOBAL config
 export const fetchGlobalConfig = createAsyncThunk(
     "config/fetchGlobalConfig",
-    async (tenantId?: string) => {
+    async (tenantId: string) => {
         return api.getGlobalConfig(tenantId);
     }
 );
@@ -27,7 +27,7 @@ export const fetchGlobalConfig = createAsyncThunk(
 // Fetch LANDING config
 export const fetchLandingConfig = createAsyncThunk(
     "config/fetchLandingConfig",
-    async (tenantId?: string) => {
+    async (tenantId: string) => {
         return api.getLandingConfig(tenantId);
     }
 );

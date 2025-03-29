@@ -5,10 +5,11 @@ import {HiGlobeAlt} from "react-icons/hi";
 import {TbCurrencyDollar} from "react-icons/tb";
 import {updateLanguage} from "../redux/languageSlice";
 import {fetchExchangeRates, setSelectedCurrency} from "../redux/currencySlice";
-import {useNavigate, useParams, Link} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
 import {FiMenu} from "react-icons/fi";
 import {BiLogIn} from "react-icons/bi";
+import {fetchGlobalConfig} from "../redux/configSlice.ts";
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -23,6 +24,14 @@ const Header: React.FC = () => {
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
     const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (!tenantId) {
+            console.error("Tenant ID is not available");
+            return;
+        }
+        dispatch(fetchGlobalConfig(tenantId));
+    }, [tenantId, dispatch]);
 
     useEffect(() => {
         if (selectedCurrency) {
@@ -61,7 +70,8 @@ const Header: React.FC = () => {
 
     if (isLoading) {
         return (
-            <header className="relative flex justify-between items-center py-4 px-6 bg-white shadow-md">
+            <header
+                className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center py-4 px-6 bg-white shadow-md">
                 <div className="w-full flex justify-center items-center h-16">
                     <PulseLoader color="var(--primary)" size={10}/>
                 </div>
@@ -70,13 +80,14 @@ const Header: React.FC = () => {
     }
 
     const {brand} = globalConfig.configData;
-    console.log(brand);
     return (
-        <header className="relative flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
+        <header
+            className="fixed top-0 left-0 right-0 z-50 flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
             <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
                 <Link to={`/${tenantId}`} className="flex items-center space-x-2 md:space-x-4">
                     <img src={brand.logoUrl} alt={brand.companyName} className="w-28 h-6 md:w-36 md:h-7"/>
-                    <span className="font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">{brand.pageTitle}</span>
+                    <span
+                        className="font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">{brand.pageTitle}</span>
                 </Link>
             </div>
 
@@ -173,8 +184,9 @@ const Header: React.FC = () => {
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
                 <a href="/#" className="text-sm font-medium uppercase text-primary">MY BOOKINGS</a>
                 <div className="relative">
-                    <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
-                            onClick={toggleLanguageDropdown}>
+                    <button
+                        className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                        onClick={toggleLanguageDropdown}>
                         <HiGlobeAlt width="18px" className="text-primary"/>
                         <span
                             className="text-sm md:text-base text-primary ml-1 capitalize">{selectedLanguage.code}</span>
@@ -195,8 +207,9 @@ const Header: React.FC = () => {
                     )}
                 </div>
                 <div className="relative">
-                    <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
-                            onClick={toggleCurrencyDropdown}>
+                    <button
+                        className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                        onClick={toggleCurrencyDropdown}>
                         <TbCurrencyDollar width="18px" className="text-primary"/>
                         <span
                             className="text-sm md:text-base text-primary ml-1">{selectedCurrency.code}</span>

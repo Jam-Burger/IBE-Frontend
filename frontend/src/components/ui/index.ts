@@ -24,7 +24,6 @@ export {
 export {DatePickerWithRange} from './DatePicker';
 export {GuestSelector} from './GuestSelector';
 export {Separator} from './Separator';
-
 export {
     Sheet,
     SheetTrigger,
@@ -35,3 +34,10 @@ export {
     SheetTitle,
     SheetDescription,
 } from './Sheet';
+export {Slider} from './Slider';
+export {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "./Accordion";

@@ -3,13 +3,14 @@ import currencyReducer, {fetchExchangeRates} from "./currencySlice";
 import configReducer from "./configSlice";
 import roomRatesReducer from "./roomRatesSlice";
 import languageReducer from "./languageSlice";
+import filterReducer from "./filterSlice";
 import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['language', 'currency', 'config']
+    whitelist: ['language', 'currency', 'config', "filter"]
 };
 
 const rootReducer = combineReducers({
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
     language: languageReducer,
     currency: currencyReducer,
     roomRates: roomRatesReducer,
+    roomFilters: filterReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -4,10 +4,10 @@ import {RoomRate} from '../types';
 import {api} from '../lib/api-client';
 import {BaseState, StateStatus} from "../types/common";
 
-// Define a type for the parameters
 interface FetchRoomRatesParams {
-    currentMonth: Date;
+    tenantId: string;
     propertyId: number;
+    currentMonth: Date;
     endMonth: Date;
 }
 
@@ -23,10 +23,11 @@ const initialState: RoomRatesState = {
 
 export const fetchRoomRates = createAsyncThunk(
     'roomRates/fetchRoomRates',
-    async ({currentMonth, propertyId, endMonth}: FetchRoomRatesParams) => {
+    async ({tenantId, currentMonth, propertyId, endMonth}: FetchRoomRatesParams) => {
         const startDate = format(currentMonth, "yyyy-MM-dd");
         const endDate = format(endMonth, "yyyy-MM-dd");
         const response = await api.getRoomRates({
+            tenantId,
             propertyId,
             startDate,
             endDate
@@ -35,12 +36,10 @@ export const fetchRoomRates = createAsyncThunk(
     }
 );
 
-// Create a slice for room rates
 const roomRatesSlice = createSlice({
     name: 'roomRates',
     initialState,
     reducers: {
-        // Add a reducer to clear room rates when property changes
         clearRoomRates(state) {
             state.data = [];
         }

@@ -1,11 +1,10 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useMemo} from "react";
 import {addDays, addMonths, differenceInDays, format, isBefore, startOfToday, subMonths} from "date-fns";
 import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
 import {MdOutlineCalendarMonth} from "react-icons/md";
 import {DateRange} from "react-day-picker";
-import {useParams} from 'react-router-dom';
 import {StateStatus} from "../../types/common";
 
 import {cn, formatPrice} from "../../lib/utils";
@@ -13,15 +12,7 @@ import {Button} from "./Button";
 import {Calendar} from "./Calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
 import {clearRoomRates, fetchRoomRates} from "../../redux/roomRatesSlice";
-import {api} from "../../lib/api-client";
-
-interface SpecialDiscount {
-    id: number;
-    propertyId: number;
-    discountDate: string;
-    discountPercentage: number;
-    description?: string;
-}
+import {useParams} from "react-router-dom";
 
 interface DatePickerWithRangeProps {
     className?: string;
@@ -30,20 +21,23 @@ interface DatePickerWithRangeProps {
 }
 
 interface RoomRates {
-    [date: string]: number;
+    [date: string]: {
+        minimumRate: number;
+        discountedRate: number;
+    };
 }
 
 export function DatePickerWithRange({className, propertyId, disabled}: Readonly<DatePickerWithRangeProps>) {
     const dispatch = useAppDispatch();
+    const {tenantId} = useParams<{tenantId: string}>();
     const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
     const {landingConfig} = useAppSelector(state => state.config);
-    const {tenantId} = useParams<{ tenantId: string }>();
 
     const formattedRoomRates = React.useMemo(() => {
         const rates: RoomRates = {};
         roomRates.forEach(rate => {
-            rates[rate.date] = rate.minimumRate;
+            rates[rate.date] = rate;
         });
         return rates;
     }, [roomRates]);
@@ -54,12 +48,9 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         to: addDays(today, 1),
     });
 
-    // Set fixed date range from March to July
-    const startMonth = new Date(new Date().getFullYear(), 2, 1); // March
-    const endMonth = new Date(new Date().getFullYear(), 6, 1); // June
+    const startMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 2, 1), []);
+    const endMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 6, 1), []);
     const [currentMonth, setCurrentMonth] = React.useState<Date>(startMonth);
-    const [specialDiscounts, setSpecialDiscounts] = useState<Record<string, number>>({});
-    const [loadingDiscounts, setLoadingDiscounts] = useState<boolean>(false);
     const handleSelect = (newRange: DateRange | undefined) => {
         if (!newRange) {
             setDate(undefined);
@@ -85,14 +76,12 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         if (newRange.from && newRange.to) {
             const diff = differenceInDays(newRange.to, newRange.from);
             if (diff < minNights) {
-                // If selected range is less than minimum nights, adjust end date
                 const adjustedTo = addDays(newRange.from, minNights);
                 setDate({
                     from: newRange.from,
                     to: adjustedTo
                 });
             } else if (diff > maxNights) {
-                // If selected range is more than maximum nights, adjust end date
                 const adjustedTo = addDays(newRange.from, maxNights);
                 setDate({
                     from: newRange.from,
@@ -118,17 +107,15 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     };
 
     const handleMonthChange = (newMonth: Date) => {
-        // Only allow navigation between March and June
         if (newMonth >= startMonth && newMonth <= endMonth) {
             setCurrentMonth(newMonth);
         }
     };
 
-    // Fetch all prices when property changes
     React.useEffect(() => {
-        if (propertyId) {
-            // Fetch prices for March to June
+        if (tenantId && propertyId) {
             dispatch(fetchRoomRates({
+                tenantId,
                 currentMonth: startMonth,
                 propertyId,
                 endMonth
@@ -136,41 +123,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         } else {
             dispatch(clearRoomRates());
         }
-    }, [propertyId, dispatch]);
-
-    // Fetch special discounts for the entire range
-    useEffect(() => {
-        const fetchSpecialDiscounts = async () => {
-            if (!propertyId) return;
-
-            setLoadingDiscounts(true);
-            try {
-                const startDate = format(startMonth, "yyyy-MM-dd");
-                const endDate = format(endMonth, "yyyy-MM-dd");
-
-                const response = await api.getSpecialDiscounts({
-                    propertyId,
-                    startDate,
-                    endDate,
-                    tenantId
-                });
-
-                if (response.statusCode === "OK" && Array.isArray(response.data)) {
-                    const discountMap: Record<string, number> = {};
-                    response.data.forEach((discount: SpecialDiscount) => {
-                        discountMap[discount.discountDate] = discount.discountPercentage;
-                    });
-                    setSpecialDiscounts(discountMap);
-                }
-            } catch (error) {
-                console.error("Error fetching special discounts:", error);
-            } finally {
-                setLoadingDiscounts(false);
-            }
-        };
-
-        fetchSpecialDiscounts();
-    }, [propertyId, tenantId]);
+    }, [tenantId, propertyId, dispatch, startMonth, endMonth]);
 
     const renderDayContents = (day: Date) => {
         // Don't show prices for past dates
@@ -183,9 +136,8 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         }
 
         const dayStr = format(day, "yyyy-MM-dd");
-        const originalPrice = formattedRoomRates[dayStr] * multiplier;
-        const discountPercentage = specialDiscounts[dayStr];
-        const discountedPrice = originalPrice * (1 - discountPercentage / 100);
+        const originalPrice = (formattedRoomRates[dayStr]?.minimumRate ?? 0) * multiplier;
+        const discountedPrice = (formattedRoomRates[dayStr]?.discountedRate ?? 0) * multiplier;
         const currencySymbol = selectedCurrency.symbol;
 
         const isRangeEnd = date?.from && date?.to &&
@@ -196,20 +148,20 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         return (
             <div className="flex flex-col items-center justify-start h-full">
                 <div>{format(day, "d")}</div>
-                {discountPercentage > 0 ? (
-                    <div className={`${textColor}`}>
-                        <div className="line-through text-gray-500 text-sm">
-                            {currencySymbol}{formatPrice(originalPrice)}
+                {originalPrice !== 0 &&
+                    (
+                        <div className={`${textColor}`}>
+                            {originalPrice !== discountedPrice && (
+                                <div className="line-through text-gray-500 text-sm">
+                                    {currencySymbol}{formatPrice(originalPrice)}
+                                </div>
+                            )}
+                            <div className="text-sm">
+                                {currencySymbol}{formatPrice(discountedPrice)}
+                            </div>
                         </div>
-                        <div className="text-sm">
-                            {currencySymbol}{formatPrice(discountedPrice)}
-                        </div>
-                    </div>
-                ) : (
-                    <div className={`${textColor} text-sm`}>
-                        {currencySymbol}{formatPrice(originalPrice)}
-                    </div>
-                )}
+                    )
+                }
             </div>
         );
     };
@@ -246,7 +198,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                     sideOffset={5}
                 >
                     <div className="p-2 sm:p-4">
-                        {status === StateStatus.LOADING || loadingDiscounts ? (
+                        {status === StateStatus.LOADING ? (
                             <div className="flex justify-center p-4">Loading rates and discounts...</div>
                         ) : (
                             <div className="flex flex-col">

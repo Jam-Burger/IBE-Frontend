@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {
     Button,
     Card,
@@ -15,10 +15,11 @@ import {
     SelectValue
 } from "./";
 import {api} from "../../lib/api-client";
-import {useAppSelector} from "../../redux/hooks";
+import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {PulseLoader} from "react-spinners";
 import {FaWheelchair} from "react-icons/fa";
 import {useParams} from 'react-router-dom';
+import {setPropertyId} from "../../redux/filterSlice.ts";
 
 interface Property {
     propertyId: number;
@@ -27,22 +28,27 @@ interface Property {
 
 const CardWithForm = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
-    const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+
+    const dispatch = useAppDispatch();
+    const selectedPropertyId = useAppSelector(state => state.roomFilters.propertyId);
+
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    // Choose which icon to use (can be changed to any of the imported icons)
     const AccessibilityIcon = FaWheelchair;
 
     const searchForm = useAppSelector(state => state.config.landingConfig?.configData.searchForm);
     const globalConfig = useAppSelector(state => state.config.globalConfig);
     const configLoading = !searchForm || !globalConfig;
 
-    // Get allowed property IDs from global config - these are numbers
     const allowedPropertyIds = globalConfig?.configData.properties || [];
 
-    const fetchProperties = async () => {
+    const fetchProperties = useCallback(async () => {
         setLoading(true);
         try {
+            if (!tenantId) {
+                console.error("Tenant ID is not available");
+                return;
+            }
             const propertiesData = await api.getProperties(tenantId);
             setProperties(propertiesData);
         } catch (err) {
@@ -50,25 +56,20 @@ const CardWithForm = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [tenantId]);
 
     useEffect(() => {
         fetchProperties();
-    }, [tenantId]);
+    }, [fetchProperties]);
 
-    // Check if a property is enabled based on config
     const isPropertyEnabled = (propertyId: number): boolean => {
-        // Check if the numeric property ID is in the allowed list
         return allowedPropertyIds.includes(propertyId);
     };
 
-    // Handle property selection change
-    const handlePropertyChange = (propertyIdString: string) => {
-        const propertyId = parseInt(propertyIdString, 10);
-        setSelectedPropertyId(propertyId);
+    const handlePropertyChange = (propertyId: number) => {
+        dispatch(setPropertyId(propertyId));
     };
 
-    // Get selected property name for display
     const getSelectedPropertyName = () => {
         if (selectedPropertyId === null) return "";
         const property = properties.find(p => p.propertyId === selectedPropertyId);
@@ -90,7 +91,7 @@ const CardWithForm = () => {
                     {/* Property Name */}
                     <div className="flex flex-col space-y-2">
                         <Label htmlFor="property">Property name</Label>
-                        <Select onValueChange={handlePropertyChange}>
+                        <Select>
                             <SelectTrigger
                                 id="property"
                                 className="w-full min-h-[48px] text-gray-700 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
@@ -108,6 +109,7 @@ const CardWithForm = () => {
                                         key={property.propertyId}
                                         value={property.propertyId.toString()}
                                         disabled={!isPropertyEnabled(property.propertyId)}
+                                        onClick={() => handlePropertyChange(property.propertyId)}
                                     >
                                         <Checkbox
                                             className="mr-2 data-[state=checked]:bg-primary text-white data-[state=checked]:text-white border-[#C1C2C2]"

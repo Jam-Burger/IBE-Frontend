@@ -2,7 +2,7 @@ import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {BaseState, StateStatus} from "../types/common";
 import {RootState} from "./store";
 import {setSelectedCurrency} from "./currencySlice";
-import { api } from "../lib/api-client";
+import {api} from "../lib/api-client";
 
 export interface Language {
     code: string;
@@ -54,7 +54,7 @@ export const fetchLocationInfo = createAsyncThunk(
             }
 
             dispatch(setLanguage(language));
-            
+
             const currencyCode = response.currency?.code;
             let currency;
             if (globalConfig?.configData.currencies) {

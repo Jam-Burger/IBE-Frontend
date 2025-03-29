@@ -7,4 +7,4 @@ export enum StateStatus {
 export interface BaseState {
     status: StateStatus;
     error: string | null;
-} 
+}

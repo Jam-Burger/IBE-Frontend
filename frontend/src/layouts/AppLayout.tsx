@@ -8,7 +8,7 @@ export const AppLayout: React.FC = () => {
         <Sentry.ErrorBoundary fallback={<ErrorComponent/>}>
             <div className="w-full flex flex-col min-h-screen">
                 <Header/>
-                <main className="flex-grow">
+                <main className="pt-[84px]">
                     <Outlet/>
                 </main>
                 <Footer/>

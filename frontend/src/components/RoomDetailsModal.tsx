@@ -1,13 +1,9 @@
-import { useState } from "react";
-import HotelPackageCard from "./HotelPackageCard";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { GoPerson } from "react-icons/go";
-import { MdOutlineBed } from "react-icons/md";
-import { FaRegCircleCheck } from "react-icons/fa6";
-
-// Add font import if not already in your project
-// This can also be added to your global CSS or index.html
-// import '@fontsource/lato';
+import {useState} from "react";
+import PackageCard from "./PackageCard";
+import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
+import {GoPerson} from "react-icons/go";
+import {MdOutlineBed} from "react-icons/md";
+import {FaRegCircleCheck} from "react-icons/fa6";
 
 const roomData = {
     room: {
@@ -50,7 +46,7 @@ const roomData = {
     ],
 };
 
-const ExecutiveRoom = () => {
+const RoomDetailsModal = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const nextImage = () => {
@@ -64,7 +60,8 @@ const ExecutiveRoom = () => {
     };
 
     return (
-        <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden" style={{ fontFamily: 'Lato, sans-serif' }}>
+        <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden"
+             style={{fontFamily: 'Lato, sans-serif'}}>
             {/* Header Section with Image Carousel */}
             <div
                 className="relative w-full h-[381px] bg-cover bg-center"
@@ -83,13 +80,13 @@ const ExecutiveRoom = () => {
                     onClick={prevImage}
                     className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800/50  text-white text-xl  px-6 py-5"
                 >
-                    <FaChevronLeft />
+                    <FaChevronLeft/>
                 </button>
                 <button
                     onClick={nextImage}
                     className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-900/50 transparent text-white text-xl px-6 py-5"
                 >
-                    <FaChevronRight />
+                    <FaChevronRight/>
                 </button>
             </div>
 
@@ -98,7 +95,10 @@ const ExecutiveRoom = () => {
                 <div className="flex justify-between items-start text-sm">
                     <div>
                         <div className="flex gap-4 text-gray-600">
-                            <span className="flex justify-between items-center gap-2"><GoPerson />{roomData.room.guests}</span> <span className="flex justify-between items-center gap-2"><MdOutlineBed />{roomData.room.bedType}</span>  <span>{roomData.room.size}</span>
+                            <span className="flex justify-between items-center gap-2"><GoPerson/>{roomData.room.guests}</span>
+                            <span
+                                className="flex justify-between items-center gap-2"><MdOutlineBed/>{roomData.room.bedType}</span>
+                            <span>{roomData.room.size}</span>
                         </div>
 
                         {/* Description moved up directly under the guest info */}
@@ -115,7 +115,8 @@ const ExecutiveRoom = () => {
 
                         <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                             {roomData.room.amenities.map((amenity, index) => (
-                                <span key={index} className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]"><FaRegCircleCheck /> {amenity}</span>
+                                <span key={index}
+                                      className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]"><FaRegCircleCheck/> {amenity}</span>
                             ))}
                         </div>
                     </div>
@@ -124,11 +125,11 @@ const ExecutiveRoom = () => {
                 {/* Pricing & Packages */}
                 <div className="mt-8">
                     <h2 className="text-xl font-bold">Standard Rate</h2>
-                    <HotelPackageCard packageData={roomData.packages[0]} />
+                    <PackageCard packageData={roomData.packages[0]}/>
 
                     <h2 className="text-xl font-bold mt-6">Deals & Packages</h2>
                     {roomData.packages.slice(1).map((pkg, index) => (
-                        <HotelPackageCard key={index} packageData={pkg} />
+                        <PackageCard key={index} packageData={pkg}/>
                     ))}
                 </div>
 
@@ -136,8 +137,10 @@ const ExecutiveRoom = () => {
                 <div className="mt-6">
                     <label className="text-gray-700 text-sm block mb-2">Enter a promo code</label>
                     <div className="flex gap-2">
-                    <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm" />
-                        <button className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]"><span className="h-[20px] w-[44px]">APPLY</span></button>
+                        <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm"/>
+                        <button
+                            className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]">
+                            <span className="h-[20px] w-[44px]">APPLY</span></button>
                     </div>
                 </div>
             </div>
@@ -145,4 +148,4 @@ const ExecutiveRoom = () => {
     );
 };
 
-export default ExecutiveRoom;
+export default RoomDetailsModal;

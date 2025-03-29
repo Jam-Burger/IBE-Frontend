@@ -1,7 +1,7 @@
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config';
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { sentryVitePlugin } from "@sentry/vite-plugin";
+import {sentryVitePlugin} from "@sentry/vite-plugin";
 import path from "path";
 
 export default defineConfig({
@@ -18,7 +18,7 @@ export default defineConfig({
             "@": path.resolve(__dirname, "./src"),
         },
     },
-    test: {  
+    test: {
         globals: true,
         environment: 'jsdom',
         setupFiles: ['./src/setupTests.ts'],

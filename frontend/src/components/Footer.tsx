@@ -2,7 +2,7 @@ import React from "react";
 import {useAppSelector} from "../redux/hooks";
 
 const Footer: React.FC = () => {
-    const { globalConfig } = useAppSelector(state => state.config);
+    const {globalConfig} = useAppSelector(state => state.config);
     const companyName = globalConfig?.configData.brand.companyName ?? "";
 
     return (

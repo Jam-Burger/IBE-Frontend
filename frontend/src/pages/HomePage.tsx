@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import CardWithForm from '../components/ui/CardWithForm';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {fetchGlobalConfig, fetchLandingConfig} from '../redux/configSlice';
+import {fetchLandingConfig} from '../redux/configSlice';
 import {PulseLoader} from 'react-spinners';
 import {useParams} from 'react-router-dom';
 import {StateStatus} from '../types/common';
@@ -16,11 +16,10 @@ const HomePage: React.FC = () => {
     const isLoading = status === StateStatus.LOADING || !globalConfig || !landingConfig;
 
     const fetchConfigs = useCallback(async () => {
-        await Promise.all([
-            dispatch(fetchGlobalConfig(tenantId)),
+        if (tenantId) {
             dispatch(fetchLandingConfig(tenantId))
-        ]);
-        
+        }
+
         if (!languageInitialized) {
             dispatch(fetchLocationInfo());
         }
