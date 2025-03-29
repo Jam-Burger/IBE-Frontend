@@ -15,5 +15,5 @@ export function formatPrice(price: number): string {
     if (price >= 1000) {
         return (price / 1000).toFixed(1) + 'K';
     }
-    return price.toFixed(2);
+    return price.toFixed(1);
 }

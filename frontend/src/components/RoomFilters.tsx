@@ -4,7 +4,8 @@ import {
     AccordionItem,
     AccordionTrigger,
     Button,
-    Checkbox, Label,
+    Checkbox,
+    Label,
     Select,
     SelectContent,
     SelectItem,
@@ -258,18 +259,18 @@ function RoomFilters() {
                                 <div className="text-sm font-medium">
                                     <span className="text-gray-700">Min: </span>
                                     <span className="text-primary">
-                                        {roomSize[0]} sq ft
+                                        {roomSize[0]} sqft
                                     </span>
                                 </div>
                                 <div className="text-sm font-medium">
                                     <span className="text-gray-700">Max: </span>
                                     <span className="text-primary">
-                                        {roomSize[1]} sq ft
+                                        {roomSize[1]} sqft
                                     </span>
                                 </div>
                             </div>
                             <div className="text-xs text-gray-700 mt-2">
-                                Selected range: {roomSize[0]} - {roomSize[1]} sq ft
+                                Selected range: {roomSize[0]} - {roomSize[1]} sqft
                             </div>
                         </div>
                     </AccordionContent>

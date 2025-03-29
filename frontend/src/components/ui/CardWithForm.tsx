@@ -18,8 +18,8 @@ import {api} from "../../lib/api-client";
 import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {PulseLoader} from "react-spinners";
 import {FaWheelchair} from "react-icons/fa";
-import {useParams} from 'react-router-dom';
-import {setPropertyId} from "../../redux/filterSlice.ts";
+import {useNavigate, useParams} from 'react-router-dom';
+import {setIsAccessible, setPropertyId, setRoomCount} from "../../redux/filterSlice.ts";
 
 interface Property {
     propertyId: number;
@@ -28,9 +28,10 @@ interface Property {
 
 const CardWithForm = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
+    const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
-    const selectedPropertyId = useAppSelector(state => state.roomFilters.propertyId);
+    const {propertyId, roomCount, isAccessible} = useAppSelector(state => state.roomFilters);
 
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -70,10 +71,22 @@ const CardWithForm = () => {
         dispatch(setPropertyId(propertyId));
     };
 
+    const handleRoomCountChange = (value: string) => {
+        dispatch(setRoomCount(parseInt(value, 10)));
+    };
+
+    const handleAccessibilityChange = (checked: boolean) => {
+        dispatch(setIsAccessible(checked));
+    };
+
     const getSelectedPropertyName = () => {
-        if (selectedPropertyId === null) return "";
-        const property = properties.find(p => p.propertyId === selectedPropertyId);
+        if (propertyId === 0) return "";
+        const property = properties.find(p => p.propertyId === propertyId);
         return property ? property.propertyName : "";
+    };
+
+    const handleSearch = () => {
+        navigate(`/${tenantId}/rooms-list`);
     };
 
     if (loading || configLoading) {
@@ -96,9 +109,9 @@ const CardWithForm = () => {
                                 id="property"
                                 className="w-full min-h-[48px] text-gray-700 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
                             >
-                                {selectedPropertyId === null &&
+                                {propertyId === 0 &&
                                     <p className="text-muted-foreground italic font-light">Search all properties</p>}
-                                {selectedPropertyId !== null && (
+                                {propertyId !== 0 && (
                                     <span>{getSelectedPropertyName()}</span>
                                 )}
                             </SelectTrigger>
@@ -126,9 +139,9 @@ const CardWithForm = () => {
 
                     <div className="flex flex-col space-y-2">
                         <Label>Select dates</Label>
-                        {selectedPropertyId !== null ? (
+                        {propertyId !== 0 ? (
                             <DatePickerWithRange
-                                propertyId={selectedPropertyId}
+                                propertyId={propertyId}
                                 disabled={false}
                             />
                         ) : (
@@ -153,7 +166,7 @@ const CardWithForm = () => {
                                     }`}
                                 >
                                     <Label htmlFor="guests">Guests</Label>
-                                    <GuestSelector/>
+                                    <GuestSelector roomCount={roomCount}/>
                                 </div>
                             )}
 
@@ -165,9 +178,9 @@ const CardWithForm = () => {
                                     }`}
                                 >
                                     <Label htmlFor="rooms">Rooms</Label>
-                                    <Select>
+                                    <Select value={roomCount.toString()} onValueChange={handleRoomCountChange}>
                                         <SelectTrigger id="rooms" className="w-full text-gray-500 min-h-[48px]">
-                                            <SelectValue placeholder="1"/>
+                                            <SelectValue placeholder={roomCount.toString()}/>
                                         </SelectTrigger>
                                         <SelectContent position="popper">
                                             {/* Dynamic Room Options */}
@@ -186,7 +199,11 @@ const CardWithForm = () => {
                     {/* Accessible Room Checkbox with Wheelchair Icon */}
                     {searchForm.accessibility && searchForm.accessibility.enabled && (
                         <div className="flex items-center space-x-2">
-                            <Checkbox id="accessible-room"/>
+                            <Checkbox
+                                id="accessible-room"
+                                checked={isAccessible}
+                                onCheckedChange={handleAccessibilityChange}
+                            />
                             <div className="flex items-center space-x-2">
                                 <AccessibilityIcon className="text-primary text-lg" aria-hidden="true"/>
                                 <Label htmlFor="accessible-room" className="text-sm">
@@ -202,7 +219,8 @@ const CardWithForm = () => {
             <CardFooter className="flex justify-center mt-[60px] sm:mt-[100px]">
                 <Button
                     className="bg-[#2A1D64] text-white px-6 py-6 rounded-lg w-[140px] h-[44px]"
-                    disabled={selectedPropertyId === null}
+                    disabled={propertyId === 0}
+                    onClick={handleSearch}
                 >
                     SEARCH
                 </Button>

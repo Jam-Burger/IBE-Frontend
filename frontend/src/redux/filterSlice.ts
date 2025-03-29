@@ -1,5 +1,6 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {BaseState, StateStatus} from "../types/common";
+import {DateRange} from "react-day-picker";
 
 export enum SortOption {
     PRICE_LOW_TO_HIGH = 'PRICE_LOW_TO_HIGH',
@@ -7,6 +8,11 @@ export enum SortOption {
     RATING_HIGH_TO_LOW = 'RATING_HIGH_TO_LOW',
     CAPACITY_HIGH_TO_LOW = 'CAPACITY_HIGH_TO_LOW',
     ROOM_SIZE_LARGE_TO_SMALL = 'ROOM_SIZE_LARGE_TO_SMALL'
+}
+
+// Interface for guest counts
+export interface GuestCounts {
+    [categoryName: string]: number;
 }
 
 export interface RoomFiltersState extends BaseState {
@@ -23,6 +29,11 @@ export interface RoomFiltersState extends BaseState {
     sortBy: SortOption;
     roomTypeName: string | null;
     searchQuery: string;
+    // Form values
+    dateRange: DateRange | null;
+    guests: GuestCounts;
+    roomCount: number;
+    isAccessible: boolean;
 }
 
 const initialState: RoomFiltersState = {
@@ -40,7 +51,12 @@ const initialState: RoomFiltersState = {
     roomSize: [0, 2000],
     sortBy: SortOption.RATING_HIGH_TO_LOW,
     roomTypeName: null,
-    searchQuery: ''
+    searchQuery: '',
+    // Form values
+    dateRange: null,
+    guests: {},
+    roomCount: 1,
+    isAccessible: false
 };
 
 const filterSlice = createSlice({
@@ -80,6 +96,26 @@ const filterSlice = createSlice({
         setSearchQuery(state, action: PayloadAction<string>) {
             state.searchQuery = action.payload;
         },
+        // New form value actions
+        setDateRange(state, action: PayloadAction<DateRange | null>) {
+            state.dateRange = action.payload;
+        },
+        setGuests(state, action: PayloadAction<GuestCounts>) {
+            state.guests = action.payload;
+        },
+        updateGuestCount(state, action: PayloadAction<{ category: string, count: number }>) {
+            const {category, count} = action.payload;
+            state.guests = {
+                ...state.guests,
+                [category]: count
+            };
+        },
+        setRoomCount(state, action: PayloadAction<number>) {
+            state.roomCount = action.payload;
+        },
+        setIsAccessible(state, action: PayloadAction<boolean>) {
+            state.isAccessible = action.payload;
+        },
         resetFilters(state) {
             return {
                 ...initialState,
@@ -101,6 +137,12 @@ export const {
     setSortOption,
     setRoomTypeName,
     setSearchQuery,
+    // Export new form value actions
+    setDateRange,
+    setGuests,
+    updateGuestCount,
+    setRoomCount,
+    setIsAccessible,
     resetFilters
 } = filterSlice.actions;
 

@@ -13,6 +13,7 @@ import {Calendar} from "./Calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
 import {clearRoomRates, fetchRoomRates} from "../../redux/roomRatesSlice";
 import {useParams} from "react-router-dom";
+import {setDateRange} from "../../redux/filterSlice";
 
 interface DatePickerWithRangeProps {
     className?: string;
@@ -29,10 +30,11 @@ interface RoomRates {
 
 export function DatePickerWithRange({className, propertyId, disabled}: Readonly<DatePickerWithRangeProps>) {
     const dispatch = useAppDispatch();
-    const {tenantId} = useParams<{tenantId: string}>();
+    const {tenantId} = useParams<{ tenantId: string }>();
     const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
     const {landingConfig} = useAppSelector(state => state.config);
+    const dateRange = useAppSelector(state => state.roomFilters.dateRange);
 
     const formattedRoomRates = React.useMemo(() => {
         const rates: RoomRates = {};
@@ -43,14 +45,13 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     }, [roomRates]);
 
     const today = startOfToday();
-    const [date, setDate] = React.useState<DateRange | undefined>({
-        from: today,
-        to: addDays(today, 1),
-    });
+    const [date, setDate] = React.useState<DateRange | undefined>(dateRange || undefined);
+    const [isOpen, setIsOpen] = React.useState(false);
 
     const startMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 2, 1), []);
     const endMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 6, 1), []);
     const [currentMonth, setCurrentMonth] = React.useState<Date>(startMonth);
+
     const handleSelect = (newRange: DateRange | undefined) => {
         if (!newRange) {
             setDate(undefined);
@@ -91,6 +92,11 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                 setDate(newRange);
             }
         }
+    };
+
+    const handleApplyDates = () => {
+        dispatch(setDateRange(date || null));
+        setIsOpen(false);
     };
 
     const isDisabled = (day: Date): boolean => {
@@ -166,27 +172,54 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         );
     };
 
+    // Format dates for display
+    const formatDisplayDates = () => {
+        if (!dateRange?.from) {
+            return (
+                <>
+                    <div className="flex items-center gap-2 sm:gap-4 text-sm sm:text-base">
+                        <div className="flex flex-col">
+                            <span className="text-gray-500">Check-in</span>
+                        </div>
+                        <div className="text-gray-400">→</div>
+                        <div className="flex flex-col">
+                            <span className="text-gray-500">Check-out</span>
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
+        return (
+            <>
+                <div className="flex items-center gap-2 sm:gap-8 text-sm">
+                    <div className="flex flex-col items-center">
+                        <span className="text-gray-500 text-xs mb-0.5">Check-in</span>
+                        <span className="font-medium">{format(dateRange.from, "dd MMMM")}</span>
+                    </div>
+                    <div className="text-gray-400">→</div>
+                    <div className="flex flex-col items-center">
+                        <span className="text-gray-500 text-xs mb-0.5">Check-out</span>
+                        <span className="font-medium">{dateRange.to ? format(dateRange.to, "dd MMMM") : "Select"}</span>
+                    </div>
+                </div>
+            </>
+        );
+    };
+
     return (
         <div className={cn("relative", className)}>
-            <Popover>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         id="date"
                         variant="outline"
-                        className="w-full text-gray-700 disabled:text-gray-500 max-w-md min-h-[48px] justify-start text-left font-normal rounded-md border border-gray-200 shadow-sm px-4 py-3 flex items-center gap-2"
+                        className="w-full text-gray-700 disabled:text-gray-500 max-w-md min-h-[48px] h-12 justify-start text-left font-normal rounded-md border border-gray-200 shadow-sm px-4 py-2 flex items-center gap-2"
                         disabled={disabled}
                     >
                         <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-2 sm:gap-6 text-sm sm:text-base">
-                                <div className="flex flex-col">
-                                    <span>Check-in</span>
-                                </div>
-                                <div>→</div>
-                                <div className="flex flex-col">
-                                    <span>Check out</span>
-                                </div>
-                            </div>
-                            <MdOutlineCalendarMonth className="h-5 w-5 "/>
+                            {formatDisplayDates()}
+                            <MdOutlineCalendarMonth className="h-5 w-5 ml-2"/>
                         </div>
                     </Button>
                 </PopoverTrigger>
@@ -437,6 +470,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                         <Button
                             className="bg-primary h-8 text-sm px-6 w-fit"
                             disabled={!date?.from || !date?.to}
+                            onClick={handleApplyDates}
                         >
                             APPLY DATES
                         </Button>
