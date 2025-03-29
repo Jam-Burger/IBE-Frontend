@@ -1,14 +1,8 @@
-import HotelPackageCard from "./HotelPackageCard";
+import PackageCard from "./PackageCard.tsx";
 import { GoPerson } from "react-icons/go";
 import { MdOutlineBed } from "react-icons/md";
 import { FaRegCircleCheck } from "react-icons/fa6";
 import ImageCarousel from "./ui/ImageCarousel";
-import {useState} from "react";
-import PackageCard from "./PackageCard";
-import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
-import {GoPerson} from "react-icons/go";
-import {MdOutlineBed} from "react-icons/md";
-import {FaRegCircleCheck} from "react-icons/fa6";
 
 const roomData = {
     room: {
@@ -105,14 +99,14 @@ const RoomDetailsModal = () => {
                 {/* Pricing & Packages */}
                 <div className="mt-8">
                     <h2 className="text-xl font-bold">Standard Rate</h2>
-                    <HotelPackageCard
+                    <PackageCard
                         packageData={roomData.packages[0]}
                         onSelectPackage={() => handleSelectPackage(0)}
                     />
 
                     <h2 className="text-xl font-bold mt-6">Deals & Packages</h2>
                     {roomData.packages.slice(1).map((pkg, index) => (
-                        <HotelPackageCard
+                        <PackageCard
                             key={index}
                             packageData={pkg}
                             onSelectPackage={() => handleSelectPackage(index + 1)}

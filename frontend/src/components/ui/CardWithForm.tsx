@@ -86,16 +86,6 @@ const CardWithForm = () => {
         dispatch(setIsAccessible(checked));
     };
 
-    // Handle checkbox click
-    const handleCheckboxClick = (e: React.MouseEvent, propertyId: number) => {
-        e.stopPropagation();
-        if (isPropertyEnabled(propertyId)) {
-            setSelectedPropertyId(
-                selectedPropertyId === propertyId ? null : propertyId
-            );
-        }
-    };
-
     // Get selected property name for display
     const getSelectedPropertyName = () => {
         if (propertyId === 0) return "";
@@ -143,14 +133,13 @@ const CardWithForm = () => {
                                         key={property.propertyId}
                                         value={property.propertyId.toString()}
                                         disabled={!isPropertyEnabled(property.propertyId)}
-                                        onClick={() => handlePropertyChange(property.propertyId)}
                                     >
                                         <div className="flex items-center w-full">
                                             <Checkbox
                                                 id={`property-${property.propertyId}`}
                                                 className="mr-2 data-[state=checked]:bg-primary text-white data-[state=checked]:text-white border-[#C1C2C2]"
                                                 checked={propertyId === property.propertyId}
-                                                onClick={(e) => handleCheckboxClick(e, property.propertyId)}
+                                                onClick={() => handlePropertyChange(property.propertyId)}
                                             />
                                             <span>{property.propertyName}</span>
                                         </div>

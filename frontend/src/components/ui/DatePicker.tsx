@@ -176,34 +176,30 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     const formatDisplayDates = () => {
         if (!dateRange?.from) {
             return (
-                <>
-                    <div className="flex items-center gap-2 sm:gap-4 text-sm sm:text-base">
-                        <div className="flex flex-col">
-                            <span className="text-gray-500">Check-in</span>
-                        </div>
-                        <div className="text-gray-400">→</div>
-                        <div className="flex flex-col">
-                            <span className="text-gray-500">Check-out</span>
-                        </div>
+                <div className="flex items-center gap-2 sm:gap-4 text-sm sm:text-base">
+                    <div className="flex flex-col">
+                        <span className="text-gray-500">Check-in</span>
                     </div>
-                </>
+                    <div className="text-gray-400">→</div>
+                    <div className="flex flex-col">
+                        <span className="text-gray-500">Check-out</span>
+                    </div>
+                </div>
             );
         }
 
         return (
-            <>
-                <div className="flex items-center gap-2 sm:gap-8 text-sm">
-                    <div className="flex flex-col items-center">
-                        <span className="text-gray-500 text-xs mb-0.5">Check-in</span>
-                        <span className="font-medium">{format(dateRange.from, "dd MMMM")}</span>
-                    </div>
-                    <div className="text-gray-400">→</div>
-                    <div className="flex flex-col items-center">
-                        <span className="text-gray-500 text-xs mb-0.5">Check-out</span>
-                        <span className="font-medium">{dateRange.to ? format(dateRange.to, "dd MMMM") : "Select"}</span>
-                    </div>
+            <div className="flex items-center gap-2 sm:gap-8 text-sm">
+                <div className="flex flex-col items-center">
+                    <span className="text-gray-500 text-xs mb-0.5">Check-in</span>
+                    <span className="font-medium">{format(dateRange.from, "dd MMMM")}</span>
                 </div>
-            </>
+                <div className="text-gray-400">→</div>
+                <div className="flex flex-col items-center">
+                    <span className="text-gray-500 text-xs mb-0.5">Check-out</span>
+                    <span className="font-medium">{dateRange.to ? format(dateRange.to, "dd MMMM") : "Select"}</span>
+                </div>
+            </div>
         );
     };
 

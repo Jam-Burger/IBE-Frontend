@@ -1,5 +1,5 @@
 import RoomDetailsModal from "./RoomDetailsModal";
-import { Dialog, DialogContent } from "./ui/dialog";
+import { Dialog, DialogContent } from "./ui/Dialog.tsx";
 
 interface RoomDetailsModalPopupProps {
   isOpen: boolean;

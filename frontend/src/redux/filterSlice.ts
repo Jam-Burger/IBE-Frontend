@@ -10,7 +10,6 @@ export enum SortOption {
     ROOM_SIZE_LARGE_TO_SMALL = 'ROOM_SIZE_LARGE_TO_SMALL'
 }
 
-// Interface for guest counts
 export interface GuestCounts {
     [categoryName: string]: number;
 }
@@ -25,11 +24,9 @@ export interface RoomFiltersState extends BaseState {
     amenities: string[];
     priceRange: [number, number];
     capacity: number | null;
-    roomSize: [number, number]; // in square feet
+    roomSize: [number, number];
     sortBy: SortOption;
     roomTypeName: string | null;
-    searchQuery: string;
-    // Form values
     dateRange: DateRange | null;
     guests: GuestCounts;
     roomCount: number;
@@ -51,8 +48,6 @@ const initialState: RoomFiltersState = {
     roomSize: [0, 2000],
     sortBy: SortOption.RATING_HIGH_TO_LOW,
     roomTypeName: null,
-    searchQuery: '',
-    // Form values
     dateRange: null,
     guests: {},
     roomCount: 1,
@@ -93,10 +88,6 @@ const filterSlice = createSlice({
         setRoomTypeName(state, action: PayloadAction<string | null>) {
             state.roomTypeName = action.payload;
         },
-        setSearchQuery(state, action: PayloadAction<string>) {
-            state.searchQuery = action.payload;
-        },
-        // New form value actions
         setDateRange(state, action: PayloadAction<DateRange | null>) {
             state.dateRange = action.payload;
         },
@@ -136,8 +127,6 @@ export const {
     setRoomSize,
     setSortOption,
     setRoomTypeName,
-    setSearchQuery,
-    // Export new form value actions
     setDateRange,
     setGuests,
     updateGuestCount,
