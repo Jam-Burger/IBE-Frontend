@@ -5,10 +5,10 @@ import {Button} from './Button';
 import toast from 'react-hot-toast';
 import {updateGuestCount} from '../../redux/filterSlice';
 export interface GuestSelectorProps {
-    roomCount?: number;
+    roomCount: number;
 }
 
-export function GuestSelector({roomCount = 1}: GuestSelectorProps) {
+export function GuestSelector({roomCount}: Readonly<GuestSelectorProps>) {
     const dispatch = useAppDispatch();
     const guestOptions = useAppSelector(state => state.config.landingConfig?.configData.searchForm.guestOptions);
     const guestCounts = useAppSelector(state => state.roomFilters.guests);
