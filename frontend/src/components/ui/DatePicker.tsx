@@ -1,24 +1,27 @@
 import * as React from "react";
-import {useMemo} from "react";
-import {addDays, addMonths, differenceInDays, format, isBefore, startOfToday, subMonths} from "date-fns";
-import {useAppDispatch, useAppSelector} from "../../redux/hooks";
-import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
-import {MdOutlineCalendarMonth} from "react-icons/md";
-import {DateRange} from "react-day-picker";
-import {StateStatus} from "../../types/common";
+import { useMemo } from "react";
+import { addDays, addMonths, differenceInDays, format, isBefore, startOfToday, subMonths } from "date-fns";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { MdOutlineCalendarMonth } from "react-icons/md";
+import { DateRange } from "react-day-picker";
+import { StateStatus } from "../../types/common";
 
-import {cn, formatPrice} from "../../lib/utils";
-import {Button} from "./Button";
-import {Calendar} from "./Calendar";
-import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
-import {clearRoomRates, fetchRoomRates} from "../../redux/roomRatesSlice";
-import {useParams} from "react-router-dom";
-import {setDateRange} from "../../redux/filterSlice";
+import { cn, formatPrice } from "../../lib/utils";
+import { Button } from "./Button";
+import { Calendar } from "./Calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./Popover";
+import { clearRoomRates, fetchRoomRates } from "../../redux/roomRatesSlice";
+import { useParams } from "react-router-dom";
+import { setDateRange } from "../../redux/filterSlice";
 
 interface DatePickerWithRangeProps {
     className?: string;
     propertyId: number;
     disabled: boolean;
+    noBorder?: boolean;
+    grayBorder?: boolean;
+    displayStyle?: "default" | "checkInOut";
 }
 
 interface RoomRates {
@@ -28,12 +31,19 @@ interface RoomRates {
     };
 }
 
-export function DatePickerWithRange({className, propertyId, disabled}: Readonly<DatePickerWithRangeProps>) {
+export function DatePickerWithRange({
+    className,
+    propertyId,
+    disabled,
+    noBorder = false,
+    grayBorder = false,
+    displayStyle = "default"
+}: Readonly<DatePickerWithRangeProps>) {
     const dispatch = useAppDispatch();
-    const {tenantId} = useParams<{ tenantId: string }>();
-    const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);
-    const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
-    const {landingConfig} = useAppSelector(state => state.config);
+    const { tenantId } = useParams<{ tenantId: string }>();
+    const { data: roomRates, status, error } = useAppSelector(state => state.roomRates);
+    const { selectedCurrency, multiplier } = useAppSelector(state => state.currency);
+    const { landingConfig } = useAppSelector(state => state.config);
     const dateRange = useAppSelector(state => state.roomFilters.dateRange);
 
     const formattedRoomRates = React.useMemo(() => {
@@ -172,56 +182,91 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
         );
     };
 
-    // Format dates for display
-    const formatDisplayDates = () => {
-        if (!dateRange?.from) {
+    // Format dates for display based on style
+    const renderDateContent = () => {
+        if (displayStyle === "checkInOut") {
             return (
-                <div className="flex items-center gap-2 sm:gap-4 text-sm sm:text-base">
+                <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col">
-                        <span className="text-gray-500">Check-in</span>
+                        <span className="text-sm font-medium text-gray-500">Check out Between</span>
+                        <span className={date?.to ? "text-black" : "text-black font-medium"}>
+                        {date?.from ? format(date.from, "MMM dd, yyyy") : "Select date"}
+                        </span>
                     </div>
-                    <div className="text-gray-400">→</div>
+                    <div className="text-gray-300 text-3xl">|</div>
                     <div className="flex flex-col">
-                        <span className="text-gray-500">Check-out</span>
+                        <span className="text-sm font-medium text-gray-500">Check out Between</span>
+                        <span className={date?.to ? "text-black" : "text-black font-medium"}>
+                            {date?.to ? format(date.to, "MMM dd, yyyy") : "Select date"}
+                        </span>
                     </div>
+
+                </div>
+            );
+        }
+
+        // Default display style for CardWithForm
+        if (!date?.from) {
+            return (
+                <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center">
+                        <span className="text-gray-500 text-base ml-2">Check-in</span>
+                        <span className="mx-4 text-gray-500">→</span>
+                        <span className="text-gray-500 text-base">Check out</span>
+                    </div>
+                    <MdOutlineCalendarMonth className="h-5 w-5 text-gray-500 mr-2" />
                 </div>
             );
         }
 
         return (
-            <div className="flex items-center gap-2 sm:gap-8 text-sm">
-                <div className="flex flex-col items-center">
-                    <span className="text-gray-500 text-xs mb-0.5">Check-in</span>
-                    <span className="font-medium">{format(dateRange.from, "dd MMMM")}</span>
+            <div className="flex items-center justify-between w-full">
+                <div className="ml-2">
+                    {date?.from ? (
+                        date.to ? (
+                            <>
+                                {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
+                            </>
+                        ) : (
+                            format(date.from, "LLL dd, y")
+                        )
+                    ) : (
+                        <span>Select dates</span>
+                    )}
                 </div>
-                <div className="text-gray-400">→</div>
-                <div className="flex flex-col items-center">
-                    <span className="text-gray-500 text-xs mb-0.5">Check-out</span>
-                    <span className="font-medium">{dateRange.to ? format(dateRange.to, "dd MMMM") : "Select"}</span>
-                </div>
+                <MdOutlineCalendarMonth className="h-4 w-4 text-gray-500 mr-2" />
             </div>
         );
     };
 
     return (
-        <div className={cn("relative", className)}>
+        <div className={cn("grid gap-2", className)}>
             <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         id="date"
-                        variant="outline"
-                        className="w-full text-gray-700 disabled:text-gray-500 max-w-md min-h-[48px] h-12 justify-start text-left font-normal rounded-md border border-gray-200 shadow-sm px-4 py-2 flex items-center gap-2"
+                        variant={noBorder ? "ghost" : "outline"}
+                        className={cn(
+                            "w-full justify-between text-left font-normal px-0",
+                            !date && "text-muted-foreground",
+                            noBorder && "!border-0 !shadow-none hover:!bg-transparent hover:!border-0",
+                            grayBorder && "border border-gray-200 hover:border-gray-300",
+                            displayStyle === "checkInOut" && "py-3 px-4",
+                            className
+                        )}
+                        style={{
+                            ...(grayBorder ? { borderColor: '#e5e7eb', borderRadius: '8px' } : {}),
+                            ...(noBorder ? { border: 'none', boxShadow: 'none' } : {}),
+                            height: className?.includes('h-[') ? undefined : (displayStyle === "checkInOut" ? 'auto' : undefined)
+                        }}
                         disabled={disabled}
                     >
-                        <div className="flex items-center justify-between w-full">
-                            {formatDisplayDates()}
-                            <MdOutlineCalendarMonth className="h-5 w-5 ml-2"/>
-                        </div>
+                        {renderDateContent()}
                     </Button>
                 </PopoverTrigger>
 
                 <PopoverContent
-                    className="w-[90vw] sm:w-[896px] bg-white shadow-md z-50 p-0 border rounded-md"
+                    className="w-[90vw] sm:w-[896px] bg-white shadow-md z-50 p-0  rounded-md"
                     align="center"
                     side="bottom"
                     sideOffset={5}
@@ -239,13 +284,13 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                                         onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
                                         className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                     >
-                                        <FaChevronLeft className="w-4 h-4"/>
+                                        <FaChevronLeft className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
                                         className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                     >
-                                        <FaChevronRight className="w-4 h-4"/>
+                                        <FaChevronRight className="w-4 h-4" />
                                     </button>
                                 </div>
                                 <div className="hidden md:flex md:space-x-8 justify-center">
@@ -258,13 +303,13 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                                                 onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
                                                 className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                             >
-                                                <FaChevronLeft className="w-4 h-4"/>
+                                                <FaChevronLeft className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
                                                 className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                             >
-                                                <FaChevronRight className="w-4 h-4"/>
+                                                <FaChevronRight className="w-4 h-4" />
                                             </button>
                                         </div>
                                         <Calendar
@@ -289,7 +334,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                                                     color: "white",
                                                     fontWeight: "bold"
                                                 },
-                                                day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
+                                                day_range_middle: { backgroundColor: "#9b9b9b", color: "black" }
                                             }}
                                             classNames={{
                                                 months: "flex flex-col",
@@ -329,13 +374,13 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                                                 onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
                                                 className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                             >
-                                                <FaChevronLeft className="w-4 h-4"/>
+                                                <FaChevronLeft className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
                                                 className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                             >
-                                                <FaChevronRight className="w-4 h-4"/>
+                                                <FaChevronRight className="w-4 h-4" />
                                             </button>
                                         </div>
                                         <Calendar
@@ -360,7 +405,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                                                     color: "white",
                                                     fontWeight: "bold"
                                                 },
-                                                day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
+                                                day_range_middle: { backgroundColor: "#9b9b9b", color: "black" }
                                             }}
                                             classNames={{
                                                 months: "flex flex-col",
@@ -415,7 +460,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
                                                 color: "white",
                                                 fontWeight: "bold"
                                             },
-                                            day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
+                                            day_range_middle: { backgroundColor: "#9b9b9b", color: "black" }
                                         }}
                                         classNames={{
                                             months: "flex flex-col",

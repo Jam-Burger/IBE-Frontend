@@ -1,14 +1,17 @@
 import RoomDetailsModal from "./RoomDetailsModal";
 import { Dialog, DialogContent } from "./ui/Dialog.tsx";
+import { Room } from "../types";
 
 interface RoomDetailsModalPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  room: Room;
 }
 
 const RoomDetailsModalPopup: React.FC<RoomDetailsModalPopupProps> = ({ 
   isOpen, 
-  onClose 
+  onClose,
+  room
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -17,7 +20,7 @@ const RoomDetailsModalPopup: React.FC<RoomDetailsModalPopupProps> = ({
           scrollbarWidth: 'thin',
           scrollbarColor: '#CBD5E0 transparent'
         }}>
-          <RoomDetailsModal />
+          <RoomDetailsModal room={room} onClose={onClose} />
         </div>
       </DialogContent>
     </Dialog>

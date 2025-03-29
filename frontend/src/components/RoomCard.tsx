@@ -5,7 +5,8 @@ import {GoPerson} from "react-icons/go";
 import {MdOutlineBed} from "react-icons/md";
 import {Room} from "../types";
 import ImageCarousel from "./ui/ImageCarousel.tsx";
-import RoomDetailsModalPopup from "./RoomDetailsModalPopup.tsx";
+import RoomDetailsModal from './RoomDetailsModal';
+import { Modal } from "./ui";
 
 interface RoomCardProps {
     room: Room & {
@@ -19,9 +20,9 @@ interface RoomCardProps {
 
 const RoomCard = ({room}: RoomCardProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const handleSelectRoom = () => {
-        setIsModalOpen(true);
-    };
+
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => setIsModalOpen(false);
 
     return (
         <>
@@ -29,6 +30,7 @@ const RoomCard = ({room}: RoomCardProps) => {
                 className={`w-[293px] bg-white rounded-lg shadow-md overflow-hidden ${
                     room.specialDeal ? "h-[513px]" : "h-[450px]"
                 }`}
+                onClick={openModal}
             >
                 {/* Image Carousel */}
                 <ImageCarousel
@@ -121,7 +123,6 @@ const RoomCard = ({room}: RoomCardProps) => {
                         </div>
                         <button
                             className="w-[128px] h-[44px] bg-primary text-white rounded-lg flex items-center justify-center cursor-pointer"
-                            onClick={handleSelectRoom}
                         >
                         <span className="font-[600] text-sm leading-[140%] tracking-[2%]">
                             SELECT ROOM
@@ -130,10 +131,12 @@ const RoomCard = ({room}: RoomCardProps) => {
                     </div>
                 </div>
             </div>
-            <RoomDetailsModalPopup
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
+
+            {isModalOpen && (
+                <Modal onClose={closeModal}>
+                    <RoomDetailsModal room={room} onClose={closeModal} />
+                </Modal>
+            )}
         </>
     );
 };

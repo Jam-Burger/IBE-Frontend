@@ -42,7 +42,7 @@ const HomePage: React.FC = () => {
         <div className="min-h-screen flex flex-col overflow-hidden">
             <main className="relative h-screen w-full flex-grow p-4 sm:p-9">
                 <img
-                    src={landingConfig.configData.banner.imageUrl}
+                    // src={landingConfig.configData.banner.imageUrl}
                     alt="Background"
                     className="absolute inset-0 w-full h-full object-cover z-0"
                 />

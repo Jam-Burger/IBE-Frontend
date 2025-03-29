@@ -4,22 +4,39 @@ import {Select, SelectContent, SelectTrigger, SelectValue,} from './Select';
 import {Button} from './Button';
 import toast from 'react-hot-toast';
 import {updateGuestCount} from '../../redux/filterSlice';
+
 export interface GuestSelectorProps {
     roomCount: number;
+    showDetailedSummary?: boolean; 
+    width?: string;  // New prop for width
+    height?: string; // New prop for height
 }
 
-export function GuestSelector({roomCount}: Readonly<GuestSelectorProps>) {
+export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, height }: GuestSelectorProps) => {
     const dispatch = useAppDispatch();
     const guestOptions = useAppSelector(state => state.config.landingConfig?.configData.searchForm.guestOptions);
     const guestCounts = useAppSelector(state => state.roomFilters.guests);
-
+    
+    // Log the props and state for debugging
+    console.log('showDetailedSummary:', showDetailedSummary);
+    console.log('guestCounts:', guestCounts);
+    
+    // Safely access guest counts with fallbacks to 0
+    const adults = guestCounts.Adults || 0;
+    const teens = guestCounts.Teens || 0;
+    const children = guestCounts.Children || 0;
+    
     // Initialize guest counts when config is loaded
     useEffect(() => {
         if (guestOptions?.categories) {
-            // Only initialize if there are no counts in Redux already
-            if (Object.keys(guestCounts).length === 0) {
+            // Check if we need to initialize any categories
+            const needsInitialization = guestOptions.categories.some(category => 
+                category.enabled && guestCounts[category.name] === undefined
+            );
+            
+            if (needsInitialization) {
                 guestOptions.categories.forEach(category => {
-                    if (category.enabled) {
+                    if (category.enabled && guestCounts[category.name] === undefined) {
                         dispatch(updateGuestCount({
                             category: category.name,
                             count: category.default || 0
@@ -30,7 +47,8 @@ export function GuestSelector({roomCount}: Readonly<GuestSelectorProps>) {
         }
     }, [guestOptions, dispatch, guestCounts]);
 
-    const totalGuests = Object.values(guestCounts).reduce((sum, count) => sum + count, 0);
+    // Calculate total guests safely
+    const totalGuests = adults + teens + children;
 
     // Calculate max guests allowed per room - if not defined in config, default to 4
     const maxGuestsPerRoom = 4; // Default value
@@ -73,18 +91,43 @@ export function GuestSelector({roomCount}: Readonly<GuestSelectorProps>) {
         }));
     };
 
-    if (!guestOptions?.enabled) return null;
+    // Function to generate summary text based on the display mode
+    const getSummaryText = () => {
+        // Force detailed summary for debugging
+        if (!showDetailedSummary) {
+            return `${totalGuests} guest${totalGuests !== 1 ? 's' : ''}`;
+        }
+        
+        // Detailed summary for RoomsListPage
+        let summary = '';
+        
+        if (adults > 0) {
+            summary += `${adults} adult${adults > 1 ? 's' : ''}`;
+        }
+        
+        if (teens > 0) {
+            summary += summary ? ', ' : '';
+            summary += `${teens} teen${teens > 1 ? 's' : ''}`;
+        }
+        
+        if (children > 0) {
+            summary += summary ? ', ' : '';
+            summary += `${children} child${children > 1 ? 'ren' : ''}`;
+        }
+        
+        return summary || 'Select guests';
+    };
 
+    if (!guestOptions?.enabled) return null;
+    
     return (
-        <div>
+        <div style={{ width: width || '100%' }}>
             <Select>
-                <SelectTrigger
-                    className="w-full px-[1.1875rem] py-[0.75rem] !h-[3rem] text-[#858685] rounded-[0.25rem] border border-gray-300"
+                <SelectTrigger 
+                    className="w-full text-gray-500" 
+                    style={{ height: height || '48px', minHeight: height || '48px' }}
                 >
-                    <SelectValue
-                        placeholder={`${totalGuests} ${totalGuests === 1 ? 'Guest' : 'Guests'}`}
-                        style={{fontStyle: 'italic', color: '#2F2F2F', fontWeight: 'normal'}}
-                    />
+                    <SelectValue placeholder={getSummaryText()} />
                 </SelectTrigger>
                 <SelectContent className="p-4 min-w-[300px]">
                     {guestOptions.categories.map((category) => (

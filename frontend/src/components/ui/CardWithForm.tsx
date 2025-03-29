@@ -155,11 +155,17 @@ const CardWithForm = () => {
                             <DatePickerWithRange
                                 propertyId={propertyId}
                                 disabled={false}
+                                className="h-[48px]"
+                                grayBorder={true}
+                                displayStyle="default"
                             />
                         ) : (
                             <DatePickerWithRange
                                 propertyId={0}
                                 disabled={true}
+                                className="h-[48px]"
+                                grayBorder={true}
+                                displayStyle="default"
                             />
                         )}
                     </div>
@@ -178,7 +184,11 @@ const CardWithForm = () => {
                                     }`}
                                 >
                                     <Label htmlFor="guests">Guests</Label>
-                                    <GuestSelector roomCount={roomCount}/>
+                                    <GuestSelector roomCount={roomCount} width="200px" height="48px"/>
+                                    {/* <GuestSelector 
+                                        roomCount={filters.roomCount} 
+                                        showDetailedSummary={true}
+                                         /> */}
                                 </div>
                             )}
 
