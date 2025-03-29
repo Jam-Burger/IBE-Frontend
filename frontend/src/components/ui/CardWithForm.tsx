@@ -149,7 +149,7 @@ const CardWithForm = () => {
                                             <Checkbox
                                                 id={`property-${property.propertyId}`}
                                                 className="mr-2 data-[state=checked]:bg-primary text-white data-[state=checked]:text-white border-[#C1C2C2]"
-                                                checked={selectedPropertyId === property.propertyId}
+                                                checked={propertyId === property.propertyId}
                                                 onClick={(e) => handleCheckboxClick(e, property.propertyId)}
                                             />
                                             <span>{property.propertyName}</span>
