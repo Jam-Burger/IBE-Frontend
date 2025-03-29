@@ -6,7 +6,7 @@ const Footer: React.FC = () => {
     const companyName = globalConfig?.configData.brand.companyName ?? "";
 
     return (
-        <footer className="bg-[#0d0524] text-white py-4 w-full font-['Mulish']">
+        <footer className="bg-[#0d0524] text-white py-4 w-full font-['Mulish'] h-[84px]">
             <div
                 className="container mx-auto flex flex-col md:flex-row justify-between items-center px-4 md:px-10 text-center md:text-left">
                 <span className="font-bold text-lg md:text-2xl flex items-center leading-[28px]">
