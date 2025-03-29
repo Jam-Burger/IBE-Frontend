@@ -25,6 +25,13 @@ interface Property {
     propertyName: string;
 }
 
+// Add custom CSS to hide the right checkmark
+const hideRightCheckmarkStyle = `
+  .select-item-no-right-check [data-slot="select-item"] span.absolute {
+    display: none !important;
+  }
+`;
+
 const CardWithForm = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
     const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
@@ -68,6 +75,16 @@ const CardWithForm = () => {
         setSelectedPropertyId(propertyId);
     };
 
+    // Handle checkbox click
+    const handleCheckboxClick = (e: React.MouseEvent, propertyId: number) => {
+        e.stopPropagation();
+        if (isPropertyEnabled(propertyId)) {
+            setSelectedPropertyId(
+                selectedPropertyId === propertyId ? null : propertyId
+            );
+        }
+    };
+
     // Get selected property name for display
     const getSelectedPropertyName = () => {
         if (selectedPropertyId === null) return "";
@@ -85,37 +102,46 @@ const CardWithForm = () => {
 
     return (
         <Card className="w-[380px] h-[585px] py-8 sm:py-12 px-4 sm:px-8 shadow-lg rounded-lg mx-auto">
+            {/* Add the style tag to inject our custom CSS */}
+            <style>{hideRightCheckmarkStyle}</style>
+            
             <CardContent className="flex flex-col h-full">
                 <form className="space-y-4 flex-1">
                     {/* Property Name */}
                     <div className="flex flex-col space-y-2">
                         <Label htmlFor="property">Property name</Label>
-                        <Select onValueChange={handlePropertyChange}>
+                        <Select 
+                            onValueChange={handlePropertyChange}
+                            value={selectedPropertyId ? selectedPropertyId.toString() : undefined}
+                        >
                             <SelectTrigger
                                 id="property"
                                 className="w-full min-h-[48px] text-gray-700 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
                             >
-                                {selectedPropertyId === null &&
-                                    <p className="text-muted-foreground italic font-light">Search all properties</p>}
-                                {selectedPropertyId !== null && (
+                                {selectedPropertyId === null ? (
+                                    <p className="text-muted-foreground italic font-light">Search all properties</p>
+                                ) : (
                                     <span>{getSelectedPropertyName()}</span>
                                 )}
                             </SelectTrigger>
-                            <SelectContent position="popper">
+                            <SelectContent position="popper" className="select-item-no-right-check">
                                 {/* Dynamic Properties */}
                                 {properties.map((property) => (
                                     <SelectItem
                                         key={property.propertyId}
                                         value={property.propertyId.toString()}
                                         disabled={!isPropertyEnabled(property.propertyId)}
+                                        className="flex items-center"
                                     >
-                                        <Checkbox
-                                            className="mr-2 data-[state=checked]:bg-primary text-white data-[state=checked]:text-white border-[#C1C2C2]"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                            }}
-                                        />
-                                        {property.propertyName}
+                                        <div className="flex items-center w-full">
+                                            <Checkbox
+                                                id={`property-${property.propertyId}`}
+                                                className="mr-2 data-[state=checked]:bg-primary text-white data-[state=checked]:text-white border-[#C1C2C2]"
+                                                checked={selectedPropertyId === property.propertyId}
+                                                onClick={(e) => handleCheckboxClick(e, property.propertyId)}
+                                            />
+                                            <span>{property.propertyName}</span>
+                                        </div>
                                     </SelectItem>
                                 ))}
                             </SelectContent>
