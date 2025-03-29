@@ -1,3 +1,8 @@
+import HotelPackageCard from "./HotelPackageCard";
+import { GoPerson } from "react-icons/go";
+import { MdOutlineBed } from "react-icons/md";
+import { FaRegCircleCheck } from "react-icons/fa6";
+import ImageCarousel from "./ui/ImageCarousel";
 import {useState} from "react";
 import PackageCard from "./PackageCard";
 import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
@@ -14,7 +19,7 @@ const roomData = {
         ],
         guests: "1-2 Guests",
         bedType: "Queen or 2 Doubles",
-        size: "301 ft²",
+        size: "301 sqft",
         description:
             "Smoke free and decorated in contemporary jewel and earth tones, the 15-story Casino Tower rooms are located directly above the casino. The 364 sq.ft. Casino Tower rooms are appointed with classic furnishings and include pillow-top mattresses, 40-inch flat panel plasma TV and Wi-Fi internet access.",
         amenities: [
@@ -34,7 +39,7 @@ const roomData = {
             price: 132,
         },
         {
-            title: "150 Dining  ",
+            title: "150 Dining Credit Package",
             description: "Spend $10 every night you stay and earn $150 in dining credit at the resort.",
             price: 110,
         },
@@ -47,57 +52,31 @@ const roomData = {
 };
 
 const RoomDetailsModal = () => {
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-    const nextImage = () => {
-        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % roomData.room.images.length);
-    };
-
-    const prevImage = () => {
-        setCurrentImageIndex((prevIndex) =>
-            prevIndex === 0 ? roomData.room.images.length - 1 : prevIndex - 1
-        );
+    const handleSelectPackage = (index: number) => {
+        console.log(`Selected package: ${roomData.packages[index].title}`);
     };
 
     return (
-        <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden"
-             style={{fontFamily: 'Lato, sans-serif'}}>
+        <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
             {/* Header Section with Image Carousel */}
-            <div
-                className="relative w-full h-[381px] bg-cover bg-center"
-                style={{
-                    backgroundImage: `url(${roomData.room.images[currentImageIndex]})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                }}
-            >
-                <div className="absolute inset-0  flex items-end px-20 py-6">
-                    <h1 className="text-white text-4xl font-medium">{roomData.room.title}</h1>
-                </div>
-
-                {/* Carousel Controls */}
-                <button
-                    onClick={prevImage}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800/50  text-white text-xl  px-6 py-5"
-                >
-                    <FaChevronLeft/>
-                </button>
-                <button
-                    onClick={nextImage}
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-900/50 transparent text-white text-xl px-6 py-5"
-                >
-                    <FaChevronRight/>
-                </button>
-            </div>
+            <ImageCarousel
+                images={roomData.room.images}
+                height="381px"
+                width="100%"
+                showTitle={true}
+                title={roomData.room.title}
+                arrowsStyle="large"
+                showDots={true}
+                autoRotate={true}
+            />
 
             {/* Room Details */}
             <div className="p-8">
                 <div className="flex justify-between items-start text-sm">
                     <div>
                         <div className="flex gap-4 text-gray-600">
-                            <span className="flex justify-between items-center gap-2"><GoPerson/>{roomData.room.guests}</span>
-                            <span
-                                className="flex justify-between items-center gap-2"><MdOutlineBed/>{roomData.room.bedType}</span>
+                            <span className="flex justify-between items-center gap-2"><GoPerson />{roomData.room.guests}</span>
+                            <span className="flex justify-between items-center gap-2"><MdOutlineBed />{roomData.room.bedType}</span>
                             <span>{roomData.room.size}</span>
                         </div>
 
@@ -115,8 +94,9 @@ const RoomDetailsModal = () => {
 
                         <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                             {roomData.room.amenities.map((amenity, index) => (
-                                <span key={index}
-                                      className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]"><FaRegCircleCheck/> {amenity}</span>
+                                <span key={index} className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]">
+                                    <FaRegCircleCheck /> {amenity}
+                                </span>
                             ))}
                         </div>
                     </div>
@@ -125,11 +105,18 @@ const RoomDetailsModal = () => {
                 {/* Pricing & Packages */}
                 <div className="mt-8">
                     <h2 className="text-xl font-bold">Standard Rate</h2>
-                    <PackageCard packageData={roomData.packages[0]}/>
+                    <HotelPackageCard
+                        packageData={roomData.packages[0]}
+                        onSelectPackage={() => handleSelectPackage(0)}
+                    />
 
                     <h2 className="text-xl font-bold mt-6">Deals & Packages</h2>
                     {roomData.packages.slice(1).map((pkg, index) => (
-                        <PackageCard key={index} packageData={pkg}/>
+                        <HotelPackageCard
+                            key={index}
+                            packageData={pkg}
+                            onSelectPackage={() => handleSelectPackage(index + 1)}
+                        />
                     ))}
                 </div>
 
@@ -137,10 +124,10 @@ const RoomDetailsModal = () => {
                 <div className="mt-6">
                     <label className="text-gray-700 text-sm block mb-2">Enter a promo code</label>
                     <div className="flex gap-2">
-                        <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm"/>
-                        <button
-                            className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]">
-                            <span className="h-[20px] w-[44px]">APPLY</span></button>
+                        <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm" />
+                        <button className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]">
+                            <span className="h-[20px] w-[44px]">APPLY</span>
+                        </button>
                     </div>
                 </div>
             </div>
