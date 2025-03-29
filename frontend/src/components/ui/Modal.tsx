@@ -31,7 +31,7 @@ const Modal = ({ children, onClose }: ModalProps) => {
         onClick={(e) => e.stopPropagation()}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <style jsx>{`
+        <style >{`
           div::-webkit-scrollbar {
             display: none;
           }
