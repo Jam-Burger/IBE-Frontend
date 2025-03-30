@@ -7,9 +7,12 @@ import {updateFilter} from "../../redux/filterSlice";
 
 export interface GuestSelectorProps {
     roomCount: number;
+    showDetailedSummary?: boolean;
+    width?: string;  // New prop for width
+    height?: string; // New prop for height
 }
 
-export function GuestSelector({roomCount}: Readonly<GuestSelectorProps>) {
+export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, height }: GuestSelectorProps) => {
     const dispatch = useAppDispatch();
     const guestOptions = useAppSelector(
         (state) =>
@@ -109,23 +112,24 @@ export function GuestSelector({roomCount}: Readonly<GuestSelectorProps>) {
         );
     };
 
+    // Function to generate summary text based on the display mode
+    const getSummaryText = () => {
+        if (!showDetailedSummary) {
+            return `${totalGuests} Guest${totalGuests !== 1 ? 's' : ''}`;
+        }
+        return generateSummeryText(guestOptions);
+    };
+
     if (!guestOptions?.enabled) return null;
 
     return (
-        <div>
+        <div style={{ width: width || '100%' }}>
             <Select>
                 <SelectTrigger
-                    className="w-full px-[1.1875rem] py-[0.75rem] !h-[3rem] text-[#858685] rounded-[0.25rem] border border-gray-300">
-                    <SelectValue
-                        placeholder={`${totalGuests} ${
-                            totalGuests === 1 ? "Guest" : "Guests"
-                        }`}
-                        style={{
-                            fontStyle: "italic",
-                            color: "#2F2F2F",
-                            fontWeight: "normal",
-                        }}
-                    />
+                    className="w-full text-gray-500"
+                    style={{ height: height || '48px', minHeight: height || '48px' }}
+                >
+                    <SelectValue placeholder={getSummaryText()} />
                 </SelectTrigger>
                 <SelectContent className="p-4 min-w-[300px]">
                     {guestOptions.categories.map(

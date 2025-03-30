@@ -4,6 +4,7 @@ export {Checkbox} from './Checkbox';
 export {Input} from './Input';
 export {Label} from './Label';
 export {Calendar} from './Calendar';
+
 export {
     Select,
     SelectContent,
@@ -41,3 +42,4 @@ export {
     AccordionItem,
     AccordionTrigger,
 } from "./Accordion";
+export { default as Modal } from './Modal';

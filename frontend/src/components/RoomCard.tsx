@@ -5,7 +5,8 @@ import {GoPerson} from "react-icons/go";
 import {MdOutlineBed} from "react-icons/md";
 import {Room} from "../types";
 import ImageCarousel from "./ui/ImageCarousel.tsx";
-import RoomDetailsModalPopup from "./RoomDetailsModalPopup.tsx";
+import RoomDetailsModal from './RoomDetailsModal';
+import { Modal } from "./ui";
 
 interface RoomCardProps {
     room: Room & {
@@ -15,12 +16,25 @@ interface RoomCardProps {
         };
         price?: number;
     };
+    onSelectRoom?: () => void;
+    onSelectPackage?: () => void;
 }
 
-const RoomCard = ({room}: RoomCardProps) => {
+const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const handleSelectRoom = () => {
+
+    const handleRoomSelect = () => {
+        if (onSelectRoom) {
+            onSelectRoom();
+        }
         setIsModalOpen(true);
+    };
+
+    const handlePackageSelect = () => {
+        if (onSelectPackage) {
+            onSelectPackage();
+        }
+        setIsModalOpen(false);
     };
 
     return (
@@ -29,6 +43,7 @@ const RoomCard = ({room}: RoomCardProps) => {
                 className={`w-[293px] bg-white rounded-lg shadow-md overflow-hidden ${
                     room.specialDeal ? "h-[513px]" : "h-[450px]"
                 }`}
+                onClick={handleRoomSelect}
             >
                 {/* Image Carousel */}
                 <ImageCarousel
@@ -121,7 +136,7 @@ const RoomCard = ({room}: RoomCardProps) => {
                         </div>
                         <button
                             className="w-[128px] h-[44px] bg-primary text-white rounded-lg flex items-center justify-center cursor-pointer"
-                            onClick={handleSelectRoom}
+                            onClick={handleRoomSelect}
                         >
                         <span className="font-[600] text-sm leading-[140%] tracking-[2%]">
                             SELECT ROOM
@@ -130,10 +145,16 @@ const RoomCard = ({room}: RoomCardProps) => {
                     </div>
                 </div>
             </div>
-            <RoomDetailsModalPopup
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
+
+            {isModalOpen && (
+                <Modal onClose={() => setIsModalOpen(false)}>
+                    <RoomDetailsModal 
+                        room={room} 
+                        onClose={() => setIsModalOpen(false)}
+                        onSelectRoom={handlePackageSelect}
+                    />
+                </Modal>
+            )}
         </>
     );
 };
