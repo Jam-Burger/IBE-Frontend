@@ -1,7 +1,7 @@
 import PackageCard from "./PackageCard.tsx";
-import { GoPerson } from "react-icons/go";
-import { MdOutlineBed } from "react-icons/md";
-import { FaRegCircleCheck } from "react-icons/fa6";
+import {GoPerson} from "react-icons/go";
+import {MdOutlineBed} from "react-icons/md";
+import {FaRegCircleCheck} from "react-icons/fa6";
 import ImageCarousel from "./ui/ImageCarousel";
 
 const roomData = {
@@ -69,8 +69,9 @@ const RoomDetailsModal = () => {
                 <div className="flex justify-between items-start text-sm">
                     <div>
                         <div className="flex gap-4 text-gray-600">
-                            <span className="flex justify-between items-center gap-2"><GoPerson />{roomData.room.guests}</span>
-                            <span className="flex justify-between items-center gap-2"><MdOutlineBed />{roomData.room.bedType}</span>
+                            <span className="flex justify-between items-center gap-2"><GoPerson/>{roomData.room.guests}</span>
+                            <span
+                                className="flex justify-between items-center gap-2"><MdOutlineBed/>{roomData.room.bedType}</span>
                             <span>{roomData.room.size}</span>
                         </div>
 
@@ -88,8 +89,9 @@ const RoomDetailsModal = () => {
 
                         <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                             {roomData.room.amenities.map((amenity, index) => (
-                                <span key={index} className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]">
-                                    <FaRegCircleCheck /> {amenity}
+                                <span key={index}
+                                      className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]">
+                                    <FaRegCircleCheck/> {amenity}
                                 </span>
                             ))}
                         </div>
@@ -118,8 +120,9 @@ const RoomDetailsModal = () => {
                 <div className="mt-6">
                     <label className="text-gray-700 text-sm block mb-2">Enter a promo code</label>
                     <div className="flex gap-2">
-                        <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm" />
-                        <button className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]">
+                        <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm"/>
+                        <button
+                            className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]">
                             <span className="h-[20px] w-[44px]">APPLY</span>
                         </button>
                     </div>

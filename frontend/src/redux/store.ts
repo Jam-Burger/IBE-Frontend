@@ -7,19 +7,19 @@ import filterReducer from "./filterSlice";
 import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
-const persistConfig = {
-    key: 'root',
-    storage,
-    whitelist: ['language', 'currency', 'config', "filter"]
-};
-
 const rootReducer = combineReducers({
     config: configReducer,
     language: languageReducer,
     currency: currencyReducer,
     roomRates: roomRatesReducer,
-    roomFilters: filterReducer,
+    roomFilters: filterReducer
 });
+
+const persistConfig = {
+    key: 'root',
+    storage,
+    whitelist: ['language', 'currency', 'config', "roomFilters"]
+};
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

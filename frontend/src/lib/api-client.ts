@@ -1,6 +1,6 @@
 import axios from 'axios';
+import {ConfigType} from '../types';
 
-// Create API client instance with base configuration
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     headers: {
@@ -24,23 +24,16 @@ interface SpecialDiscountParams {
 }
 
 export const api = {
-    getGlobalConfig: async (tenantId: string) => {
-        const response = await apiClient.get(`${tenantId}/config/GLOBAL`);
+    getConfig: async (tenantId: string, configType: ConfigType) => {
+        const response = await apiClient.get(`${tenantId}/config/${configType}`);
         return response.data;
     },
 
-    getLandingConfig: async (tenantId: string) => {
-        const response = await apiClient.get(`${tenantId}/config/LANDING`);
-        return response.data;
-    },
-
-    // Property APIs
     getProperties: async (tenantId: string) => {
         const response = await apiClient.get(`${tenantId}/properties`);
         return response.data;
     },
 
-    // Room Rates API
     getRoomRates: async (params: RoomRateParams & { tenantId: string }) => {
         const {propertyId, startDate, endDate, tenantId} = params;
         const response = await apiClient.get(
@@ -59,8 +52,15 @@ export const api = {
         return response.data;
     },
 
-    getRooms: async (tenantId: string, propertyId: number) => {
+    getRooms: async (tenantId: string, params: [string, string][]) => {
+        const propertyId = 9;
+        console.log(params);
         const response = await apiClient.get(`${tenantId}/${propertyId}/room-types`);
+        return response.data;
+    },
+
+    getAmenities: async (tenantId: string, propertyId: number) => {
+        const response = await apiClient.get(`${tenantId}/${propertyId}/amenities`);
         return response.data;
     },
 
@@ -74,5 +74,3 @@ export const api = {
         return response.data;
     }
 };
-
-export default apiClient; 

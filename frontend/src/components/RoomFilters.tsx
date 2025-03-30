@@ -1,86 +1,102 @@
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-    Button,
-    Checkbox,
-    Label,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-    Slider
-} from "./ui";
-import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "../redux/store";
-import {
-    resetFilters,
-    setAmenities,
-    setPriceRange,
-    setRatings,
-    setRoomSize,
-    setSortOption,
-    SortOption,
-    toggleDoubleBed,
-    toggleSingleBed
-} from "../redux/filterSlice";
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Checkbox, Slider,} from "./ui";
+import {useDispatch} from "react-redux";
+import {resetFilters, updateFilter} from "../redux/filterSlice";
+import {useEffect, useState} from "react";
+import {useParams} from "react-router-dom";
+import {api} from "../lib/api-client";
+import {useAppSelector} from "../redux/hooks";
 
 function RoomFilters() {
     const dispatch = useDispatch();
-    const {
-        bedTypes,
-        ratings,
-        amenities,
-        priceRange,
-        roomSize,
-        sortBy
-    } = useSelector((state: RootState) => state.roomFilters);
+    const [allAmenities, setAllAmenities] = useState<string[]>([]);
+    const {tenantId} = useParams<{ tenantId: string }>();
 
-    // Handle bed type changes
+    const {filter} = useAppSelector((state) => state.roomFilters);
+
+    const {bedTypes, ratings, amenities, roomSize, propertyId} = filter;
+
+    const roomsListConfig = useAppSelector(
+        (state) => state.config.roomsListConfig
+    );
+
+    useEffect(() => {
+        const roomSizeConfig =
+            roomsListConfig?.configData.filters.filterGroups.roomSize;
+        if (!roomSizeConfig || roomSize[0] !== 0 || roomSize[1] !== 0) return;
+
+        const initialRoomSize: [number, number] = [
+            roomSizeConfig.min,
+            roomSizeConfig.max,
+        ];
+        dispatch(updateFilter({roomSize: initialRoomSize}));
+    }, [dispatch, roomsListConfig, roomSize]);
+
+    useEffect(() => {
+        const fetchAmenities = async () => {
+            if (!tenantId || !propertyId) return;
+            const response = await api.getAmenities(tenantId, propertyId);
+            setAllAmenities(response.data);
+        };
+        fetchAmenities();
+    }, [tenantId, propertyId]);
+
+    if (!roomsListConfig) return null;
+
+    const filterConfig = roomsListConfig.configData.filters;
+    const ratingFilterConfig = filterConfig.filterGroups.ratings;
+    const bedTypesConfig = filterConfig.filterGroups.bedTypes;
+    const roomSizeConfig = filterConfig.filterGroups.roomSize;
+    const amenitiesConfig = filterConfig.filterGroups.amenities;
+
     const handleSingleBedChange = () => {
-        dispatch(toggleSingleBed());
+        dispatch(
+            updateFilter({
+                bedTypes: {
+                    ...bedTypes,
+                    singleBed: !bedTypes.singleBed,
+                },
+            })
+        );
     };
 
     const handleDoubleBedChange = () => {
-        dispatch(toggleDoubleBed());
+        dispatch(
+            updateFilter({
+                bedTypes: {
+                    ...bedTypes,
+                    doubleBed: !bedTypes.doubleBed,
+                },
+            })
+        );
     };
 
-    // Handle ratings change
-    const handleRatingChange = (rating: string) => {
+    const handleRatingChange = (rating: number) => {
         const newRatings = ratings.includes(rating)
-            ? ratings.filter(r => r !== rating)
+            ? ratings.filter((r) => r !== rating)
             : [...ratings, rating];
-        dispatch(setRatings(newRatings));
+
+        dispatch(updateFilter({ratings: newRatings}));
     };
 
-    // Handle amenities change
     const handleAmenityChange = (amenity: string) => {
         const newAmenities = amenities.includes(amenity)
-            ? amenities.filter(a => a !== amenity)
+            ? amenities.filter((a) => a !== amenity)
             : [...amenities, amenity];
-        dispatch(setAmenities(newAmenities));
+
+        dispatch(updateFilter({amenities: newAmenities}));
     };
 
-    // Handle price range change
-    const handlePriceRangeChange = (values: number[]) => {
-        dispatch(setPriceRange([values[0], values[1]]));
-    };
-
-    // Handle room size change
+    // This now updates local state only (not Redux)
     const handleRoomSizeChange = (values: number[]) => {
-        dispatch(setRoomSize([values[0], values[1]]));
+        dispatch(
+            updateFilter({
+                roomSize: [values[0], values[1]] as [number, number],
+            })
+        );
     };
 
-    // Handle sort option change
-    const handleSortChange = (value: string) => {
-        dispatch(setSortOption(value as SortOption));
-    };
-
-    // Handle reset filters
     const handleResetFilters = () => {
-        dispatch(resetFilters());
+        dispatch(resetFilters([roomSizeConfig.min, roomSizeConfig.max]));
     };
 
     return (
@@ -91,262 +107,168 @@ function RoomFilters() {
                     variant="ghost"
                     size="sm"
                     onClick={handleResetFilters}
-                    className="text-xs text-primary hover:bg-primary/10"
+                    className="text-xs text-primary hover:bg-primary/10 cursor-pointer"
                 >
                     Reset All
                 </Button>
             </div>
 
-            <div className="mb-4">
-                <Label className="text-sm font-medium mb-2 block">Sort By</Label>
-                <Select value={sortBy} onValueChange={handleSortChange}>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sort options"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={SortOption.PRICE_LOW_TO_HIGH}>Price: Low to High</SelectItem>
-                        <SelectItem value={SortOption.PRICE_HIGH_TO_LOW}>Price: High to Low</SelectItem>
-                        <SelectItem value={SortOption.RATING_HIGH_TO_LOW}>Rating: High to Low</SelectItem>
-                        <SelectItem value={SortOption.CAPACITY_HIGH_TO_LOW}>Capacity: High to Low</SelectItem>
-                        <SelectItem value={SortOption.ROOM_SIZE_LARGE_TO_SMALL}>Room Size: Large to Small</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-
             <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                    <AccordionTrigger>Popularity</AccordionTrigger>
-                    <AccordionContent>
-                        <div className="flex flex-col space-y-3">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="five-star"
-                                    checked={ratings.includes("five-star")}
-                                    onCheckedChange={() => handleRatingChange("five-star")}
-                                />
-                                <label
-                                    htmlFor="five-star"
-                                    className="text-sm text-gray-700"
-                                >
-                                    5 Star
-                                </label>
+                {ratingFilterConfig.enabled && (
+                    <AccordionItem value="rating-filter">
+                        <AccordionTrigger>
+                            {ratingFilterConfig.label}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className="flex flex-col space-y-3">
+                                {ratingFilterConfig.options
+                                    .filter((option) => option.enabled)
+                                    .map((option) => {
+                                        return (
+                                            <div
+                                                key={option.value}
+                                                className="flex items-center space-x-2"
+                                            >
+                                                <Checkbox
+                                                    id={`rating-${option.value}`}
+                                                    checked={ratings.includes(
+                                                        option.value
+                                                    )}
+                                                    onCheckedChange={() =>
+                                                        handleRatingChange(
+                                                            option.value
+                                                        )
+                                                    }
+                                                />
+                                                <label
+                                                    htmlFor={`rating-${option.value}`}
+                                                    className="text-sm text-gray-700"
+                                                >
+                                                    {option.label}
+                                                </label>
+                                            </div>
+                                        );
+                                    })}
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="four-star"
-                                    checked={ratings.includes("four-star")}
-                                    onCheckedChange={() => handleRatingChange("four-star")}
-                                />
-                                <label
-                                    htmlFor="four-star"
-                                    className="text-sm text-gray-700"
-                                >
-                                    4 Star
-                                </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="three-star"
-                                    checked={ratings.includes("three-star")}
-                                    onCheckedChange={() => handleRatingChange("three-star")}
-                                />
-                                <label
-                                    htmlFor="three-star"
-                                    className="text-sm text-gray-700"
-                                >
-                                    3 Star
-                                </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="less-than-three"
-                                    checked={ratings.includes("less-than-three")}
-                                    onCheckedChange={() => handleRatingChange("less-than-three")}
-                                />
-                                <label
-                                    htmlFor="less-than-three"
-                                    className="text-sm text-gray-700"
-                                >
-                                    Less than 3 Star
-                                </label>
-                            </div>
-                        </div>
-                    </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2">
-                    <AccordionTrigger>Bed Type</AccordionTrigger>
-                    <AccordionContent>
-                        <div className="flex flex-col space-y-3">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="single-bed"
-                                    checked={bedTypes.singleBed}
-                                    onCheckedChange={handleSingleBedChange}
-                                />
-                                <label
-                                    htmlFor="single-bed"
-                                    className="text-sm text-gray-700"
-                                >
-                                    Single Bed
-                                </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="double-bed"
-                                    checked={bedTypes.doubleBed}
-                                    onCheckedChange={handleDoubleBedChange}
-                                />
-                                <label
-                                    htmlFor="double-bed"
-                                    className="text-sm text-gray-700"
-                                >
-                                    Double Bed
-                                </label>
-                            </div>
-                        </div>
-                    </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3">
-                    <AccordionTrigger>Price</AccordionTrigger>
-                    <AccordionContent>
-                        <div className="space-y-4">
-                            <div className="pt-2">
-                                <Slider
-                                    value={priceRange}
-                                    min={0}
-                                    max={1000}
-                                    step={10}
-                                    onValueChange={handlePriceRangeChange}
-                                    className="w-full"
-                                />
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <div className="text-sm font-medium">
-                                    <span className="text-gray-700">Min: </span>
-                                    <span className="text-primary">
-                                        ${priceRange[0]}
-                                    </span>
+                        </AccordionContent>
+                    </AccordionItem>
+                )}
+
+                {bedTypesConfig.enabled && (
+                    <AccordionItem value="bed-type-filter">
+                        <AccordionTrigger>
+                            {bedTypesConfig.label}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className="flex flex-col space-y-3">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="single-bed"
+                                        checked={bedTypes.singleBed}
+                                        onCheckedChange={handleSingleBedChange}
+                                    />
+                                    <label
+                                        htmlFor="single-bed"
+                                        className="text-sm text-gray-700"
+                                    >
+                                        Single Bed
+                                    </label>
                                 </div>
-                                <div className="text-sm font-medium">
-                                    <span className="text-gray-700">Max: </span>
-                                    <span className="text-primary">
-                                        ${priceRange[1]}
-                                    </span>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="double-bed"
+                                        checked={bedTypes.doubleBed}
+                                        onCheckedChange={handleDoubleBedChange}
+                                    />
+                                    <label
+                                        htmlFor="double-bed"
+                                        className="text-sm text-gray-700"
+                                    >
+                                        Double Bed
+                                    </label>
                                 </div>
                             </div>
-                            <div className="text-xs text-gray-700 mt-2">
-                                Selected range: ${priceRange[0]} - $
-                                {priceRange[1]}
-                            </div>
-                        </div>
-                    </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-4">
-                    <AccordionTrigger>Room Size</AccordionTrigger>
-                    <AccordionContent>
-                        <div className="space-y-4">
-                            <div className="pt-2">
-                                <Slider
-                                    value={roomSize}
-                                    min={0}
-                                    max={2000}
-                                    step={50}
-                                    onValueChange={handleRoomSizeChange}
-                                    className="w-full"
-                                />
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <div className="text-sm font-medium">
-                                    <span className="text-gray-700">Min: </span>
-                                    <span className="text-primary">
-                                        {roomSize[0]} sqft
-                                    </span>
+                        </AccordionContent>
+                    </AccordionItem>
+                )}
+
+                {roomSizeConfig.enabled && (
+                    <AccordionItem value="room-size-filter">
+                        <AccordionTrigger>
+                            {roomSizeConfig.label}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className="space-y-4">
+                                <div className="pt-2">
+                                    <Slider
+                                        value={roomSize}
+                                        min={roomSizeConfig.min}
+                                        max={roomSizeConfig.max}
+                                        step={roomSizeConfig.max / 10}
+                                        onValueChange={handleRoomSizeChange}
+                                        className="w-full"
+                                    />
                                 </div>
-                                <div className="text-sm font-medium">
-                                    <span className="text-gray-700">Max: </span>
-                                    <span className="text-primary">
-                                        {roomSize[1]} sqft
-                                    </span>
+                                <div className="flex justify-between items-center">
+                                    <div className="text-sm font-medium">
+                                        <span className="text-gray-700">
+                                            Min:{" "}
+                                        </span>
+                                        <span className="text-primary">
+                                            {roomSize[0]} sqft
+                                        </span>
+                                    </div>
+                                    <div className="text-sm font-medium">
+                                        <span className="text-gray-700">
+                                            Max:{" "}
+                                        </span>
+                                        <span className="text-primary">
+                                            {roomSize[1]} sqft
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="text-xs text-gray-700 mt-2">
+                                    {`Selected range: ${roomSize[0]} - ${roomSize[1]} sqft`}
                                 </div>
                             </div>
-                            <div className="text-xs text-gray-700 mt-2">
-                                Selected range: {roomSize[0]} - {roomSize[1]} sqft
+                        </AccordionContent>
+                    </AccordionItem>
+                )}
+
+                {amenitiesConfig.enabled && (
+                    <AccordionItem value="amenities-filter">
+                        <AccordionTrigger>
+                            {amenitiesConfig.label}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div
+                                className="flex flex-col space-y-3 max-h-[200px] overflow-y-auto pr-2 rounded-md border border-gray-200 p-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                                {allAmenities.map((amenity) => (
+                                    <div
+                                        key={amenity}
+                                        className="flex items-center space-x-2"
+                                    >
+                                        <Checkbox
+                                            id={amenity}
+                                            checked={amenities.includes(
+                                                amenity
+                                            )}
+                                            onCheckedChange={() =>
+                                                handleAmenityChange(amenity)
+                                            }
+                                        />
+                                        <label
+                                            htmlFor={amenity}
+                                            className="text-sm text-gray-700"
+                                        >
+                                            {amenity}
+                                        </label>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-5">
-                    <AccordionTrigger>Amenities</AccordionTrigger>
-                    <AccordionContent>
-                        <div className="flex flex-col space-y-3">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="wifi"
-                                    checked={amenities.includes("wifi")}
-                                    onCheckedChange={() => handleAmenityChange("wifi")}
-                                />
-                                <label
-                                    htmlFor="wifi"
-                                    className="text-sm text-gray-700"
-                                >
-                                    WiFi
-                                </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="breakfast"
-                                    checked={amenities.includes("breakfast")}
-                                    onCheckedChange={() => handleAmenityChange("breakfast")}
-                                />
-                                <label
-                                    htmlFor="breakfast"
-                                    className="text-sm text-gray-700"
-                                >
-                                    Breakfast
-                                </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="pool"
-                                    checked={amenities.includes("pool")}
-                                    onCheckedChange={() => handleAmenityChange("pool")}
-                                />
-                                <label
-                                    htmlFor="pool"
-                                    className="text-sm text-gray-700"
-                                >
-                                    Pool
-                                </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="spa"
-                                    checked={amenities.includes("spa")}
-                                    onCheckedChange={() => handleAmenityChange("spa")}
-                                />
-                                <label
-                                    htmlFor="spa"
-                                    className="text-sm text-gray-700"
-                                >
-                                    Spa
-                                </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="gym"
-                                    checked={amenities.includes("gym")}
-                                    onCheckedChange={() => handleAmenityChange("gym")}
-                                />
-                                <label
-                                    htmlFor="gym"
-                                    className="text-sm text-gray-700"
-                                >
-                                    Gym
-                                </label>
-                            </div>
-                        </div>
-                    </AccordionContent>
-                </AccordionItem>
+                        </AccordionContent>
+                    </AccordionItem>
+                )}
             </Accordion>
         </div>
     );

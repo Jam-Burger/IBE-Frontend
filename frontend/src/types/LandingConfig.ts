@@ -1,7 +1,8 @@
+import {ConfigType} from "./ConfigType";
+
 export interface LandingConfig {
     tenantId: string;
-    configType: string;
-    updatedAt: number;
+    configType: ConfigType;
     configData: {
         banner: {
             enabled: boolean;

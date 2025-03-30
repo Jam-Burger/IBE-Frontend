@@ -19,7 +19,7 @@ import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {PulseLoader} from "react-spinners";
 import {FaWheelchair} from "react-icons/fa";
 import {useNavigate, useParams} from 'react-router-dom';
-import {setIsAccessible, setPropertyId, setRoomCount} from "../../redux/filterSlice.ts";
+import {updateFilter} from "../../redux/filterSlice.ts";
 
 interface Property {
     propertyId: number;
@@ -38,7 +38,12 @@ const CardWithForm = () => {
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
-    const {propertyId, roomCount, isAccessible} = useAppSelector(state => state.roomFilters);
+    const filter = useAppSelector(state => state.roomFilters.filter);
+    const {
+        propertyId,
+        roomCount,
+        isAccessible
+    } = filter;
 
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -75,15 +80,15 @@ const CardWithForm = () => {
     };
 
     const handlePropertyChange = (propertyId: number) => {
-        dispatch(setPropertyId(propertyId));
+        dispatch(updateFilter({propertyId}));
     };
 
     const handleRoomCountChange = (value: string) => {
-        dispatch(setRoomCount(parseInt(value, 10)));
+        dispatch(updateFilter({roomCount: parseInt(value, 10)}));
     };
 
     const handleAccessibilityChange = (checked: boolean) => {
-        dispatch(setIsAccessible(checked));
+        dispatch(updateFilter({isAccessible: checked}));
     };
 
     // Get selected property name for display

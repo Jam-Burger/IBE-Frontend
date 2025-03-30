@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect} from 'react';
 import CardWithForm from '../components/ui/CardWithForm';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {fetchLandingConfig} from '../redux/configSlice';
+import {fetchConfig} from '../redux/configSlice';
 import {PulseLoader} from 'react-spinners';
 import {useParams} from 'react-router-dom';
 import {StateStatus} from '../types/common';
 import {fetchLocationInfo} from '../redux/languageSlice';
+import {ConfigType} from '../types/ConfigType';
 
 const HomePage: React.FC = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
@@ -17,7 +18,7 @@ const HomePage: React.FC = () => {
 
     const fetchConfigs = useCallback(async () => {
         if (tenantId) {
-            dispatch(fetchLandingConfig(tenantId))
+            dispatch(fetchConfig({tenantId, configType: ConfigType.LANDING}));
         }
 
         if (!languageInitialized) {

@@ -3,32 +3,28 @@ import {api} from "../lib/api-client";
 import {BaseState, StateStatus} from "../types/common";
 import {GlobalConfig} from "../types/GlobalConfig";
 import {LandingConfig} from "../types/LandingConfig";
+import {RoomsListConfig} from "../types/RoomsListConfig";
+import {ConfigType} from "../types";
 
 export interface ConfigState extends BaseState {
     globalConfig: GlobalConfig | null;
     landingConfig: LandingConfig | null;
+    roomsListConfig: RoomsListConfig | null;
 }
 
 const initialState: ConfigState = {
     globalConfig: null,
     landingConfig: null,
+    roomsListConfig: null,
     status: StateStatus.IDLE,
     error: null
 };
 
-// Fetch GLOBAL config
-export const fetchGlobalConfig = createAsyncThunk(
-    "config/fetchGlobalConfig",
-    async (tenantId: string) => {
-        return api.getGlobalConfig(tenantId);
-    }
-);
-
-// Fetch LANDING config
-export const fetchLandingConfig = createAsyncThunk(
-    "config/fetchLandingConfig",
-    async (tenantId: string) => {
-        return api.getLandingConfig(tenantId);
+export const fetchConfig = createAsyncThunk(
+    "config/fetchConfig",
+    async ({tenantId, configType}: { tenantId: string, configType: ConfigType }) => {
+        const response = await api.getConfig(tenantId, configType);
+        return response.data;
     }
 );
 
@@ -38,31 +34,31 @@ const configSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(fetchGlobalConfig.pending, (state) => {
+            .addCase(fetchConfig.pending, (state) => {
                 state.status = StateStatus.LOADING;
                 state.error = null;
             })
-            .addCase(fetchGlobalConfig.fulfilled, (state, action) => {
+            .addCase(fetchConfig.fulfilled, (state, action) => {
                 state.status = StateStatus.IDLE;
-                state.globalConfig = action.payload.data;
+                const {configType} = action.payload;
+
+                switch (configType) {
+                    case ConfigType.GLOBAL:
+                        state.globalConfig = action.payload;
+                        break;
+                    case ConfigType.LANDING:
+                        state.landingConfig = action.payload;
+                        break;
+                    case ConfigType.ROOMS_LIST:
+                        state.roomsListConfig = action.payload;
+                        break;
+                }
             })
-            .addCase(fetchGlobalConfig.rejected, (state, action) => {
+            .addCase(fetchConfig.rejected, (state, action) => {
                 state.status = StateStatus.ERROR;
                 state.error = action.error.message ?? null;
             })
-            .addCase(fetchLandingConfig.pending, (state) => {
-                state.status = StateStatus.LOADING;
-                state.error = null;
-            })
-            .addCase(fetchLandingConfig.fulfilled, (state, action) => {
-                state.status = StateStatus.IDLE;
-                state.landingConfig = action.payload.data;
-            })
-            .addCase(fetchLandingConfig.rejected, (state, action) => {
-                state.status = StateStatus.ERROR;
-                state.error = action.error.message ?? null;
-            });
-    },
+    }
 });
 
 export default configSlice.reducer;

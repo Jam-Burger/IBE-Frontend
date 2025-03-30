@@ -13,7 +13,7 @@ import {Calendar} from "./Calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
 import {clearRoomRates, fetchRoomRates} from "../../redux/roomRatesSlice";
 import {useParams} from "react-router-dom";
-import {setDateRange} from "../../redux/filterSlice";
+import {updateFilter} from "../../redux/filterSlice";
 
 interface DatePickerWithRangeProps {
     className?: string;
@@ -34,7 +34,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
     const {landingConfig} = useAppSelector(state => state.config);
-    const dateRange = useAppSelector(state => state.roomFilters.dateRange);
+    const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
 
     const formattedRoomRates = React.useMemo(() => {
         const rates: RoomRates = {};
@@ -95,7 +95,7 @@ export function DatePickerWithRange({className, propertyId, disabled}: Readonly<
     };
 
     const handleApplyDates = () => {
-        dispatch(setDateRange(date || null));
+        dispatch(updateFilter({dateRange: date || null}));
         setIsOpen(false);
     };
 

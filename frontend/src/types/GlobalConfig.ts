@@ -1,7 +1,8 @@
+import {ConfigType} from "./ConfigType";
+
 export interface GlobalConfig {
     tenantId: string;
-    configType: string;
-    updatedAt: number;
+    configType: ConfigType;
     configData: {
         brand: {
             logoUrl: string;

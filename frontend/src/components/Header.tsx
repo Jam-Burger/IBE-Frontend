@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { PulseLoader } from "react-spinners";
-import { HiGlobeAlt } from "react-icons/hi";
-import { updateLanguage } from "../redux/languageSlice";
-import { fetchExchangeRates, setSelectedCurrency } from "../redux/currencySlice";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { Button, Separator, Sheet, SheetContent, SheetTrigger } from "./ui";
-import { FiMenu } from "react-icons/fi";
-import { BiLogIn } from "react-icons/bi";
-import {fetchGlobalConfig} from "../redux/configSlice.ts";
+import React, {useEffect, useState} from "react";
+import {useAppDispatch, useAppSelector} from "../redux/hooks";
+import {PulseLoader} from "react-spinners";
+import {HiGlobeAlt} from "react-icons/hi";
+import {updateLanguage} from "../redux/languageSlice";
+import {fetchExchangeRates, setSelectedCurrency} from "../redux/currencySlice";
+import {Link, useNavigate, useParams} from "react-router-dom";
+import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
+import {FiMenu} from "react-icons/fi";
+import {BiLogIn} from "react-icons/bi";
+import {fetchConfig} from "../redux/configSlice.ts";
+import {ConfigType} from "../types/ConfigType";
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -29,7 +30,7 @@ const Header: React.FC = () => {
             console.error("Tenant ID is not available");
             return;
         }
-        dispatch(fetchGlobalConfig(tenantId));
+        dispatch(fetchConfig({tenantId, configType: ConfigType.GLOBAL}));
     }, [tenantId, dispatch]);
 
     useEffect(() => {
@@ -72,7 +73,7 @@ const Header: React.FC = () => {
             <header
                 className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center py-4 px-6 bg-white shadow-md">
                 <div className="w-full flex justify-center items-center h-16">
-                    <PulseLoader color="var(--primary)" size={10} />
+                    <PulseLoader color="var(--primary)" size={10}/>
                 </div>
             </header>
         );
@@ -155,7 +156,8 @@ const Header: React.FC = () => {
                                 {/* Currency selection */}
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <span className="w-4 h-4 text-primary mr-2 flex items-center justify-center font-medium text-base">
+                                        <span
+                                            className="w-4 h-4 text-primary mr-2 flex items-center justify-center font-medium text-base">
                                             {selectedCurrency.symbol}
                                         </span>
                                         <h3 className="font-medium text-sm text-primary">Currency</h3>
@@ -185,9 +187,10 @@ const Header: React.FC = () => {
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
                 <a href="/#" className="text-[14px] font-bold uppercase text-primary h-[20px] w-[102px]">MY BOOKINGS</a>
                 <div className="relative">
-                    <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                    <button
+                        className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleLanguageDropdown}>
-                        <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125" />
+                        <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125"/>
 
                         <span
                             className="text-sm md:text-base text-primary ml-1 capitalize">{selectedLanguage.code}</span>
@@ -208,7 +211,8 @@ const Header: React.FC = () => {
                     )}
                 </div>
                 <div className="relative">
-                    <button className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                    <button
+                        className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleCurrencyDropdown}>
                         <span className="text-primary font-medium w-4 h-4 flex items-center justify-center text-base">
                             {selectedCurrency.symbol}
