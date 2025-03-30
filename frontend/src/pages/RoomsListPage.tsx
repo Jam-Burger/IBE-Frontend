@@ -18,8 +18,9 @@ import {
     DatePickerWithRange,
     Button
 } from "../components/ui";
+import { MdOutlineCalendarMonth } from "react-icons/md";
 
-import { setRoomCount } from "../redux/filterSlice.ts";
+import { setRoomCount, toggleSingleBed, toggleDoubleBed } from "../redux/filterSlice";
 
 const RoomsListPage = () => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -133,21 +134,31 @@ const RoomsListPage = () => {
     };
 
     const handleBedTypeChange = (value: string) => {
-        const isSingleBed = value === 'single';
-        const isDoubleBed = value === 'double';
-        const isBoth = value === 'both';
-        console.log(isDoubleBed, isSingleBed, isBoth);
-        // dispatch(updateBedFilter({
-        //     singleBed: isSingleBed || isBoth,
-        //     doubleBed: isDoubleBed || isBoth
-        // }));
+        // Reset both bed types first
+        if (filters.bedTypes.singleBed) {
+            dispatch(toggleSingleBed());
+        }
+        if (filters.bedTypes.doubleBed) {
+            dispatch(toggleDoubleBed());
+        }
+        
+        // Set bed types based on numeric value
+        if (value === '1') {
+            dispatch(toggleSingleBed());  // Single bed
+        } else if (value === '2') {
+            dispatch(toggleDoubleBed());  // Double bed
+        } else if (value === '3' || value === '4') {
+            dispatch(toggleSingleBed());  // Both bed types
+            dispatch(toggleDoubleBed());
+        }
+        // If value is not recognized, both remain unset (any)
     };
 
     const getCurrentBedValue = () => {
-        if (filters.bedTypes.singleBed && filters.bedTypes.doubleBed) return 'both';
-        if (filters.bedTypes.singleBed) return 'single';
-        if (filters.bedTypes.doubleBed) return 'double';
-        return 'any';
+        if (filters.bedTypes.singleBed && filters.bedTypes.doubleBed) return '3';  // Both beds
+        if (filters.bedTypes.singleBed) return '1';  // Single bed
+        if (filters.bedTypes.doubleBed) return '2';  // Double bed
+        return 'Choose';  // Any bed
     };
 
     const handleRoomCountChange = (value: string) => {
@@ -158,6 +169,18 @@ const RoomsListPage = () => {
         // Implement search functionality
         console.log("Searching with filters:", filters);
         // You could trigger a refetch of rooms or apply additional filters here
+    };
+
+    // Add a function to handle room selection and advance the stepper
+    const handleRoomSelection = () => {
+        // Move to step 1 (Choose add on) when a room is selected
+        setCurrentStep(1);
+    };
+
+    // Add a new function for package selection
+    const handlePackageSelection = () => {
+        // Move to step 2 (Checkout) when a package is selected
+        setCurrentStep(2);
     };
 
     return (
@@ -231,10 +254,14 @@ const RoomsListPage = () => {
                         {searchForm.roomOptions.enabled && (
                             <div>
                                 <Select value={filters.roomCount.toString()} onValueChange={handleRoomCountChange}>
-                                    <SelectTrigger id="rooms" className="w-full text-gray-500 min-h-[68px] min-w-[132px]">
+                                    <SelectTrigger 
+                                        id="rooms" 
+                                        className="w-full text-gray-500 min-h-[68px] min-w-[132px] [&>svg]:!text-black"
+                                        style={{ "--select-trigger-icon-color": "black" } as React.CSSProperties}
+                                    >
                                         <div className="flex flex-col items-start">
-                                            <Label htmlFor="rooms" className="mb-1 block text-sm font-medium text-gray-700">Rooms</Label>
-                                            <span className="text-lg font-medium text-gray-900">{filters.roomCount}</span>
+                                            <Label htmlFor="rooms" className="mb-1 block text-sm font-medium text-gray-500">Rooms</Label>
+                                            <span className="text-base font-medium text-gray-900">{filters.roomCount}</span>
                                         </div>
                                     </SelectTrigger>
                                     <SelectContent position="popper">
@@ -249,26 +276,29 @@ const RoomsListPage = () => {
                         )}
 
                         <div>
-
-
                             <Select value={getCurrentBedValue()} onValueChange={handleBedTypeChange}>
-                                <SelectTrigger id="beds" className="w-full text-gray-500 min-h-[68px] min-w-[132px]">
-                                    <Label htmlFor="beds" className="mb-1 block">Beds</Label>
-                                    {/* <SelectValue placeholder="Any Bed"/> */}
+                                <SelectTrigger 
+                                    id="beds" 
+                                    className="w-full text-gray-500 min-h-[68px] min-w-[132px] [&>svg]:!text-black"
+                                    style={{ "--select-trigger-icon-color": "black" } as React.CSSProperties}
+                                >
+                                    <div className="flex flex-col items-start">
+                                        <Label htmlFor="beds" className="mb-1 block text-sm font-medium text-gray-500">Beds</Label>
+                                        <span className="text-base font-medium text-gray-900">
+                                            {getCurrentBedValue() === 'Choose' ? 'Any' : getCurrentBedValue()}
+                                        </span>
+                                    </div>
                                 </SelectTrigger>
                                 <SelectContent position="popper">
-                                    <SelectItem value="any">Any Bed</SelectItem>
-                                    <SelectItem value="single">Single Bed</SelectItem>
-                                    <SelectItem value="double">Double Bed</SelectItem>
-                                    <SelectItem value="both">Both Beds</SelectItem>
+                                    <SelectItem value="1">1</SelectItem>
+                                    <SelectItem value="2">2</SelectItem>
+                                    <SelectItem value="3">3</SelectItem>
                                 </SelectContent>
                             </Select>
-
                         </div>
 
                         <div>
-
-                            <div style={{ width: '510px' }}>
+                            <div style={{ width: '510px' }} className="relative">
                                 <DatePickerWithRange
                                     propertyId={filters.propertyId}
                                     disabled={false}
@@ -276,6 +306,9 @@ const RoomsListPage = () => {
                                     grayBorder={true}
                                     displayStyle="checkInOut"
                                 />
+                                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                    <MdOutlineCalendarMonth className="h-6 w-6 text-black" />
+                                </div>
                             </div>
                         </div>
 
@@ -315,6 +348,8 @@ const RoomsListPage = () => {
                                     <RoomCard
                                         key={room.roomTypeId}
                                         room={room}
+                                        onSelectRoom={handleRoomSelection}
+                                        onSelectPackage={handlePackageSelection}
                                     />
                                 ))
                             ) : (

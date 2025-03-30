@@ -5,34 +5,96 @@ import { FaRegCircleCheck } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import ImageCarousel from "./ui/ImageCarousel";
 import { Room } from "../types"; // Make sure this import matches your type definition
+import { useEffect, useState } from "react";
+import { api } from "../lib/api-client";
+import { useParams } from "react-router-dom";
+import { useAppSelector } from "../redux/hooks.ts";
 
 interface RoomDetailsModalProps {
     room: Room;
     onClose?: () => void;
+    onSelectRoom?: () => void;
 }
 
-// Sample package data - you might want to fetch this from an API later
-const packageData = [
-    {
-        title: "Standard Rate",
-        description: "Spend $10 every night you stay and earn $150 in dining credit at the resort.",
-        price: 132,
-    },
-    {
-        title: "150 Dining Credit Package",
-        description: "Spend $10 every night you stay and earn $150 in dining credit at the resort.",
-        price: 110,
-    },
-    {
-        title: "Kids eat free",
-        description: "Spend $10 every night you stay and earn $150 in dining credit at the resort.",
-        price: 105,
-    },
-];
+interface SpecialDiscount {
+    title: string;
+    description: string;
+    property_id: number;
+    start_date: string;
+    end_date: string;
+    discount_percentage: number;
+}
 
-const RoomDetailsModal = ({ room, onClose }: RoomDetailsModalProps) => {
-    const handleSelectPackage = (index: number) => {
-        console.log(`Selected package: ${packageData[index].title}`);
+const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps) => {
+    const [specialDiscounts, setSpecialDiscounts] = useState<SpecialDiscount[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const { tenantId } = useParams<{ tenantId: string }>();
+    
+    // Get date range from redux store
+    const dateRange = useAppSelector(state => state.roomFilters.dateRange);
+    
+    // Use room price for standard package
+    const standardPackage = {
+        title: "Standard Rate",
+        description: "Our standard room rate with all basic amenities included.",
+        price: 132, // Use a fixed price since Room type doesn't have price property
+    };
+
+    useEffect(() => {
+        const fetchSpecialDiscounts = async () => {
+            if (!tenantId || !room.propertyId) return;
+            
+            setIsLoading(true);
+            try {
+                // Use selected date range from filters if available
+                let formattedStartDate, formattedEndDate;
+                
+                if (dateRange && dateRange.from && dateRange.to) {
+                    formattedStartDate = dateRange.from.toISOString().split('T')[0];
+                    formattedEndDate = dateRange.to.toISOString().split('T')[0];
+                } else {
+                    // Fallback to default dates if no selection
+                    const today = new Date();
+                    const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+                    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5);
+                    
+                    formattedStartDate = startDate.toISOString().split('T')[0];
+                    formattedEndDate = endDate.toISOString().split('T')[0];
+                }
+                
+                // Use the API client's getSpecialDiscounts method
+                const response = await api.getSpecialDiscounts({
+                    tenantId: tenantId || '',
+                    propertyId: room.propertyId,
+                    startDate: formattedStartDate,
+                    endDate: formattedEndDate
+                });
+                
+                if (response && response.data) {
+                    setSpecialDiscounts(response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching special discounts:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        fetchSpecialDiscounts();
+    }, [tenantId, room.propertyId, dateRange]);
+
+    const handleSelectPackage = (packageTitle: string) => {
+        console.log(`Selected package: ${packageTitle}`);
+        
+        // Call the onSelectRoom prop to advance the stepper
+        if (onSelectRoom) {
+            onSelectRoom();
+        }
+        
+        // Close the modal if needed
+        if (onClose) {
+            onClose();
+        }
     };
 
     // Format guest capacity text
@@ -47,6 +109,17 @@ const RoomDetailsModal = ({ room, onClose }: RoomDetailsModalProps) => {
     
     // Format room size
     const roomSize = `${room.areaInSquareFeet} sqft`;
+
+    // Update the getDiscountedPackages function to use room price
+    const getDiscountedPackages = () => {
+        return specialDiscounts.map(discount => ({
+            title: discount.title,
+            description: discount.description,
+            price: Math.round(standardPackage.price * (1 - discount.discount_percentage / 100))
+        }));
+    };
+
+    const discountedPackages = getDiscountedPackages();
 
     return (
         <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden relative">
@@ -109,18 +182,30 @@ const RoomDetailsModal = ({ room, onClose }: RoomDetailsModalProps) => {
                 <div className="mt-8">
                     <h2 className="text-xl font-bold">Standard Rate</h2>
                     <PackageCard
-                        packageData={packageData[0]}
-                        onSelectPackage={() => handleSelectPackage(0)}
+                        packageData={standardPackage}
+                        onSelectPackage={() => handleSelectPackage(standardPackage.title)}
                     />
 
-                    <h2 className="text-xl font-bold mt-6">Deals & Packages</h2>
-                    {packageData.slice(1).map((pkg, index) => (
-                        <PackageCard
-                            key={index}
-                            packageData={pkg}
-                            onSelectPackage={() => handleSelectPackage(index + 1)}
-                        />
-                    ))}
+                    {discountedPackages.length > 0 && (
+                        <>
+                            <h2 className="text-xl font-bold mt-6">Deals & Packages</h2>
+                            {isLoading ? (
+                                <p className="text-gray-500 mt-2">Loading available deals...</p>
+                            ) : (
+                                discountedPackages.map((pkg, index) => (
+                                    <PackageCard
+                                        key={index}
+                                        packageData={{
+                                            title: pkg.title,
+                                            description: pkg.description,
+                                            price: pkg.price
+                                        }}
+                                        onSelectPackage={() => handleSelectPackage(pkg.title)}
+                                    />
+                                ))
+                            )}
+                        </>
+                    )}
                 </div>
 
                 {/* Promo Code Input */}
@@ -139,3 +224,4 @@ const RoomDetailsModal = ({ room, onClose }: RoomDetailsModalProps) => {
 };
 
 export default RoomDetailsModal;
+

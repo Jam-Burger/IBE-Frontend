@@ -186,21 +186,20 @@ export function DatePickerWithRange({
     const renderDateContent = () => {
         if (displayStyle === "checkInOut") {
             return (
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-500">Check out Between</span>
-                        <span className={date?.to ? "text-black" : "text-black font-medium"}>
-                        {date?.from ? format(date.from, "MMM dd, yyyy") : "Select date"}
+                <div className="flex items-center w-full">
+                    <div className="flex flex-col mr-16">
+                        <span className="text-sm font-medium text-gray-500">Check in between</span>
+                        <span className="text-black font-medium">
+                            {date?.from ? format(date.from, "MMM dd, yyyy") : "Any Date"}
                         </span>
                     </div>
-                    <div className="text-gray-300 text-3xl">|</div>
+                    <div className="text-gray-300 text-xl mx-6" style={{ height: '30px', display: 'flex', alignItems: 'center' }}>|</div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-500">Check out Between</span>
-                        <span className={date?.to ? "text-black" : "text-black font-medium"}>
-                            {date?.to ? format(date.to, "MMM dd, yyyy") : "Select date"}
+                        <span className="text-sm font-medium text-gray-500">Check out between</span>
+                        <span className="text-black font-medium">
+                            {date?.to ? format(date.to, "MMM dd, yyyy") : "Any Date"}
                         </span>
                     </div>
-
                 </div>
             );
         }

@@ -16,13 +16,26 @@ interface RoomCardProps {
         };
         price?: number;
     };
+    onSelectRoom?: () => void;
+    onSelectPackage?: () => void;
 }
 
-const RoomCard = ({room}: RoomCardProps) => {
+const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
+    const handleRoomSelect = () => {
+        if (onSelectRoom) {
+            onSelectRoom();
+        }
+        setIsModalOpen(true);
+    };
+
+    const handlePackageSelect = () => {
+        if (onSelectPackage) {
+            onSelectPackage();
+        }
+        setIsModalOpen(false);
+    };
 
     return (
         <>
@@ -30,7 +43,7 @@ const RoomCard = ({room}: RoomCardProps) => {
                 className={`w-[293px] bg-white rounded-lg shadow-md overflow-hidden ${
                     room.specialDeal ? "h-[513px]" : "h-[450px]"
                 }`}
-                onClick={openModal}
+                onClick={handleRoomSelect}
             >
                 {/* Image Carousel */}
                 <ImageCarousel
@@ -123,6 +136,7 @@ const RoomCard = ({room}: RoomCardProps) => {
                         </div>
                         <button
                             className="w-[128px] h-[44px] bg-primary text-white rounded-lg flex items-center justify-center cursor-pointer"
+                            onClick={handleRoomSelect}
                         >
                         <span className="font-[600] text-sm leading-[140%] tracking-[2%]">
                             SELECT ROOM
@@ -133,8 +147,12 @@ const RoomCard = ({room}: RoomCardProps) => {
             </div>
 
             {isModalOpen && (
-                <Modal onClose={closeModal}>
-                    <RoomDetailsModal room={room} onClose={closeModal} />
+                <Modal onClose={() => setIsModalOpen(false)}>
+                    <RoomDetailsModal 
+                        room={room} 
+                        onClose={() => setIsModalOpen(false)}
+                        onSelectRoom={handlePackageSelect}
+                    />
                 </Modal>
             )}
         </>

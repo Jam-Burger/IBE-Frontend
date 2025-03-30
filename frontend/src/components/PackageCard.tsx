@@ -13,7 +13,7 @@ interface HotelPackageCardProps {
 
 const PackageCard: FC<HotelPackageCardProps> = ({ packageData, onSelectPackage }) => {
   return (
-    <div className="w-[618px] h-[130px] flex rounded-lg shadow-md overflow-hidden">
+    <div className="w-[618px] h-[130px] flex rounded-lg shadow-md overflow-hidden my-4">
       {/* Left section */}
       <div className="flex-1 p-4 flex flex-col justify-start gap-2 mt-2">
         <h3 className="font-bold text-[16px] line-clamp-1">{packageData.title}</h3>

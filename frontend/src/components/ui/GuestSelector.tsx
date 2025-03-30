@@ -17,9 +17,7 @@ export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, h
     const guestOptions = useAppSelector(state => state.config.landingConfig?.configData.searchForm.guestOptions);
     const guestCounts = useAppSelector(state => state.roomFilters.guests);
     
-    // Log the props and state for debugging
-    console.log('showDetailedSummary:', showDetailedSummary);
-    console.log('guestCounts:', guestCounts);
+   
     
     // Safely access guest counts with fallbacks to 0
     const adults = guestCounts.Adults || 0;
