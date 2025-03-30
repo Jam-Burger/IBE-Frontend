@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
+import {cn} from "../../lib/utils.ts";
 
 interface ImageCarouselProps {
     images: string[];
@@ -104,7 +105,7 @@ const ImageCarousel = ({
 
     return (
         <div
-            className={`relative ${className}`}
+            className={cn("relative", className)}
             style={{height, width}}
         >
             <div

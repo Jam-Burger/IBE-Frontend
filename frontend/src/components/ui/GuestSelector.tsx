@@ -3,33 +3,37 @@ import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {Select, SelectContent, SelectTrigger, SelectValue} from "./Select";
 import {Button} from "./Button";
 import toast from "react-hot-toast";
-import {updateFilter} from "../../redux/filterSlice";
+import {updateFilter} from "../../redux/filterSlice.ts";
+import {generateSummeryText} from "../../lib/utils.ts";
+import {Label} from "./Label";
 
 export interface GuestSelectorProps {
     roomCount: number;
     showDetailedSummary?: boolean;
-    width?: string;  // New prop for width
-    height?: string; // New prop for height
+    width?: string;
+    height?: string;
 }
 
-export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, height }: GuestSelectorProps) => {
+export const GuestSelector = ({
+                                  roomCount,
+                                  showDetailedSummary = false,
+                                  width,
+                                  height,
+                              }: GuestSelectorProps) => {
     const dispatch = useAppDispatch();
     const guestOptions = useAppSelector(
         (state) =>
             state.config.landingConfig?.configData.searchForm.guestOptions
     );
 
-    // Track guest counts locally since they're not stored by category in Redux anymore
     const allGuests = useAppSelector(
         (state) => state.roomFilters.filter.guests
     );
-    console.log(allGuests);
     const totalGuests = Object.values(allGuests).reduce(
         (sum, count) => sum + count,
         0
     );
 
-    console.log(totalGuests);
     useEffect(() => {
         if (guestOptions?.categories) {
             if (totalGuests === 0 && Object.keys(allGuests).length === 0) {
@@ -50,8 +54,7 @@ export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, h
         }
     }, [guestOptions, dispatch, totalGuests, allGuests]);
 
-    // Calculate max guests allowed per room - if not defined in config, default to 4
-    const maxGuestsPerRoom = 4; // Default value
+    const maxGuestsPerRoom = 4;
     const totalMaxGuests = maxGuestsPerRoom * roomCount;
 
     const handleChange = (categoryName: string, increment: boolean) => {
@@ -62,13 +65,11 @@ export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, h
         );
         if (!category?.enabled) return;
 
-        // Check minimum guests requirement for the whole booking
         if (!increment && totalGuests <= guestOptions.min) {
             toast.error(`Minimum of ${guestOptions.min} guest required`);
             return;
         }
 
-        // Check if incrementing would exceed the total max guests
         if (increment && totalGuests >= totalMaxGuests) {
             toast.error(
                 `Maximum of ${totalMaxGuests} guests allowed for ${roomCount} room${
@@ -78,10 +79,8 @@ export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, h
             return;
         }
 
-        // Get current count for this category
         const currentCount = allGuests[categoryName] || 0;
 
-        // Check category specific limits
         if (increment && currentCount >= category.max) {
             toast.error(
                 `Maximum of ${
@@ -98,38 +97,56 @@ export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, h
             return;
         }
 
-        // If all checks pass, update the local state and Redux
         const newCounts = {
             ...allGuests,
             [categoryName]: increment ? currentCount + 1 : currentCount - 1,
         };
 
-        // Update totalGuests in Redux
         dispatch(
             updateFilter({
-                guests: newCounts,
+                guests: {...newCounts},
             })
         );
     };
 
-    // Function to generate summary text based on the display mode
     const getSummaryText = () => {
         if (!showDetailedSummary) {
-            return `${totalGuests} Guest${totalGuests !== 1 ? 's' : ''}`;
+            return `${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`;
         }
-        return generateSummeryText(guestOptions);
+        return generateSummeryText(allGuests);
     };
 
     if (!guestOptions?.enabled) return null;
 
     return (
-        <div style={{ width: width || '100%' }}>
+        <div style={{width: width ?? "100%"}}>
             <Select>
                 <SelectTrigger
-                    className="w-full text-gray-500"
-                    style={{ height: height || '48px', minHeight: height || '48px' }}
+                    className={`w-full text-gray-500 ${
+                        showDetailedSummary ? "min-h-[68px]" : ""
+                    }`}
+                    style={{
+                        height: showDetailedSummary ? "auto" : height ?? "48px",
+                        minHeight: showDetailedSummary
+                            ? "68px"
+                            : height ?? "48px",
+                    }}
                 >
-                    <SelectValue placeholder={getSummaryText()} />
+                    {showDetailedSummary ? (
+                        <div className="flex flex-col items-start w-[90%] text-left">
+                            <Label
+                                htmlFor="guests"
+                                className="mb-1 block text-sm font-medium text-gray-500"
+                            >
+                                Guests
+                            </Label>
+                            <span className="text-base font-medium text-gray-900 truncate w-full overflow-hidden">
+                                {getSummaryText()}
+                            </span>
+                        </div>
+                    ) : (
+                        <SelectValue placeholder={getSummaryText()}/>
+                    )}
                 </SelectTrigger>
                 <SelectContent className="p-4 min-w-[300px]">
                     {guestOptions.categories.map(
@@ -148,13 +165,14 @@ export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, h
                                             <Button
                                                 type="button"
                                                 variant="ghost"
-                                                className="h-8 w-8 p-0 flex items-center justify-center hover:bg-transparent"
+                                                className="h-8 w-8 p-0 flex items-center justify-center hover:bg-transparent focus:ring-2 focus:ring-offset-2"
                                                 onClick={() =>
                                                     handleChange(
                                                         category.name,
                                                         false
                                                     )
                                                 }
+                                                disabled={!allGuests[category.name]}
                                             >
                                                 <span className="text-lg font-medium">
                                                     −
@@ -166,7 +184,7 @@ export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, h
                                             <Button
                                                 type="button"
                                                 variant="ghost"
-                                                className="h-8 w-8 p-0 flex items-center justify-center hover:bg-transparent"
+                                                className="h-8 w-8 p-0 flex items-center justify-center hover:bg-transparent focus:ring-2 focus:ring-offset-2"
                                                 onClick={() =>
                                                     handleChange(
                                                         category.name,
@@ -192,4 +210,4 @@ export const GuestSelector = ({ roomCount, showDetailedSummary = false, width, h
             </Select>
         </div>
     );
-}
+};

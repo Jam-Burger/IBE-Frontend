@@ -142,9 +142,9 @@ const CardWithForm = () => {
                                         <div className="flex items-center w-full">
                                             <Checkbox
                                                 id={`property-${property.propertyId}`}
-                                                className="mr-2 data-[state=checked]:bg-primary text-white data-[state=checked]:text-white border-[#C1C2C2]"
                                                 checked={propertyId === property.propertyId}
-                                                onClick={() => handlePropertyChange(property.propertyId)}
+                                                className="m-1"
+                                                onCheckedChange={() => handlePropertyChange(property.propertyId)}
                                             />
                                             <span>{property.propertyName}</span>
                                         </div>
@@ -190,10 +190,7 @@ const CardWithForm = () => {
                                 >
                                     <Label htmlFor="guests">Guests</Label>
                                     <GuestSelector roomCount={roomCount} width="200px" height="48px"/>
-                                    {/* <GuestSelector 
-                                        roomCount={filters.roomCount} 
-                                        showDetailedSummary={true}
-                                         /> */}
+
                                 </div>
                             )}
 

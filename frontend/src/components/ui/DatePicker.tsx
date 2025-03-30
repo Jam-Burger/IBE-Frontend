@@ -5,7 +5,8 @@ import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
 import {MdOutlineCalendarMonth} from "react-icons/md";
 import {DateRange} from "react-day-picker";
-import {StateStatus} from "../../types/common";
+import {StateStatus} from "../../types";
+import {SerializableDateRange} from "../../types/Filter";
 
 import {cn, formatPrice} from "../../lib/utils";
 import {Button} from "./Button";
@@ -31,20 +32,57 @@ interface RoomRates {
     };
 }
 
+// Convert SerializableDateRange to DateRange for react-day-picker
+const toDateRange = (serializableRange?: SerializableDateRange): DateRange | undefined => {
+    if (!serializableRange) return undefined;
+
+    // DateRange in react-day-picker is different than what TypeScript thinks
+    // It can have undefined from/to properties, but TypeScript wants them defined
+    // Using a type assertion to work around this
+    const result = {} as DateRange;
+
+    if (serializableRange.from) {
+        result.from = new Date(serializableRange.from);
+    }
+    if (serializableRange.to) {
+        result.to = new Date(serializableRange.to);
+    }
+    return result;
+};
+
+// Convert DateRange to SerializableDateRange for Redux
+const toSerializableDateRange = (dateRange?: DateRange): SerializableDateRange | undefined => {
+    if (!dateRange) return undefined;
+
+    const result: SerializableDateRange = {};
+    if (dateRange.from) {
+        result.from = dateRange.from.toISOString();
+    }
+    if (dateRange.to) {
+        result.to = dateRange.to.toISOString();
+    }
+    return result;
+};
+
 export function DatePickerWithRange({
-    className,
-    propertyId,
-    disabled,
-    noBorder = false,
-    grayBorder = false,
-    displayStyle = "default"
-}: Readonly<DatePickerWithRangeProps>) {
+                                        className,
+                                        propertyId,
+                                        disabled,
+                                        noBorder = false,
+                                        grayBorder = false,
+                                        displayStyle = "default"
+                                    }: Readonly<DatePickerWithRangeProps>) {
     const dispatch = useAppDispatch();
     const {tenantId} = useParams<{ tenantId: string }>();
     const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
     const {landingConfig} = useAppSelector(state => state.config);
-    const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
+    const serializedDateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
+
+    // Convert serialized date range to DateRange for the Calendar component
+    const dateRangeFromRedux = React.useMemo(() =>
+            toDateRange(serializedDateRange)
+        , [serializedDateRange]);
 
     const formattedRoomRates = React.useMemo(() => {
         const rates: RoomRates = {};
@@ -55,8 +93,13 @@ export function DatePickerWithRange({
     }, [roomRates]);
 
     const today = startOfToday();
-    const [date, setDate] = React.useState<DateRange | undefined>(dateRange || undefined);
+    const [date, setDate] = React.useState<DateRange | undefined>(dateRangeFromRedux);
     const [isOpen, setIsOpen] = React.useState(false);
+
+    // Update local state when Redux state changes
+    React.useEffect(() => {
+        setDate(dateRangeFromRedux);
+    }, [dateRangeFromRedux]);
 
     const startMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 2, 1), []);
     const endMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 6, 1), []);
@@ -68,7 +111,6 @@ export function DatePickerWithRange({
             return;
         }
 
-        // Reset selection if clicking the same cell
         if (date?.from && date?.to &&
             newRange.from?.getTime() === date.from.getTime() &&
             newRange.to?.getTime() === date.to.getTime()) {
@@ -105,7 +147,9 @@ export function DatePickerWithRange({
     };
 
     const handleApplyDates = () => {
-        dispatch(updateFilter({dateRange: date || null}));
+        // Convert Date objects to serializable ISO strings
+        const serializableRange = toSerializableDateRange(date);
+        dispatch(updateFilter({dateRange: serializableRange}));
         setIsOpen(false);
     };
 
@@ -142,7 +186,6 @@ export function DatePickerWithRange({
     }, [tenantId, propertyId, dispatch, startMonth, endMonth]);
 
     const renderDayContents = (day: Date) => {
-        // Don't show prices for past dates
         if (isBefore(day, today)) {
             return (
                 <div className="flex flex-col items-center justify-start h-full">
@@ -156,7 +199,7 @@ export function DatePickerWithRange({
         const discountedPrice = (formattedRoomRates[dayStr]?.discountedRate ?? 0) * multiplier;
         const currencySymbol = selectedCurrency.symbol;
 
-        const isRangeEnd = date?.from && date?.to &&
+        const isRangeEnd = (date?.from && date?.to) &&
             (day.getTime() === date.from.getTime() || day.getTime() === date.to.getTime());
 
         const textColor = isRangeEnd ? 'text-white' : 'text-gray-600';
@@ -193,7 +236,9 @@ export function DatePickerWithRange({
                             {date?.from ? format(date.from, "MMM dd, yyyy") : "Any Date"}
                         </span>
                     </div>
-                    <div className="text-gray-300 text-xl mx-6" style={{ height: '30px', display: 'flex', alignItems: 'center' }}>|</div>
+                    <div className="text-gray-300 text-xl mx-6"
+                         style={{height: '30px', display: 'flex', alignItems: 'center'}}>|
+                    </div>
                     <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-500">Check out between</span>
                         <span className="text-black font-medium">
@@ -213,7 +258,7 @@ export function DatePickerWithRange({
                         <span className="mx-4 text-gray-500">→</span>
                         <span className="text-gray-500 text-base">Check out</span>
                     </div>
-                    <MdOutlineCalendarMonth className="h-5 w-5 text-gray-500 mr-2" />
+                    <MdOutlineCalendarMonth className="h-5 w-5 text-gray-500 mr-2"/>
                 </div>
             );
         }
@@ -224,7 +269,7 @@ export function DatePickerWithRange({
                     {date?.from ? (
                         date.to ? (
                             <>
-                                {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
+                                {format(date.from, "LLL dd, y")} → {format(date.to, "LLL dd, y")}
                             </>
                         ) : (
                             format(date.from, "LLL dd, y")
@@ -233,7 +278,7 @@ export function DatePickerWithRange({
                         <span>Select dates</span>
                     )}
                 </div>
-                <MdOutlineCalendarMonth className="h-4 w-4 text-gray-500 mr-2" />
+                <MdOutlineCalendarMonth className="h-4 w-4 text-gray-500 mr-2"/>
             </div>
         );
     };
@@ -254,8 +299,8 @@ export function DatePickerWithRange({
                             className
                         )}
                         style={{
-                            ...(grayBorder ? { borderColor: '#e5e7eb', borderRadius: '8px' } : {}),
-                            ...(noBorder ? { border: 'none', boxShadow: 'none' } : {}),
+                            ...(grayBorder ? {borderColor: '#e5e7eb', borderRadius: '8px'} : {}),
+                            ...(noBorder ? {border: 'none', boxShadow: 'none'} : {}),
                             height: className?.includes('h-[') ? undefined : (displayStyle === "checkInOut" ? 'auto' : undefined)
                         }}
                         disabled={disabled}
@@ -283,13 +328,13 @@ export function DatePickerWithRange({
                                         onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
                                         className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                     >
-                                        <FaChevronLeft className="w-4 h-4" />
+                                        <FaChevronLeft className="w-4 h-4"/>
                                     </button>
                                     <button
                                         onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
                                         className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                     >
-                                        <FaChevronRight className="w-4 h-4" />
+                                        <FaChevronRight className="w-4 h-4"/>
                                     </button>
                                 </div>
                                 <div className="hidden md:flex md:space-x-8 justify-center">
@@ -302,13 +347,13 @@ export function DatePickerWithRange({
                                                 onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
                                                 className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                             >
-                                                <FaChevronLeft className="w-4 h-4" />
+                                                <FaChevronLeft className="w-4 h-4"/>
                                             </button>
                                             <button
                                                 onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
                                                 className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                             >
-                                                <FaChevronRight className="w-4 h-4" />
+                                                <FaChevronRight className="w-4 h-4"/>
                                             </button>
                                         </div>
                                         <Calendar
@@ -316,7 +361,7 @@ export function DatePickerWithRange({
                                             mode="range"
                                             defaultMonth={currentMonth}
                                             month={currentMonth}
-                                            selected={date}
+                                            selected={date ?? undefined}
                                             onSelect={handleSelect}
                                             onMonthChange={handleMonthChange}
                                             numberOfMonths={1}
@@ -333,7 +378,7 @@ export function DatePickerWithRange({
                                                     color: "white",
                                                     fontWeight: "bold"
                                                 },
-                                                day_range_middle: { backgroundColor: "#9b9b9b", color: "black" }
+                                                day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
                                             }}
                                             classNames={{
                                                 months: "flex flex-col",
@@ -373,13 +418,13 @@ export function DatePickerWithRange({
                                                 onClick={() => handleMonthChange(subMonths(currentMonth, 1))}
                                                 className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                             >
-                                                <FaChevronLeft className="w-4 h-4" />
+                                                <FaChevronLeft className="w-4 h-4"/>
                                             </button>
                                             <button
                                                 onClick={() => handleMonthChange(addMonths(currentMonth, 1))}
                                                 className="h-6 w-6 flex items-center justify-center mx-1 text-gray-500"
                                             >
-                                                <FaChevronRight className="w-4 h-4" />
+                                                <FaChevronRight className="w-4 h-4"/>
                                             </button>
                                         </div>
                                         <Calendar
@@ -404,7 +449,7 @@ export function DatePickerWithRange({
                                                     color: "white",
                                                     fontWeight: "bold"
                                                 },
-                                                day_range_middle: { backgroundColor: "#9b9b9b", color: "black" }
+                                                day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
                                             }}
                                             classNames={{
                                                 months: "flex flex-col",
@@ -459,7 +504,7 @@ export function DatePickerWithRange({
                                                 color: "white",
                                                 fontWeight: "bold"
                                             },
-                                            day_range_middle: { backgroundColor: "#9b9b9b", color: "black" }
+                                            day_range_middle: {backgroundColor: "#9b9b9b", color: "black"}
                                         }}
                                         classNames={{
                                             months: "flex flex-col",

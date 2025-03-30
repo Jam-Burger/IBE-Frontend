@@ -42,4 +42,3 @@ export {
     AccordionItem,
     AccordionTrigger,
 } from "./Accordion";
-export { default as Modal } from './Modal';

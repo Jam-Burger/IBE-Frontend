@@ -1,74 +1,113 @@
-import {Filter, SortOption} from "../types";
+import {Filter, SerializableDateRange, SortOption} from "../types";
+
+/**
+ * Sanitizes date strings by removing time components and trimming
+ */
+const sanitizeDate = (dateStr: string): string => {
+    // Extract only the date part before any time component (like T or :)
+    const dateOnly = dateStr.split(/[T:]/, 1)[0];
+    return dateOnly.trim();
+};
 
 /**
  * Converts a filter object to URLSearchParams for use in the URL
  */
 export const filterToSearchParams = (filter: Filter): URLSearchParams => {
-    const params = new URLSearchParams();
+    // Create a params record first for better manipulation
+    const paramsRecord: Record<string, string> = {};
 
     // Add simple params
-    if (filter.propertyId) params.set('propertyId', filter.propertyId.toString());
-    if (filter.roomCount) params.set('roomCount', filter.roomCount.toString());
-    if (filter.isAccessible) params.set('isAccessible', filter.isAccessible.toString());
+    if (filter.propertyId) paramsRecord['propertyId'] = filter.propertyId.toString();
+    if (filter.roomCount) paramsRecord['roomCount'] = filter.roomCount.toString();
+    if (filter.isAccessible) paramsRecord['isAccessible'] = filter.isAccessible.toString();
 
     // Add guest counts
     if (filter.guests) {
         // Total guests (sum of all guest types)
         const totalGuests = Object.values(filter.guests).reduce((sum, count) => sum + count, 0);
         if (totalGuests > 0) {
-            params.set('totalGuests', totalGuests.toString());
+            paramsRecord['totalGuests'] = totalGuests.toString();
         }
 
         // Individual guest types
         Object.entries(filter.guests).forEach(([type, count]) => {
             if (count > 0) {
-                params.set(`guest_${type}`, count.toString());
+                // Sanitize guest type to ensure URL-friendly keys
+                const safeType = type;
+                paramsRecord[`guest_${safeType}`] = count.toString();
             }
         });
     }
 
-    if (filter.sortBy) params.set('sortBy', filter.sortBy);
+    if (filter.sortBy) paramsRecord['sortBy'] = filter.sortBy;
 
-    // Add date range if it exists
-    if (filter.dateRange?.from) params.set('dateFrom', filter.dateRange.from.toISOString());
-    if (filter.dateRange?.to) params.set('dateTo', filter.dateRange.to.toISOString());
+    // Add date range if it exists - ensure they're properly formatted strings with time components removed
+    if (filter.dateRange?.from) paramsRecord['dateFrom'] = sanitizeDate(String(filter.dateRange.from));
+    if (filter.dateRange?.to) paramsRecord['dateTo'] = sanitizeDate(String(filter.dateRange.to));
 
-    // Add bed types - simplified to just use the value that's true
-    if (filter.bedTypes.singleBed || filter.bedTypes.doubleBed) {
-        params.set('bedType', filter.bedTypes.singleBed ? 'single' : 'double');
+    // Add bed types as an array of selected types
+    const selectedBedTypes = [];
+    if (filter.bedTypes.singleBed) selectedBedTypes.push('single');
+    if (filter.bedTypes.doubleBed) selectedBedTypes.push('double');
+    if (selectedBedTypes.length > 0) {
+        paramsRecord['bedTypes'] = selectedBedTypes.join(',');
     }
 
-    // Add arrays
-    if (filter.ratings.length) params.set('ratings', filter.ratings.join(','));
-    if (filter.amenities.length) params.set('amenities', filter.amenities.join(','));
+    // Add arrays - ensure proper serialization for complex values
+    if (filter.ratings.length) paramsRecord['ratings'] = filter.ratings.join(',');
+    if (filter.amenities.length) {
+        paramsRecord['amenities'] = filter.amenities.join(',');
+    }
 
     // Add room size range
     if (filter.roomSize[0] || filter.roomSize[1]) {
-        params.set('roomSizeMin', filter.roomSize[0].toString());
-        params.set('roomSizeMax', filter.roomSize[1].toString());
+        paramsRecord['roomSizeMin'] = filter.roomSize[0].toString();
+        paramsRecord['roomSizeMax'] = filter.roomSize[1].toString();
     }
 
+    // Convert record to URLSearchParams with sanitized keys and values
+    const params = new URLSearchParams();
+    Object.entries(paramsRecord).forEach(([key, value]) => {
+        const safeKey = key;
+        const safeValue = String(value);
+        params.append(safeKey, safeValue);
+    });
+
     return params;
+};
+
+/**
+ * Extracts the guest type from a parameter key
+ */
+const extractGuestType = (key: string): string => {
+    return key.replace(/^guest_/, '');
 };
 
 /**
  * Converts URLSearchParams back to a partial filter object
  */
 export const searchParamsToFilter = (params: URLSearchParams): Partial<Filter> => {
+    // Convert URLSearchParams to a Record for easier processing
+    const paramsRecord: Record<string, string> = {};
+    params.forEach((value, key) => {
+        paramsRecord[key] = value;
+    });
+
     const filter: Partial<Filter> = {};
 
     // Parse simple params
-    if (params.has('propertyId')) filter.propertyId = Number(params.get('propertyId'));
-    if (params.has('roomCount')) filter.roomCount = Number(params.get('roomCount'));
-    if (params.has('isAccessible')) filter.isAccessible = params.get('isAccessible') === 'true';
+    if ('propertyid' in paramsRecord) filter.propertyId = Number(paramsRecord.propertyid);
+    if ('roomcount' in paramsRecord) filter.roomCount = Number(paramsRecord.roomcount);
+    if ('isaccessible' in paramsRecord) filter.isAccessible = paramsRecord.isaccessible === 'true';
+    if ('sortby' in paramsRecord) filter.sortBy = paramsRecord.sortby as SortOption;
 
     // Parse guest counts
     const guestEntries: [string, number][] = [];
 
     // Check for individual guest types (guest_adult, guest_child, etc)
-    Array.from(params.entries()).forEach(([key, value]) => {
+    Object.entries(paramsRecord).forEach(([key, value]) => {
         if (key.startsWith('guest_')) {
-            const guestType = key.replace('guest_', '');
+            const guestType = extractGuestType(key);
             guestEntries.push([guestType, Number(value)]);
         }
     });
@@ -78,46 +117,47 @@ export const searchParamsToFilter = (params: URLSearchParams): Partial<Filter> =
         filter.guests = Object.fromEntries(guestEntries);
     }
     // If we only have totalGuests but no breakdown, use a default structure
-    else if (params.has('totalGuests')) {
-        const totalGuests = Number(params.get('totalGuests'));
+    else if ('totalguests' in paramsRecord) {
+        const totalGuests = Number(paramsRecord.totalguests);
         filter.guests = {adult: totalGuests}; // Default all guests to adults
     }
 
-    if (params.has('sortBy')) filter.sortBy = params.get('sortBy') as SortOption;
-
-    // Parse date range
-    if (params.has('dateFrom') || params.has('dateTo')) {
-        filter.dateRange = {
-            from: params.has('dateFrom') ? new Date(params.get('dateFrom')!) : undefined,
-            to: params.has('dateTo') ? new Date(params.get('dateTo')!) : undefined
-        };
+    // Parse date range - clean date strings
+    if ('datefrom' in paramsRecord || 'dateto' in paramsRecord) {
+        const dateRange: SerializableDateRange = {};
+        if ('datefrom' in paramsRecord) dateRange.from = sanitizeDate(paramsRecord.datefrom);
+        if ('dateto' in paramsRecord) dateRange.to = sanitizeDate(paramsRecord.dateto);
+        filter.dateRange = dateRange;
     }
 
-    // Parse bed types - simplified to one parameter
-    if (params.has('bedType')) {
-        const bedType = params.get('bedType');
+    // Parse bed types from comma-separated list
+    if ('bedtypes' in paramsRecord) {
+        const bedTypesList = paramsRecord.bedtypes.split(',');
         filter.bedTypes = {
-            singleBed: bedType === 'single',
-            doubleBed: bedType === 'double'
+            singleBed: bedTypesList.includes('single'),
+            doubleBed: bedTypesList.includes('double')
         };
     }
 
     // Parse arrays
-    if (params.has('ratings')) {
-        filter.ratings = params.get('ratings')!.split(',').map(Number);
+    if ('ratings' in paramsRecord) {
+        filter.ratings = paramsRecord.ratings.split(',').map(Number);
     }
 
-    if (params.has('amenities')) {
-        filter.amenities = params.get('amenities')!.split(',');
+    if ('amenities' in paramsRecord) {
+        // Decode URL-encoded amenity values
+        filter.amenities = paramsRecord.amenities.split(',').map(amenity =>
+            decodeURIComponent(amenity)
+        );
     }
 
     // Parse room size range
-    if (params.has('roomSizeMin') && params.has('roomSizeMax')) {
+    if ('roomsizemin' in paramsRecord && 'roomsizemax' in paramsRecord) {
         filter.roomSize = [
-            Number(params.get('roomSizeMin')),
-            Number(params.get('roomSizeMax'))
+            Number(paramsRecord.roomsizemin),
+            Number(paramsRecord.roomsizemax)
         ];
     }
 
     return filter;
-}; 
+};

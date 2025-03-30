@@ -1,6 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {BaseState, Filter, SortOption, StateStatus} from '../types';
-import {searchParamsToFilter} from '../lib/url-params';
 
 export interface RoomFiltersState extends BaseState {
     filter: Filter;
@@ -8,7 +7,7 @@ export interface RoomFiltersState extends BaseState {
 
 const initialFilter: Filter = {
     propertyId: 9,
-    dateRange: null,
+    dateRange: undefined,
     roomCount: 1,
     isAccessible: false,
     guests: {},
@@ -16,6 +15,7 @@ const initialFilter: Filter = {
         singleBed: false,
         doubleBed: false,
     },
+    bedCount: 1,
     ratings: [],
     amenities: [],
     roomSize: [-1, -1],
@@ -39,14 +39,11 @@ const filterSlice = createSlice({
             };
         },
 
-        syncWithUrl(state, action: PayloadAction<URLSearchParams>) {
-            const filterFromUrl = searchParamsToFilter(action.payload);
-            if (Object.keys(filterFromUrl).length) {
-                state.filter = {
-                    ...state.filter,
-                    ...filterFromUrl
-                };
-            }
+        syncWithUrl(state, action: PayloadAction<Partial<Filter>>) {
+            state.filter = {
+                ...state.filter,
+                ...action.payload
+            };
         },
 
         resetFilters(state, action: PayloadAction<[number, number]>) {

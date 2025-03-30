@@ -1,10 +1,6 @@
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {api} from "../lib/api-client";
-import {BaseState, StateStatus} from "../types/common";
-import {GlobalConfig} from "../types/GlobalConfig";
-import {LandingConfig} from "../types/LandingConfig";
-import {RoomsListConfig} from "../types/RoomsListConfig";
-import {ConfigType} from "../types";
+import {BaseState, ConfigType, GlobalConfig, LandingConfig, RoomsListConfig, StateStatus} from "../types";
 
 export interface ConfigState extends BaseState {
     globalConfig: GlobalConfig | null;

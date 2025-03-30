@@ -1,6 +1,6 @@
 import {cn} from "../lib/utils";
 import {FaCheck} from "react-icons/fa";
-import {useEffect, useState} from "react";
+import {CSSProperties, useEffect, useState} from "react";
 import {RoomCard, RoomFilters} from "../components";
 import {ConfigType, Room, SortOption, StateStatus} from "../types";
 import {api} from "../lib/api-client";
@@ -17,18 +17,17 @@ import {
     DropdownMenuTrigger,
 } from "../components/ui/DropdownMenu.tsx";
 import {
+    Button,
+    DatePickerWithRange,
     GuestSelector,
+    Label,
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
-    // SelectValue,
-    Label,
-    DatePickerWithRange,
-    Button
 } from "../components/ui";
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
-import {filterToSearchParams} from "../lib/url-params.ts";
+import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
 import {MdOutlineCalendarMonth} from "react-icons/md";
 
 const RoomsListPage = () => {
@@ -40,11 +39,13 @@ const RoomsListPage = () => {
     const isLoading = status === StateStatus.LOADING || !roomsListConfig;
     const [searchParams, setSearchParams] = useSearchParams();
     const filter = useAppSelector((state) => state.roomFilters.filter);
-    const searchForm = useAppSelector(state => state.config.landingConfig?.configData.searchForm);
-
+    const searchForm = useAppSelector(
+        (state) => state.config.landingConfig?.configData.searchForm
+    );
+    const filterGroups = roomsListConfig?.configData.filters.filterGroups;
 
     useEffect(() => {
-        dispatch(syncWithUrl(searchParams));
+        dispatch(syncWithUrl(searchParamsToFilter(searchParams)));
     }, [dispatch, searchParams]);
 
     useEffect(() => {
@@ -59,16 +60,17 @@ const RoomsListPage = () => {
             console.error("Tenant ID is not available");
             return;
         }
+        dispatch(fetchConfig({tenantId, configType: ConfigType.LANDING}));
         dispatch(fetchConfig({tenantId, configType: ConfigType.ROOMS_LIST}));
     }, [tenantId, dispatch]);
 
     useEffect(() => {
         const fetchRooms = async () => {
-            if (filter.propertyId && tenantId && !isLoading) {
+            if (tenantId && !isLoading) {
                 try {
                     const response = await api.getRooms(
                         tenantId,
-                        Array.from(searchParams.entries())
+                        Object.fromEntries(searchParams.entries())
                     );
                     setRooms(response.data);
                 } catch (error) {
@@ -78,7 +80,7 @@ const RoomsListPage = () => {
         };
 
         fetchRooms();
-    }, [filter, tenantId, isLoading]);
+    }, [tenantId, isLoading, searchParams]);
 
     if (isLoading) {
         return (
@@ -126,60 +128,95 @@ const RoomsListPage = () => {
         dispatch(updateFilter({sortBy: sortOption}));
     };
 
+    const handleRoomCountChange = (value: string) => {
+        const roomCount = parseInt(value, 10);
+        dispatch(updateFilter({roomCount}));
+    };
+
+    const handleBedCountChange = (value: string) => {
+        const bedCount = parseInt(value, 10);
+        dispatch(updateFilter({bedCount}));
+    };
+
+    const handleDateSearch = () => {
+    };
+
+    const handleRoomSelection = () => {
+        handleStepClick(1);
+    };
+
+    const handlePackageSelection = () => {
+        handleStepClick(2);
+    };
+
     return (
         <div className="flex flex-col min-h-screen">
-            <div className="w-full bg-[#858685] h-48 flex-shrink-0" />
+            <div
+                className="w-full bg-[#858685] h-48 flex-shrink-0"
+                style={bannerStyle}
+            />
             <div className="h-[92px] flex-shrink-0 bg-[#E4E4E4] flex items-center justify-center">
-            <div className="flex items-center justify-center h-[92px] flex-shrink-0">
-          <div className="w-[417px] relative">
-            <div className="flex items-center justify-between relative">
-              {/* Line between step 1 and 2 */}
-              <div
-                className={`absolute top-[14px] h-[2px] left-[32px] right-[50%] z-[1] ${currentStep > 0 ? "bg-[#26266D]" : "bg-[#C1C2C2]"}`}
-              ></div>
+                <div className="flex items-center justify-center h-[92px] flex-shrink-0">
+                    <div className="w-[417px] relative">
+                        <div className="flex items-center justify-between relative">
+                            <div
+                                className={`absolute top-[14px] h-[2px] left-[32px] right-[50%] z-[1] ${
+                                    currentStep > 0
+                                        ? "bg-[#26266D]"
+                                        : "bg-[#C1C2C2]"
+                                }`}
+                            ></div>
 
-              {/* Line between step 2 and 3 */}
-              <div
-                className={`absolute top-[14px] h-[2px] left-[50%] right-[32px] z-[1] ${currentStep > 1 ? "bg-[#26266D]" : "bg-[#C1C2C2]"}`}
-              ></div>
+                            <div
+                                className={`absolute top-[14px] h-[2px] left-[50%] right-[32px] z-[1] ${
+                                    currentStep > 1
+                                        ? "bg-[#26266D]"
+                                        : "bg-[#C1C2C2]"
+                                }`}
+                            ></div>
 
-              {configuredSteps.map((step, index) => (
-                <div key={index} className="flex flex-col items-center z-10">
-                  <button
-                    className={cn(
-                      "w-8 h-8 flex items-center justify-center rounded-full text-white font-bold text-sm cursor-pointer",
-                      index === currentStep
-                        ? "bg-[#D0182B]"
-                        : step.completed || index < currentStep
-                        ? "bg-[#26266D]"
-                        : "bg-gray-300"
-                    )}
-                    onClick={() => handleStepClick(index)}
-                  >
-                    {step.completed || index < currentStep ? (
-                      <FaCheck size={16} />
-                    ) : index === currentStep ? (
-                      <FaCheck size={16} />
-                    ) : (
-                      ""
-                    )}
-                  </button>
+                            {configuredSteps.map((step, index) => (
+                                <div
+                                    key={index}
+                                    className="flex flex-col items-center z-10"
+                                >
+                                    <button
+                                        className={cn(
+                                            "w-8 h-8 flex items-center justify-center rounded-full text-white font-bold text-sm cursor-pointer",
+                                            index === currentStep
+                                                ? "bg-[#D0182B]"
+                                                : step.completed ||
+                                                index < currentStep
+                                                    ? "bg-[#26266D]"
+                                                    : "bg-gray-300"
+                                        )}
+                                        onClick={() => handleStepClick(index)}
+                                    >
+                                        {step.completed ||
+                                        index < currentStep ? (
+                                            <FaCheck size={16}/>
+                                        ) : index === currentStep ? (
+                                            <FaCheck size={16}/>
+                                        ) : (
+                                            ""
+                                        )}
+                                    </button>
 
-                  <span
-                    className={cn(
-                      "text-xs mt-1",
-                      index === currentStep
-                        ? "text-primary font-medium"
-                        : "text-gray-500"
-                    )}
-                  >
-                    {index + 1}. {step.label}
-                  </span>
+                                    <span
+                                        className={cn(
+                                            "text-xs mt-1",
+                                            index === currentStep
+                                                ? "text-primary font-medium"
+                                                : "text-gray-500"
+                                        )}
+                                    >
+                                        {index + 1}. {step.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
             </div>
 
             {searchForm && (
@@ -190,26 +227,50 @@ const RoomsListPage = () => {
                                 <GuestSelector
                                     roomCount={filter.roomCount}
                                     showDetailedSummary={true}
-                                    width="264px" height="68px" />
+                                    width="264px"
+                                    height="68px"
+                                />
                             </div>
                         )}
 
                         {searchForm.roomOptions.enabled && (
                             <div>
-                                <Select value={filter.roomCount.toString()} onValueChange={handleRoomCountChange}>
+                                <Select
+                                    value={filter.roomCount.toString()}
+                                    onValueChange={handleRoomCountChange}
+                                >
                                     <SelectTrigger
                                         id="rooms"
                                         className="w-full text-gray-500 min-h-[68px] min-w-[132px] [&>svg]:!text-black"
-                                        style={{ "--select-trigger-icon-color": "black" } as React.CSSProperties}
+                                        style={
+                                            {
+                                                "--select-trigger-icon-color":
+                                                    "black",
+                                            } as CSSProperties
+                                        }
                                     >
                                         <div className="flex flex-col items-start">
-                                            <Label htmlFor="rooms" className="mb-1 block text-sm font-medium text-gray-500">Rooms</Label>
-                                            <span className="text-base font-medium text-gray-900">{filters.roomCount}</span>
+                                            <Label
+                                                htmlFor="rooms"
+                                                className="mb-1 block text-sm font-medium text-gray-500"
+                                            >
+                                                Rooms
+                                            </Label>
+                                            <span className="text-base font-medium text-gray-900">
+                                                {filter.roomCount}
+                                            </span>
                                         </div>
                                     </SelectTrigger>
                                     <SelectContent position="popper">
-                                        {[...Array(searchForm.roomOptions.max)].map((_, i) => (
-                                            <SelectItem key={i} value={String(i + 1)}>
+                                        {[
+                                            ...Array(
+                                                searchForm.roomOptions.max
+                                            ),
+                                        ].map((_, i) => (
+                                            <SelectItem
+                                                key={i}
+                                                value={String(i + 1)}
+                                            >
                                                 {i + 1}
                                             </SelectItem>
                                         ))}
@@ -219,29 +280,54 @@ const RoomsListPage = () => {
                         )}
 
                         <div>
-                            <Select value={getCurrentBedValue()} onValueChange={handleBedTypeChange}>
+                            <Select
+                                value={filter.bedCount?.toString()}
+                                onValueChange={handleBedCountChange}
+                            >
                                 <SelectTrigger
                                     id="beds"
                                     className="w-full text-gray-500 min-h-[68px] min-w-[132px] [&>svg]:!text-black"
-                                    style={{ "--select-trigger-icon-color": "black" } as React.CSSProperties}
+                                    style={
+                                        {
+                                            "--select-trigger-icon-color":
+                                                "black",
+                                        } as CSSProperties
+                                    }
                                 >
                                     <div className="flex flex-col items-start">
-                                        <Label htmlFor="beds" className="mb-1 block text-sm font-medium text-gray-500">Beds</Label>
+                                        <Label
+                                            htmlFor="beds"
+                                            className="mb-1 block text-sm font-medium text-gray-500"
+                                        >
+                                            Beds
+                                        </Label>
                                         <span className="text-base font-medium text-gray-900">
-                                            {getCurrentBedValue() === 'Choose' ? 'Any' : getCurrentBedValue()}
+                                            {filter.bedCount}
                                         </span>
                                     </div>
                                 </SelectTrigger>
                                 <SelectContent position="popper">
-                                    <SelectItem value="1">1</SelectItem>
-                                    <SelectItem value="2">2</SelectItem>
-                                    <SelectItem value="3">3</SelectItem>
+                                    {[
+                                        ...Array(
+                                            filterGroups?.bedCount.max ?? 0
+                                        ),
+                                    ].map((_, i) => (
+                                        <SelectItem
+                                            key={i}
+                                            value={String(i + 1)}
+                                        >
+                                            {i + 1}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div>
-                            <div style={{ width: '510px' }} className="relative">
+                            <div
+                                style={{width: "510px"}}
+                                className="relative"
+                            >
                                 <DatePickerWithRange
                                     propertyId={filter.propertyId}
                                     disabled={false}
@@ -249,16 +335,17 @@ const RoomsListPage = () => {
                                     grayBorder={true}
                                     displayStyle="checkInOut"
                                 />
-                                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                    <MdOutlineCalendarMonth className="h-6 w-6 text-black" />
+                                <div
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                    <MdOutlineCalendarMonth className="h-6 w-6 text-black"/>
                                 </div>
                             </div>
                         </div>
 
                         <Button
-                            onClick={handleSearch}
+                            onClick={handleDateSearch}
                             className="bg-primary text-white px-6"
-                            style={{ width: '168px', height: '66px' }}
+                            style={{width: "168px", height: "66px"}}
                         >
                             SEARCH DATES
                         </Button>
@@ -287,7 +374,7 @@ const RoomsListPage = () => {
                                         {roomsListConfig?.configData.filters.sortOptions.options.find(
                                             (option) =>
                                                 option.value === filter.sortBy
-                                        )?.label || "N/A"}
+                                        )?.label ?? "N/A"}
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
                                         <DropdownMenuLabel>

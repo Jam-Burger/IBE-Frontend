@@ -1,10 +1,10 @@
-import axios from 'axios';
-import {ConfigType} from '../types';
+import axios from "axios";
+import {ConfigType} from "../types";
 
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     },
 });
 
@@ -25,7 +25,9 @@ interface SpecialDiscountParams {
 
 export const api = {
     getConfig: async (tenantId: string, configType: ConfigType) => {
-        const response = await apiClient.get(`${tenantId}/config/${configType}`);
+        const response = await apiClient.get(
+            `${tenantId}/config/${configType}`
+        );
         return response.data;
     },
 
@@ -43,7 +45,9 @@ export const api = {
         return response.data;
     },
 
-    getSpecialDiscounts: async (params: SpecialDiscountParams & { tenantId: string }) => {
+    getSpecialDiscounts: async (
+        params: SpecialDiscountParams & { tenantId: string }
+    ) => {
         const {propertyId, startDate, endDate, tenantId} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts`,
@@ -52,15 +56,19 @@ export const api = {
         return response.data;
     },
 
-    getRooms: async (tenantId: string, params: [string, string][]) => {
-        const propertyId = 9;
-        console.log(params);
-        const response = await apiClient.get(`${tenantId}/${propertyId}/room-types`);
+    getRooms: async (tenantId: string, params: Record<string, string>) => {
+        const propertyId = params.propertyId;
+        const response = await apiClient.get(
+            `${tenantId}/${propertyId}/room-types/filter`,
+            {params}
+        );
         return response.data;
     },
 
     getAmenities: async (tenantId: string, propertyId: number) => {
-        const response = await apiClient.get(`${tenantId}/${propertyId}/amenities`);
+        const response = await apiClient.get(
+            `${tenantId}/${propertyId}/amenities`
+        );
         return response.data;
     },
 
@@ -72,5 +80,5 @@ export const api = {
     getLocationInfo: async () => {
         const response = await axios.get(`${LOCATION_API_URL}`);
         return response.data;
-    }
+    },
 };

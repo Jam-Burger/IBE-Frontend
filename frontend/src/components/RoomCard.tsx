@@ -5,8 +5,7 @@ import {GoPerson} from "react-icons/go";
 import {MdOutlineBed} from "react-icons/md";
 import {Room} from "../types";
 import ImageCarousel from "./ui/ImageCarousel.tsx";
-import RoomDetailsModal from './RoomDetailsModal';
-import { Modal } from "./ui";
+import RoomDetailsModalPopup from "./RoomDetailsModalPopup.tsx";
 
 interface RoomCardProps {
     room: Room & {
@@ -147,13 +146,18 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
             </div>
 
             {isModalOpen && (
-                <Modal onClose={() => setIsModalOpen(false)}>
-                    <RoomDetailsModal 
-                        room={room} 
-                        onClose={() => setIsModalOpen(false)}
-                        onSelectRoom={handlePackageSelect}
-                    />
-                </Modal>
+                // <Modal onClose={() => setIsModalOpen(false)}>
+                //     <RoomDetailsModal
+                //         room={room}
+                //         onClose={() => setIsModalOpen(false)}
+                //         onSelectRoom={handlePackageSelect}
+                //     />
+                // </Modal>
+                <RoomDetailsModalPopup
+                    room={room}
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSelectRoom={handlePackageSelect}/>
             )}
         </>
     );

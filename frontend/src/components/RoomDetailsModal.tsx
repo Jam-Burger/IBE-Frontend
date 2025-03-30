@@ -1,14 +1,13 @@
 import PackageCard from "./PackageCard.tsx";
-import { GoPerson } from "react-icons/go";
-import { MdOutlineBed } from "react-icons/md";
-import { FaRegCircleCheck } from "react-icons/fa6";
-import { IoClose } from "react-icons/io5";
+import {GoPerson} from "react-icons/go";
+import {MdOutlineBed} from "react-icons/md";
+import {FaRegCircleCheck} from "react-icons/fa6";
 import ImageCarousel from "./ui/ImageCarousel";
-import { Room } from "../types"; // Make sure this import matches your type definition
-import { useEffect, useState } from "react";
-import { api } from "../lib/api-client";
-import { useParams } from "react-router-dom";
-import { useAppSelector } from "../redux/hooks.ts";
+import {Room} from "../types";
+import {useEffect, useState} from "react";
+import {api} from "../lib/api-client";
+import {useParams} from "react-router-dom";
+import {useAppSelector} from "../redux/hooks.ts";
 
 interface RoomDetailsModalProps {
     room: Room;
@@ -25,14 +24,14 @@ interface SpecialDiscount {
     discount_percentage: number;
 }
 
-const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps) => {
+const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) => {
     const [specialDiscounts, setSpecialDiscounts] = useState<SpecialDiscount[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const { tenantId } = useParams<{ tenantId: string }>();
-    
+    const {tenantId} = useParams<{ tenantId: string }>();
+
     // Get date range from redux store
-    const dateRange = useAppSelector(state => state.roomFilters.dateRange);
-    
+    const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
+
     // Use room price for standard package
     const standardPackage = {
         title: "Standard Rate",
@@ -43,25 +42,26 @@ const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps
     useEffect(() => {
         const fetchSpecialDiscounts = async () => {
             if (!tenantId || !room.propertyId) return;
-            
+
             setIsLoading(true);
             try {
                 // Use selected date range from filters if available
                 let formattedStartDate, formattedEndDate;
-                
+
                 if (dateRange && dateRange.from && dateRange.to) {
-                    formattedStartDate = dateRange.from.toISOString().split('T')[0];
-                    formattedEndDate = dateRange.to.toISOString().split('T')[0];
+                    // Date strings are already in ISO format, just take the date part
+                    formattedStartDate = dateRange.from.split('T')[0];
+                    formattedEndDate = dateRange.to.split('T')[0];
                 } else {
                     // Fallback to default dates if no selection
                     const today = new Date();
                     const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
                     const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5);
-                    
+
                     formattedStartDate = startDate.toISOString().split('T')[0];
                     formattedEndDate = endDate.toISOString().split('T')[0];
                 }
-                
+
                 // Use the API client's getSpecialDiscounts method
                 const response = await api.getSpecialDiscounts({
                     tenantId: tenantId || '',
@@ -69,8 +69,8 @@ const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps
                     startDate: formattedStartDate,
                     endDate: formattedEndDate
                 });
-                
-                if (response && response.data) {
+
+                if (response?.data) {
                     setSpecialDiscounts(response.data);
                 }
             } catch (error) {
@@ -79,34 +79,30 @@ const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps
                 setIsLoading(false);
             }
         };
-        
+
         fetchSpecialDiscounts();
     }, [tenantId, room.propertyId, dateRange]);
 
     const handleSelectPackage = (packageTitle: string) => {
-        console.log(`Selected package: ${packageTitle}`);
-        
-        // Call the onSelectRoom prop to advance the stepper
+        console.log(packageTitle);
+
         if (onSelectRoom) {
             onSelectRoom();
         }
-        
-        // Close the modal if needed
+
         if (onClose) {
             onClose();
         }
     };
 
-    // Format guest capacity text
     const guestText = `1-${room.maxCapacity} Guests`;
-    
-    // Format bed type text
-    const bedText = room.singleBed > 0 && room.doubleBed > 0 
-        ? `${room.singleBed} Single & ${room.doubleBed} Double` 
-        : room.singleBed > 0 
-            ? `${room.singleBed} Single Bed${room.singleBed > 1 ? 's' : ''}` 
+
+    const bedText = room.singleBed > 0 && room.doubleBed > 0
+        ? `${room.singleBed} Single & ${room.doubleBed} Double`
+        : room.singleBed > 0
+            ? `${room.singleBed} Single Bed${room.singleBed > 1 ? 's' : ''}`
             : `${room.doubleBed} Double Bed${room.doubleBed > 1 ? 's' : ''}`;
-    
+
     // Format room size
     const roomSize = `${room.areaInSquareFeet} sqft`;
 
@@ -123,17 +119,6 @@ const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps
 
     return (
         <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden relative">
-            {/* White close button */}
-            {onClose && (
-                <button 
-                    onClick={onClose}
-                    className="absolute top-4 right-4 z-10 text-white hover:text-gray-200 transition-colors"
-                    aria-label="Close"
-                >
-                    <IoClose size={28} />
-                </button>
-            )}
-
             {/* Header Section with Image Carousel */}
             <ImageCarousel
                 images={room.images}
@@ -151,8 +136,8 @@ const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps
                 <div className="flex justify-between items-start text-sm">
                     <div>
                         <div className="flex gap-4 text-gray-600">
-                            <span className="flex justify-between items-center gap-2"><GoPerson />{guestText}</span>
-                            <span className="flex justify-between items-center gap-2"><MdOutlineBed />{bedText}</span>
+                            <span className="flex justify-between items-center gap-2"><GoPerson/>{guestText}</span>
+                            <span className="flex justify-between items-center gap-2"><MdOutlineBed/>{bedText}</span>
                             <span>{roomSize}</span>
                         </div>
 
@@ -170,8 +155,9 @@ const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps
 
                         <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                             {room.amenities.map((amenity, index) => (
-                                <span key={index} className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]">
-                                    <FaRegCircleCheck /> {amenity}
+                                <span key={index}
+                                      className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]">
+                                    <FaRegCircleCheck/> {amenity}
                                 </span>
                             ))}
                         </div>
@@ -212,8 +198,9 @@ const RoomDetailsModal = ({ room, onClose, onSelectRoom }: RoomDetailsModalProps
                 <div className="mt-6">
                     <label className="text-gray-700 text-sm block mb-2">Enter a promo code</label>
                     <div className="flex gap-2">
-                        <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm" />
-                        <button className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]">
+                        <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm"/>
+                        <button
+                            className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]">
                             <span className="h-[20px] w-[44px]">APPLY</span>
                         </button>
                     </div>
