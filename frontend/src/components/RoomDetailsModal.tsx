@@ -219,46 +219,47 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
     };
 
     return (
-        <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden relative">
+        <div className="w-full mx-auto bg-white shadow-lg rounded-lg overflow-hidden relative">
             {/* Header Section with Image Carousel */}
             <ImageCarousel
                 images={room.images}
-                height="381px"
+                height="250px"
                 width="100%"
                 showTitle={true}
                 title={toTitleCase(room.roomTypeName)}
                 arrowsStyle="large"
                 showDots={true}
                 autoRotate={true}
+                className="md:h-[320px] lg:h-[381px]"
             />
 
             {/* Room Details */}
-            <div className="p-8">
-                <div className="flex justify-between items-start text-sm">
-                    <div>
-                        <div className="flex gap-4 text-gray-600">
-                            <span className="flex justify-between items-center gap-2"><GoPerson/>{guestText}</span>
-                            <span className="flex justify-between items-center gap-2"><MdOutlineBed/>{bedText}</span>
+            <div className="p-4 md:p-6 lg:p-8">
+                <div className="flex flex-col lg:flex-row justify-between items-start text-sm">
+                    <div className="w-full lg:w-auto mb-6 lg:mb-0">
+                        <div className="flex flex-wrap gap-3 text-gray-600 text-sm md:text-base">
+                            <span className="flex items-center gap-2"><GoPerson/>{guestText}</span>
+                            <span className="flex items-center gap-2"><MdOutlineBed/>{bedText}</span>
                             <span>{roomSize}</span>
                         </div>
 
                         {/* Description */}
-                        <p className="text-black-700 text-[16px] leading-relaxed w-[590px] h-[98px] mt-4 font-normal">
+                        <p className="text-black-700 text-sm md:text-base leading-relaxed w-full md:max-w-[480px] lg:max-w-[590px] mt-4 font-normal">
                             {room.description}
                         </p>
                     </div>
 
                     {/* Amenities section */}
-                    <div>
-                        <h2 className="w-[129px] h-[23px] text-[16px] leading-[140%] font-normal text-black">
+                    <div className="w-full lg:w-auto mt-4 lg:mt-0">
+                        <h2 className="text-base md:text-lg font-medium text-black mb-2">
                             Amenities
                         </h2>
 
                         <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                             {room.amenities.map((amenity, index) => (
                                 <span key={index}
-                                      className="flex justify-start items-center gap-2 font-normal text-[16px] text-[#2F2F2F]">
-                                    <FaRegCircleCheck/> {amenity}
+                                      className="flex justify-start items-center gap-2 font-normal text-sm md:text-base text-[#2F2F2F]">
+                                    <FaRegCircleCheck className="text-primary flex-shrink-0"/> {amenity}
                                 </span>
                             ))}
                         </div>
@@ -266,8 +267,8 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                 </div>
 
                 {/* Pricing & Packages */}
-                <div className="mt-8">
-                    <h2 className="text-xl font-bold">Standard Rate</h2>
+                <div className="mt-6 md:mt-8">
+                    <h2 className="text-lg md:text-xl font-bold">Standard Rate</h2>
                     <PackageCard
                         packageData={standardPackage}
                         onSelectPackage={() => handleSelectPackage(standardPackage.title)}
@@ -276,7 +277,7 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                     {/* Promo Package if available */}
                     {promoPackage && (
                         <>
-                            <h2 className="text-xl font-bold mt-6">Promo Offer</h2>
+                            <h2 className="text-lg md:text-xl font-bold mt-6">Promo Offer</h2>
                             <PackageCard
                                 packageData={promoPackage}
                                 onSelectPackage={() => handleSelectPackage(promoPackage.title)}
@@ -289,7 +290,7 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                     {/* Regular Deals & Packages */}
                     {discountedPackages.length > 0 && (
                         <>
-                            <h2 className="text-xl font-bold mt-6">Deals & Packages</h2>
+                            <h2 className="text-lg md:text-xl font-bold mt-6">Deals & Packages</h2>
                             {isLoading ? (
                                 <p className="text-gray-500 mt-2">Loading available deals...</p>
                             ) : (
@@ -311,25 +312,28 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                     {/* Promo Code Input */}
                     <div className="mt-6">
                         <label className="text-gray-700 text-sm block mb-2">Enter a promo code</label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-row gap-2 justify-self-start">
                             <input
                                 type="text"
-                                className={`border ${promoError ? 'border-red-500' : 'border-gray-400'} p-2 rounded w-64 text-sm`}
+                                className={`border ${promoError ? 'border-red-500' : 'border-gray-400'} p-2 rounded text-sm w-[200px]`}
                                 value={promoCode}
                                 onChange={(e) => setPromoCode(e.target.value)}
                                 placeholder="Enter promo code"
                                 disabled={promoOffer !== null}
                             />
                             <button
-                                className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm h-[48px] disabled:opacity-50 disabled:cursor-not-allowed w-[65px]"
                                 onClick={validatePromoCode}
                                 disabled={isValidatingPromo || promoOffer !== null}
                             >
-                                <span className="h-[20px] w-[44px]">
+                                <span>
                                     {isValidatingPromo ? "..." : "APPLY"}
                                 </span>
                             </button>
                         </div>
+                        {promoError && (
+                            <p className="text-red-500 text-xs mt-1">{promoError}</p>
+                        )}
                     </div>
                 </div>
             </div>

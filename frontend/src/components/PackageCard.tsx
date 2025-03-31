@@ -27,7 +27,7 @@ const PackageCard: FC<HotelPackageCardProps> = ({
         (state) => state.currency
     );
     return (
-        <div className="w-[618px] min-h-[130px] flex rounded-lg shadow-md overflow-hidden my-4 relative">
+        <div className="w-full md:w-[618px] min-h-[130px] flex rounded-lg shadow-md overflow-hidden my-4 relative">
             {/* Left section */}
             <div className="flex-1 p-4 flex flex-col justify-start items-start gap-2 mt-2">
                 {promoCode && (

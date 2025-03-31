@@ -1,6 +1,6 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import {format} from 'date-fns';
-import {RoomRate, BaseState, StateStatus} from '../types';
+import {BaseState, RoomRate, StateStatus} from '../types';
 import {api} from '../lib/api-client';
 
 interface FetchRoomRatesParams {

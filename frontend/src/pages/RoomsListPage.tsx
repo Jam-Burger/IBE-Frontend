@@ -1,5 +1,5 @@
 import {cn} from "../lib/utils";
-import {FaCheck, FaChevronDown} from "react-icons/fa";
+import {FaCheck, FaChevronDown, FaFilter} from "react-icons/fa";
 import {useEffect, useState} from "react";
 import {FilterRow, RoomCard, RoomFilters} from "../components";
 import {ConfigType, PaginationResponse, Room, SortOption, StateStatus} from "../types";
@@ -9,6 +9,7 @@ import {useAppDispatch, useAppSelector} from "../redux/hooks.ts";
 import {fetchConfig} from "../redux/configSlice";
 import {PulseLoader} from "react-spinners";
 import {
+    Button,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -21,6 +22,11 @@ import {
     PaginationLink,
     PaginationNext,
     PaginationPrevious,
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
 } from "../components/ui";
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
 import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
@@ -48,6 +54,7 @@ const RoomsListPage = () => {
         hasNext: false,
         hasPrevious: false
     });
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         dispatch(syncWithUrl(searchParamsToFilter(searchParams)));
@@ -57,7 +64,6 @@ const RoomsListPage = () => {
         if (filter && !loading) {
             const params = filterToSearchParams(filter);
             setSearchParams(params);
-            setRoomsData((prev: PaginationResponse<Room>) => ({ ...prev, currentPage: 1 }));
         }
     }, [filter, setSearchParams, loading]);
 
@@ -149,7 +155,7 @@ const RoomsListPage = () => {
     };
 
     const handlePageChange = (page: number) => {
-        setRoomsData((prev: PaginationResponse<Room>) => ({ ...prev, currentPage: page }));
+        setRoomsData((prev: PaginationResponse<Room>) => ({...prev, currentPage: page}));
     };
 
     return (
@@ -234,15 +240,38 @@ const RoomsListPage = () => {
 
             {/* Scrollable content area with sticky filter */}
             <div className="container mx-auto flex-grow overflow-hidden">
-                <div className="flex flex-col mt-6 md:flex-row h-full">
-                    {/* Sticky filter sidebar */}
-                    <div className="md:w-[293px] md:sticky md:top-0 self-start h-fit flex-shrink-0">
+                <div className="flex flex-col mt-6 md:flex-row h-full px-6 md:px-0">
+                    {/* Desktop filter sidebar - hidden on mobile */}
+                    <div className="hidden md:block md:w-[293px] md:sticky md:top-0 self-start h-fit flex-shrink-0">
                         <RoomFilters/>
+                    </div>
+
+                    {/* Mobile filter button - fixed position */}
+                    <div className="fixed bottom-6 right-6 z-30 md:hidden">
+                        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                            <SheetTrigger asChild>
+                                <Button
+                                    className="h-14 w-14 rounded-full bg-primary shadow-lg flex items-center justify-center"
+                                    aria-label="Open filters"
+                                >
+                                    <FaFilter className="h-5 w-5 text-white"/>
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="right" className="w-[80vw] sm:w-[350px] p-0">
+                                <SheetHeader className="p-4">
+                                    <SheetTitle className="text-primary">Filters</SheetTitle>
+                                </SheetHeader>
+                                <div className="px-4">
+                                    <RoomFilters/>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
                     </div>
 
                     {/* Scrollable room results */}
                     <div className="flex-1 md:ml-16 overflow-y-auto pb-6 pr-4">
-                        <div className="flex justify-between items-center mb-4 sticky top-0 bg-white z-10 py-3">
+                        <div
+                            className="flex justify-between items-center mb-4 md:sticky md:top-0 bg-white md:z-10 py-3">
                             <h2 className="text-xl font-bold">Room Results</h2>
                             <div className="flex items-center text-sm font-[600]">
                                 <span className="mr-6 border-r border-gray-300 pr-6">
@@ -294,7 +323,8 @@ const RoomsListPage = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-8 px-2">
+                        <div
+                            className="grid w-fit justify-self-center grid-cols-1 md:grid-cols-3 gap-4 pb-8 px-2 justify-center items-center">
                             {roomsData.items.length > 0 ? (
                                 roomsData.items.map((room: Room) => (
                                     <RoomCard
