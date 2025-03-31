@@ -13,7 +13,6 @@ interface RoomCardProps {
             discount: number;
             minNights: number;
         };
-        price?: number;
     };
     onSelectRoom?: () => void;
     onSelectPackage?: () => void;
@@ -129,7 +128,7 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                     <div className="flex flex-col items-start mt-auto mb-2">
                         <div className="flex flex-col mb-2">
                         <span className="text-xl font-bold">
-                            ${room.price ?? "N/A"}
+                            ${room.averagePrice.toFixed(2)}
                         </span>
                             <span className="text-sm text-gray-500">per night</span>
                         </div>
@@ -146,13 +145,6 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
             </div>
 
             {isModalOpen && (
-                // <Modal onClose={() => setIsModalOpen(false)}>
-                //     <RoomDetailsModal
-                //         room={room}
-                //         onClose={() => setIsModalOpen(false)}
-                //         onSelectRoom={handlePackageSelect}
-                //     />
-                // </Modal>
                 <RoomDetailsModalPopup
                     room={room}
                     isOpen={isModalOpen}

@@ -119,8 +119,8 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
             let formattedStartDate, formattedEndDate;
 
             if (dateRange && dateRange.from && dateRange.to) {
-                formattedStartDate = dateRange.from.toISOString().split('T')[0];
-                formattedEndDate = dateRange.to.toISOString().split('T')[0];
+                formattedStartDate = dateRange.from.split('T')[0];
+                formattedEndDate = dateRange.to.split('T')[0];
             } else {
                 // Fallback to default dates if no selection
                 const today = new Date();
@@ -131,8 +131,6 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                 formattedEndDate = endDate.toISOString().split('T')[0];
             }
 
-            console.log(formattedStartDate, formattedEndDate, promoCode);
-
             // Use the API client instead of fetch
             const response = await api.getPromoOffer({
                 tenantId: tenantId,
@@ -142,9 +140,7 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                 promoCode: promoCode
             });
 
-            console.log(response);
-            if (response && response.data) {
-                console.log(response.data);
+            if (response?.data) {
                 setPromoOffer(response.data);
                 setPromoError("");
                 // Store the applied promo code in the separate state
@@ -153,7 +149,6 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                 setPromoCode("");
                 toast.success(`Promo code "${promoCode}" applied successfully!`);
             } else {
-                console.log("Invalid promo code");
                 setPromoError("Invalid promo code");
                 setPromoOffer(null);
                 toast.error(`Invalid promo code: "${promoCode}"`);
@@ -169,7 +164,9 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
     };
 
     const handleSelectPackage = (packageTitle: string) => {
-        console.log(packageTitle);
+        if (packageTitle) {
+            // Handle package selection logic here
+        }
 
         if (onSelectRoom) {
             onSelectRoom();
@@ -224,10 +221,6 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
         toast.success(`Promo code "${code}" removed`);
     };
 
-    // In the RoomDetailsModal component, add console logs to debug
-    console.log("Promo offer:", promoOffer);
-    console.log("Promo code:", promoOffer?.promo_code);
-
     return (
         <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden relative">
             {/* Header Section with Image Carousel */}
@@ -260,7 +253,7 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
 
                     {/* Amenities section */}
                     <div>
-                        <h2 className="font-bold w-[129px] h-[23px] text-[16px] leading-[140%] font-normal text-black">
+                        <h2 className="w-[129px] h-[23px] text-[16px] leading-[140%] font-normal text-black">
                             Amenities
                         </h2>
 

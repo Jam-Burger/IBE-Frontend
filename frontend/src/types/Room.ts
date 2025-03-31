@@ -10,6 +10,7 @@ export interface Room {
     numberOfReviews: number;
     landmark: string;
     description: string;
+    averagePrice: number;
     amenities: string[];
     images: string[];
 }

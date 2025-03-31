@@ -89,10 +89,10 @@ export const api = {
         endDate: string;
         promoCode: string;
     }) => {
-        const { tenantId, propertyId, startDate, endDate, promoCode } = params;
+        const {tenantId, propertyId, startDate, endDate, promoCode} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts/promo-offer`,
-            { params: { start_date: startDate, end_date: endDate, promo_code: promoCode } }
+            {params: {start_date: startDate, end_date: endDate, promo_code: promoCode}}
         );
         return response.data;
     }
