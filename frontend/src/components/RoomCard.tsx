@@ -1,11 +1,14 @@
-import {useState} from "react";
-import {FaStar} from "react-icons/fa";
-import {IoLocationOutline} from "react-icons/io5";
-import {GoPerson} from "react-icons/go";
-import {MdOutlineBed} from "react-icons/md";
-import {Room} from "../types";
+import { useState } from "react";
+import { FaStar } from "react-icons/fa";
+import { IoLocationOutline } from "react-icons/io5";
+import { GoPerson } from "react-icons/go";
+import { MdOutlineBed } from "react-icons/md";
+import { Room } from "../types";
 import ImageCarousel from "./ui/ImageCarousel.tsx";
 import RoomDetailsModalPopup from "./RoomDetailsModalPopup.tsx";
+import { convertToLocaleCurrency } from "../lib/utils.ts";
+import { useAppSelector } from "../redux/hooks.ts";
+import { Button } from "./ui/Button.tsx";
 
 interface RoomCardProps {
     room: Room & {
@@ -18,9 +21,11 @@ interface RoomCardProps {
     onSelectPackage?: () => void;
 }
 
-const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
+const RoomCard = ({ room, onSelectRoom, onSelectPackage }: RoomCardProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-
+    const { selectedCurrency, multiplier } = useAppSelector(
+        (state) => state.currency
+    );
     const handleRoomSelect = () => {
         if (onSelectRoom) {
             onSelectRoom();
@@ -41,7 +46,6 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                 className={`w-[293px] bg-white rounded-lg shadow-md overflow-hidden ${
                     room.specialDeal ? "h-[513px]" : "h-[450px]"
                 }`}
-                onClick={handleRoomSelect}
             >
                 {/* Image Carousel */}
                 <ImageCarousel
@@ -63,22 +67,20 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                             {room.numberOfReviews > 0 ? (
                                 <>
                                     <div className="flex items-center">
-                                        <FaStar className="w-[15.84px] h-4"/>
+                                        <FaStar className="w-[15.84px] h-4" />
                                         <span className="ml-1">
-                                        {room.rating.toFixed(1)}
-                                    </span>
+                                            {room.rating.toFixed(1)}
+                                        </span>
                                     </div>
                                     <span className="text-xs text-gray-500">
-                                    {room.numberOfReviews} reviews
-                                </span>
+                                        {room.numberOfReviews} reviews
+                                    </span>
                                 </>
                             ) : (
-                                <div
-                                    className="h-[23px] w-[99px] bg-[#CDCDEE]  text-xs font-medium px-2 py-1 rounded-lg flex items-center justify-center">
-                                <span
-                                    className="h-[20px] w-[86px] font-normal  leading-[140%] tracking-[0px] flex items-center justify-center">
-                                    New property
-                                </span>
+                                <div className="h-[23px] w-[99px] bg-[#CDCDEE]  text-xs font-medium px-2 py-1 rounded-lg flex items-center justify-center">
+                                    <span className="h-[20px] w-[86px] font-normal  leading-[140%] tracking-[0px] flex items-center justify-center">
+                                        New property
+                                    </span>
                                 </div>
                             )}
                         </div>
@@ -86,20 +88,23 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
 
                     <div className="text-sm text-gray-600 mb-2">
                         <p className="flex items-center gap-1 text-gray-700 mb-2">
-                            <IoLocationOutline/>
+                            <IoLocationOutline />
                             {room.landmark}
                         </p>
                         <p className="text-xs py-0.5 inline-block mb-2">
                             <i>inclusive</i> {room.areaInSquareFeet} sqft
                         </p>
                         <p className="flex items-center gap-1 text-gray-700 mb-2">
-                            <GoPerson/>
+                            <GoPerson />
                             1-{room.maxCapacity}
                         </p>
                         <p className="flex items-center gap-1 text-gray-700 mb-2">
-                            <MdOutlineBed/>
-                            {room.singleBed !== 0 && `${room.singleBed} single `}
-                            {room.doubleBed !== 0 && `${room.doubleBed} double `}
+                            <MdOutlineBed />
+                            {room.singleBed !== 0 &&
+                                `${room.singleBed} single `}
+                            {room.singleBed * room.doubleBed !== 0 && `or `}
+                            {room.doubleBed !== 0 &&
+                                `${room.doubleBed} double `}
                             {"bed"}
                         </p>
                     </div>
@@ -107,19 +112,17 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                     {room.specialDeal && (
                         <>
                             <div className="mb-2">
-                                <div
-                                    className="bg-primary text-white text-[14px] font-medium flex items-center justify-center w-[120.76px] h-[32px] clip-path -translate-x-[20px]">
-                                    <span
-                                        className='font-normal text-base w-[101.95px] h-[22px] flex justify-center items-center'>
+                                <div className="bg-primary text-white text-[14px] font-medium flex items-center justify-center w-[120.76px] h-[32px] clip-path -translate-x-[20px]">
+                                    <span className="font-normal text-base w-[101.95px] h-[22px] flex justify-center items-center">
                                         Special deal
                                     </span>
-
                                 </div>
                             </div>
 
                             <div className="text-sm text-gray-600 mb-2">
                                 Save&nbsp;{room.specialDeal.discount ?? "N/A"}%
-                                when you book&nbsp;{room.specialDeal.minNights ?? "N/A"}
+                                when you book&nbsp;
+                                {room.specialDeal.minNights ?? "N/A"}
                                 &nbsp;nights
                             </div>
                         </>
@@ -127,19 +130,24 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
 
                     <div className="flex flex-col items-start mt-auto mb-2">
                         <div className="flex flex-col mb-2">
-                        <span className="text-xl font-bold">
-                            ${room.averagePrice.toFixed(2)}
-                        </span>
-                            <span className="text-sm text-gray-500">per night</span>
+                            <span className="text-xl font-bold">
+                                {convertToLocaleCurrency(
+                                    selectedCurrency.symbol,
+                                    room.averagePrice,
+                                    multiplier,
+                                    false
+                                )}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                                per night
+                            </span>
                         </div>
-                        <button
-                            className="w-[128px] h-[44px] bg-primary text-white rounded-lg flex items-center justify-center cursor-pointer"
+                        <Button
+                            className="w-[128px] h-[44px] font-[600] text-sm leading-[140%] tracking-[2%]   "
                             onClick={handleRoomSelect}
                         >
-                        <span className="font-[600] text-sm leading-[140%] tracking-[2%]">
                             SELECT ROOM
-                        </span>
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -149,7 +157,8 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                     room={room}
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    onSelectRoom={handlePackageSelect}/>
+                    onSelectRoom={handlePackageSelect}
+                />
             )}
         </>
     );

@@ -42,15 +42,13 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
     const [promoError, setPromoError] = useState("");
     const [appliedPromoCode, setAppliedPromoCode] = useState("");
-
-    // Get date range from redux store
+    
     const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
 
-    // Use room price for standard package
     const standardPackage = {
         title: "Standard Rate",
         description: "Our standard room rate with all basic amenities included.",
-        price: 132, // Use a fixed price since Room type doesn't have price property
+        price: room.averagePrice,
     };
 
     useEffect(() => {
@@ -188,7 +186,6 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
     // Format room size
     const roomSize = `${room.areaInSquareFeet} sqft`;
 
-    // Update the getDiscountedPackages function to use room price
     const getDiscountedPackages = () => {
         return specialDiscounts.map(discount => ({
             title: discount.title,
@@ -197,7 +194,6 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
         }));
     };
 
-    // Calculate promo offer package if available
     const getPromoPackage = () => {
         if (!promoOffer) return null;
 

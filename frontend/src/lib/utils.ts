@@ -5,19 +5,6 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-export function formatPrice(price: number): string {
-    if (price >= 1000000000) {
-        return (price / 1000000000).toFixed(1) + "B";
-    }
-    if (price >= 1000000) {
-        return (price / 1000000).toFixed(1) + "M";
-    }
-    if (price >= 1000) {
-        return (price / 1000).toFixed(1) + "K";
-    }
-    return price.toFixed(1);
-}
-
 export function generateSummeryText(
     guestCounts: Record<string, number>
 ): string {
@@ -43,4 +30,37 @@ export function generateSummeryText(
             return `${count} ${displayType}`;
         })
         .join(", ");
+}
+
+/**
+ * Formats a price with currency symbol and optional multiplier
+ * @param symbol Currency symbol (e.g., '$', '€')
+ * @param price Original price
+ * @param multiplier Optional multiplier (e.g., number of nights)
+ * @returns Formatted price string with symbol and multiplier if applicable
+ */
+export const convertToLocaleCurrency = (
+    symbol: string,
+    price: number = 0,
+    multiplier: number = 1,
+    shorten: boolean = true
+): string => {
+    const totalPrice = price * multiplier;
+    if (shorten) {
+        return `${symbol}${formatPrice(totalPrice)}`;
+    }
+    return `${symbol}${Math.round(totalPrice)}`;
+};
+
+export function formatPrice(price: number): string {
+    if (price >= 1000000000) {
+        return (price / 1000000000).toFixed(1) + "B";
+    }
+    if (price >= 1000000) {
+        return (price / 1000000).toFixed(1) + "M";
+    }
+    if (price >= 1000) {
+        return (price / 1000).toFixed(1) + "K";
+    }
+    return price.toFixed(1);
 }

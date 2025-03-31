@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
+import {BsChevronCompactLeft, BsChevronCompactRight} from "react-icons/bs";
 import {cn} from "../../lib/utils.ts";
 
 interface ImageCarouselProps {
@@ -85,8 +85,8 @@ const ImageCarousel = ({
         switch (arrowsStyle) {
             case "large":
                 return {
-                    button: "bg-gray-800/50 text-white text-xl px-6 py-5",
-                    icon: "text-white"
+                    button: "bg-gray-800/50 text-white text-xl flex items-center justify-center w-[80px] h-[80px]",
+                    icon: "text-white w-[32px] h-[32px]"
                 };
             case "transparent":
                 return {
@@ -126,15 +126,15 @@ const ImageCarousel = ({
             {/* Carousel Controls */}
             <button
                 onClick={prevImage}
-                className={`absolute left-2 top-1/2 transform -translate-y-1/2 ${arrowStyles.button}`}
+                className={`absolute left-0 top-1/2 transform -translate-y-1/2 ${arrowStyles.button}`}
             >
-                <FaChevronLeft className={arrowStyles.icon}/>
+                <BsChevronCompactLeft className={arrowStyles.icon}/>
             </button>
             <button
                 onClick={nextImage}
-                className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${arrowStyles.button}`}
+                className={`absolute right-0 top-1/2 transform -translate-y-1/2 ${arrowStyles.button}`}
             >
-                <FaChevronRight className={arrowStyles.icon}/>
+                <BsChevronCompactRight className={arrowStyles.icon}/>
             </button>
 
             {/* Image Dots */}

@@ -29,6 +29,7 @@ import {
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
 import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
 import {MdOutlineCalendarMonth} from "react-icons/md";
+import {FaChevronDown} from "react-icons/fa";
 
 const RoomsListPage = () => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -374,7 +375,8 @@ const RoomsListPage = () => {
                                         {roomsListConfig?.configData.filters.sortOptions.options.find(
                                             (option) =>
                                                 option.value === filter.sortBy
-                                        )?.label ?? "N/A"}
+                                        )?.label ?? ""}
+                                        <FaChevronDown className="ml-2 h-4 w-4 text-gray-500"/>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
                                         <DropdownMenuLabel>

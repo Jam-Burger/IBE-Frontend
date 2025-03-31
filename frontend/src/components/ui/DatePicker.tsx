@@ -8,7 +8,7 @@ import {DateRange} from "react-day-picker";
 import {StateStatus} from "../../types";
 import {SerializableDateRange} from "../../types/Filter";
 
-import {cn, formatPrice} from "../../lib/utils";
+import {cn, formatPrice, convertToLocaleCurrency} from "../../lib/utils";
 import {Button} from "./Button";
 import {Calendar} from "./Calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
@@ -195,8 +195,8 @@ export function DatePickerWithRange({
         }
 
         const dayStr = format(day, "yyyy-MM-dd");
-        const originalPrice = (formattedRoomRates[dayStr]?.minimumRate ?? 0) * multiplier;
-        const discountedPrice = (formattedRoomRates[dayStr]?.discountedRate ?? 0) * multiplier;
+        const originalPrice = formattedRoomRates[dayStr]?.minimumRate;
+        const discountedPrice = formattedRoomRates[dayStr]?.discountedRate;
         const currencySymbol = selectedCurrency.symbol;
 
         const isRangeEnd = (date?.from && date?.to) &&
@@ -212,11 +212,11 @@ export function DatePickerWithRange({
                         <div className={`${textColor}`}>
                             {originalPrice !== discountedPrice && (
                                 <div className="line-through text-gray-500 text-sm">
-                                    {currencySymbol}{formatPrice(originalPrice)}
+                                    {convertToLocaleCurrency(currencySymbol, originalPrice, multiplier)}
                                 </div>
                             )}
                             <div className="text-sm">
-                                {currencySymbol}{formatPrice(discountedPrice)}
+                                {convertToLocaleCurrency(currencySymbol, discountedPrice, multiplier)}
                             </div>
                         </div>
                     )
