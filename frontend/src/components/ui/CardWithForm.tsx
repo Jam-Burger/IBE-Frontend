@@ -80,6 +80,7 @@ const CardWithForm = () => {
     };
 
     const handlePropertyChange = (propertyId: number) => {
+        console.log(propertyId);
         dispatch(updateFilter({propertyId}));
     };
 
@@ -120,7 +121,7 @@ const CardWithForm = () => {
                     {/* Property Name */}
                     <div className="flex flex-col space-y-2">
                         <Label htmlFor="property">Property name</Label>
-                        <Select>
+                        <Select value={propertyId.toString()} onValueChange={(value) => handlePropertyChange(parseInt(value))}>
                             <SelectTrigger
                                 id="property"
                                 className="w-full min-h-[48px] text-gray-700 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
@@ -144,9 +145,9 @@ const CardWithForm = () => {
                                                 id={`property-${property.propertyId}`}
                                                 checked={propertyId === property.propertyId}
                                                 className="m-1"
-                                                onCheckedChange={() => handlePropertyChange(property.propertyId)}
                                             />
-                                            <span>{property.propertyName}</span>
+                                            <Label
+                                                htmlFor={`property-${property.propertyId}`}>{property.propertyName}</Label>
                                         </div>
                                     </SelectItem>
                                 ))}

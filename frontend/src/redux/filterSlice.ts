@@ -9,7 +9,7 @@ const today: string = new Date().toISOString().split('T')[0];
 const tomorrow: string = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
 const initialFilter: Filter = {
-    propertyId: -1,
+    propertyId: 0,
     dateRange: {
         from: today,
         to: tomorrow
