@@ -81,4 +81,19 @@ export const api = {
         const response = await axios.get(`${LOCATION_API_URL}`);
         return response.data;
     },
+
+    getPromoOffer: async (params: {
+        tenantId: string;
+        propertyId: number;
+        startDate: string;
+        endDate: string;
+        promoCode: string;
+    }) => {
+        const { tenantId, propertyId, startDate, endDate, promoCode } = params;
+        const response = await apiClient.get(
+            `${tenantId}/${propertyId}/special-discounts/promo-offer`,
+            { params: { start_date: startDate, end_date: endDate, promo_code: promoCode } }
+        );
+        return response.data;
+    }
 };

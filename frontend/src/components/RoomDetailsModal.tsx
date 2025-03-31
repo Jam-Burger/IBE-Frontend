@@ -8,6 +8,7 @@ import {useEffect, useState} from "react";
 import {api} from "../lib/api-client";
 import {useParams} from "react-router-dom";
 import {useAppSelector} from "../redux/hooks.ts";
+import toast from 'react-hot-toast';
 
 interface RoomDetailsModalProps {
     room: Room;
@@ -24,10 +25,23 @@ interface SpecialDiscount {
     discount_percentage: number;
 }
 
+interface PromoOffer {
+    title: string;
+    description: string;
+    discount_percentage: number;
+    promo_code: string;
+}
+
 const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) => {
     const [specialDiscounts, setSpecialDiscounts] = useState<SpecialDiscount[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const {tenantId} = useParams<{ tenantId: string }>();
+
+    const [promoCode, setPromoCode] = useState("");
+    const [promoOffer, setPromoOffer] = useState<PromoOffer | null>(null);
+    const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+    const [promoError, setPromoError] = useState("");
+    const [appliedPromoCode, setAppliedPromoCode] = useState("");
 
     // Get date range from redux store
     const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
@@ -83,6 +97,77 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
         fetchSpecialDiscounts();
     }, [tenantId, room.propertyId, dateRange]);
 
+    // Handle promo code validation
+    const validatePromoCode = async () => {
+        if (!promoCode.trim()) {
+            toast.error("Please enter a promo code");
+            setPromoError("Please enter a promo code");
+            return;
+        }
+
+        if (!tenantId || !room.propertyId) {
+            toast.error("Unable to validate promo code at this time");
+            setPromoError("Unable to validate promo code at this time");
+            return;
+        }
+
+        setIsValidatingPromo(true);
+        setPromoError("");
+
+        try {
+            // Get date range for API call
+            let formattedStartDate, formattedEndDate;
+
+            if (dateRange && dateRange.from && dateRange.to) {
+                formattedStartDate = dateRange.from.toISOString().split('T')[0];
+                formattedEndDate = dateRange.to.toISOString().split('T')[0];
+            } else {
+                // Fallback to default dates if no selection
+                const today = new Date();
+                const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+                const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5);
+
+                formattedStartDate = startDate.toISOString().split('T')[0];
+                formattedEndDate = endDate.toISOString().split('T')[0];
+            }
+
+            console.log(formattedStartDate, formattedEndDate, promoCode);
+
+            // Use the API client instead of fetch
+            const response = await api.getPromoOffer({
+                tenantId: tenantId,
+                propertyId: room.propertyId,
+                startDate: formattedStartDate,
+                endDate: formattedEndDate,
+                promoCode: promoCode
+            });
+
+            console.log(response);
+            if (response && response.data) {
+                console.log(response.data);
+                setPromoOffer(response.data);
+                setPromoError("");
+                // Store the applied promo code in the separate state
+                setAppliedPromoCode(promoCode);
+                // Clear the input field
+                setPromoCode("");
+                toast.success(`Promo code "${promoCode}" applied successfully!`);
+            } else {
+                console.log("Invalid promo code");
+                setPromoError("Invalid promo code");
+                setPromoOffer(null);
+                toast.error(`Invalid promo code: "${promoCode}"`);
+            }
+        } catch (error) {
+            console.error("Error validating promo code:", error);
+            setPromoError("Failed to validate promo code");
+            setPromoOffer(null);
+            toast.error("Failed to validate promo code");
+        } finally {
+            setIsValidatingPromo(false);
+        }
+    };
+
     const handleSelectPackage = (packageTitle: string) => {
         console.log(packageTitle);
 
@@ -115,7 +200,33 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
         }));
     };
 
+    // Calculate promo offer package if available
+    const getPromoPackage = () => {
+        if (!promoOffer) return null;
+
+        return {
+            title: promoOffer.title,
+            description: promoOffer.description,
+            price: Math.round(standardPackage.price * (1 - promoOffer.discount_percentage / 100))
+        };
+    };
+
+    const promoPackage = getPromoPackage();
     const discountedPackages = getDiscountedPackages();
+
+    // Add a function to remove the promo offer with toast notification
+    const removePromoOffer = () => {
+        const code = appliedPromoCode;
+        setPromoOffer(null);
+        setPromoCode("");
+        setAppliedPromoCode("");
+        setPromoError("");
+        toast.success(`Promo code "${code}" removed`);
+    };
+
+    // In the RoomDetailsModal component, add console logs to debug
+    console.log("Promo offer:", promoOffer);
+    console.log("Promo code:", promoOffer?.promo_code);
 
     return (
         <div className="w-full max-w-[1286px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden relative">
@@ -172,6 +283,21 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                         onSelectPackage={() => handleSelectPackage(standardPackage.title)}
                     />
 
+                    {/* Promo Package if available */}
+                    {promoPackage && (
+                        <>
+                            <h2 className="text-xl font-bold mt-6">Promo Offer</h2>
+                            <PackageCard
+                                packageData={promoPackage}
+                                onSelectPackage={() => handleSelectPackage(promoPackage.title)}
+                                removable={true}
+                                onRemove={removePromoOffer}
+                                promoCode={appliedPromoCode}
+                            />
+                        </>
+                    )}
+
+                    {/* Regular Deals & Packages */}
                     {discountedPackages.length > 0 && (
                         <>
                             <h2 className="text-xl font-bold mt-6">Deals & Packages</h2>
@@ -192,17 +318,29 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                             )}
                         </>
                     )}
-                </div>
 
-                {/* Promo Code Input */}
-                <div className="mt-6">
-                    <label className="text-gray-700 text-sm block mb-2">Enter a promo code</label>
-                    <div className="flex gap-2">
-                        <input type="text" className="border border-gray-400 p-2 rounded w-64 text-sm"/>
-                        <button
-                            className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px]">
-                            <span className="h-[20px] w-[44px]">APPLY</span>
-                        </button>
+                    {/* Promo Code Input */}
+                    <div className="mt-6">
+                        <label className="text-gray-700 text-sm block mb-2">Enter a promo code</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                className={`border ${promoError ? 'border-red-500' : 'border-gray-400'} p-2 rounded w-64 text-sm`}
+                                value={promoCode}
+                                onChange={(e) => setPromoCode(e.target.value)}
+                                placeholder="Enter promo code"
+                                disabled={promoOffer !== null}
+                            />
+                            <button
+                                className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm w-[65px] h-[48px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={validatePromoCode}
+                                disabled={isValidatingPromo || promoOffer !== null}
+                            >
+                                <span className="h-[20px] w-[44px]">
+                                    {isValidatingPromo ? "..." : "APPLY"}
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
