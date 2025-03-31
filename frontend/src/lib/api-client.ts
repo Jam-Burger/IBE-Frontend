@@ -1,5 +1,5 @@
 import axios from "axios";
-import {ConfigType} from "../types";
+import {ApiResponse, ConfigType, PaginationParams, PaginationResponse, Room} from "../types";
 
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -56,8 +56,13 @@ export const api = {
         return response.data;
     },
 
-    getRooms: async (tenantId: string, params: Record<string, string>) => {
+    getRooms: async (tenantId: string, params: Record<string, string>, paginationParams?: PaginationParams): Promise<ApiResponse<PaginationResponse<Room>>> => {
         const propertyId = params.propertyId;
+        params = {
+            ...params,
+            page: paginationParams?.page.toString() || '1',
+            pageSize: paginationParams?.pageSize.toString() || '3',
+        };
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-types/filter`,
             {params}

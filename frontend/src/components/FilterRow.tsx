@@ -1,9 +1,18 @@
-import { CSSProperties, useState, useEffect } from "react";
-import { Button, DatePickerWithRange, GuestSelector, Label, Select, SelectContent, SelectItem, SelectTrigger } from "./ui";
-import { MdOutlineCalendarMonth } from "react-icons/md";
-import { Filter } from "../types";
-import { DateRange } from "react-day-picker";
-import { toSerializableDateRange } from "../lib/utils";
+import {CSSProperties, useEffect, useState} from "react";
+import {
+    Button,
+    DatePickerWithRange,
+    GuestSelector,
+    Label,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger
+} from "./ui";
+import {MdOutlineCalendarMonth} from "react-icons/md";
+import {Filter} from "../types";
+import {DateRange} from "react-day-picker";
+import {toSerializableDateRange} from "../lib/utils";
 
 interface SearchForm {
     guestOptions: {
@@ -23,11 +32,11 @@ interface FilterRowProps {
 }
 
 export const FilterRow = ({
-    searchForm,
-    filter,
-    filterGroups,
-    onSearch,
-}: FilterRowProps) => {
+                              searchForm,
+                              filter,
+                              filterGroups,
+                              onSearch,
+                          }: FilterRowProps) => {
     const [localFilter, setLocalFilter] = useState<Partial<Filter>>({
         roomCount: filter.roomCount ?? 1,
         bedCount: filter.bedCount ?? 1,
@@ -45,22 +54,22 @@ export const FilterRow = ({
     }, [filter]);
 
     const handleGuestChange = (guests: Record<string, number>) => {
-        setLocalFilter(prev => ({ ...prev, guests }));
+        setLocalFilter(prev => ({...prev, guests}));
     };
 
     const handleRoomCountChange = (value: string) => {
         const roomCount = parseInt(value, 10);
-        setLocalFilter(prev => ({ ...prev, roomCount }));
+        setLocalFilter(prev => ({...prev, roomCount}));
     };
 
     const handleBedCountChange = (value: string) => {
         const bedCount = parseInt(value, 10);
-        setLocalFilter(prev => ({ ...prev, bedCount }));
+        setLocalFilter(prev => ({...prev, bedCount}));
     };
 
     const handleDateChange = (dateRange: DateRange | undefined) => {
         const serializableRange = toSerializableDateRange(dateRange);
-        setLocalFilter(prev => ({ ...prev, dateRange: serializableRange }));
+        setLocalFilter(prev => ({...prev, dateRange: serializableRange}));
     };
 
     const handleSearch = () => {
@@ -160,7 +169,7 @@ export const FilterRow = ({
                 </div>
 
                 <div>
-                    <div style={{ width: "510px" }} className="relative">
+                    <div style={{width: "510px"}} className="relative">
                         <DatePickerWithRange
                             propertyId={filter.propertyId}
                             disabled={false}
@@ -171,7 +180,7 @@ export const FilterRow = ({
                             onChange={handleDateChange}
                         />
                         <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                            <MdOutlineCalendarMonth className="h-6 w-6 text-black" />
+                            <MdOutlineCalendarMonth className="h-6 w-6 text-black"/>
                         </div>
                     </div>
                 </div>
@@ -179,7 +188,7 @@ export const FilterRow = ({
                 <Button
                     onClick={handleSearch}
                     className="bg-primary text-white px-6"
-                    style={{ width: "168px", height: "66px" }}
+                    style={{width: "168px", height: "66px"}}
                 >
                     SEARCH DATES
                 </Button>

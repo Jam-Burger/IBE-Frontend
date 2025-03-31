@@ -17,13 +17,13 @@ export interface GuestSelectorProps {
 }
 
 export const GuestSelector = ({
-    roomCount,
-    showDetailedSummary = false,
-    width,
-    height,
-    value,
-    onChange,
-}: GuestSelectorProps) => {
+                                  roomCount,
+                                  showDetailedSummary = false,
+                                  width,
+                                  height,
+                                  value,
+                                  onChange,
+                              }: GuestSelectorProps) => {
     const dispatch = useAppDispatch();
     const guestOptions = useAppSelector(
         (state) =>

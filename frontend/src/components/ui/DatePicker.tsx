@@ -53,15 +53,15 @@ const toDateRange = (serializableRange?: SerializableDateRange): DateRange | und
 };
 
 export function DatePickerWithRange({
-    className,
-    propertyId,
-    disabled,
-    noBorder = false,
-    grayBorder = false,
-    displayStyle = "default",
-    value,
-    onChange,
-}: Readonly<DatePickerWithRangeProps>) {
+                                        className,
+                                        propertyId,
+                                        disabled,
+                                        noBorder = false,
+                                        grayBorder = false,
+                                        displayStyle = "default",
+                                        value,
+                                        onChange,
+                                    }: Readonly<DatePickerWithRangeProps>) {
     const dispatch = useAppDispatch();
     const {tenantId} = useParams<{ tenantId: string }>();
     const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);

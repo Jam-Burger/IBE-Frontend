@@ -1,44 +1,34 @@
 import {cn} from "../lib/utils";
 import {FaCheck, FaChevronDown} from "react-icons/fa";
-import {CSSProperties, useEffect, useState} from "react";
-import {RoomCard, RoomFilters, FilterRow} from "../components";
-import {ConfigType, Room, SortOption, StateStatus} from "../types";
+import {useEffect, useState} from "react";
+import {FilterRow, RoomCard, RoomFilters} from "../components";
+import {ConfigType, PaginationResponse, Room, SortOption, StateStatus} from "../types";
 import {api} from "../lib/api-client";
 import {useParams, useSearchParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "../redux/hooks.ts";
 import {fetchConfig} from "../redux/configSlice";
 import {PulseLoader} from "react-spinners";
 import {
-    Button,
-    DatePickerWithRange,
-    GuestSelector,
-    Label,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
 } from "../components/ui";
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
 import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
-import {MdOutlineCalendarMonth} from "react-icons/md";
 
 const ITEMS_PER_PAGE = 3;
 
 const RoomsListPage = () => {
     const [currentStep, setCurrentStep] = useState(0);
-    const [rooms, setRooms] = useState<Room[]>([]);
     const {tenantId} = useParams<{ tenantId: string }>();
     const dispatch = useAppDispatch();
     const {roomsListConfig, status} = useAppSelector((state) => state.config);
@@ -49,8 +39,15 @@ const RoomsListPage = () => {
     );
     const filterGroups = roomsListConfig?.configData.filters.filterGroups;
     const [loading, setLoading] = useState(status === StateStatus.LOADING);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const [roomsData, setRoomsData] = useState<PaginationResponse<Room>>({
+        items: [],
+        total: 0,
+        currentPage: 1,
+        pageSize: ITEMS_PER_PAGE,
+        totalPages: 0,
+        hasNext: false,
+        hasPrevious: false
+    });
 
     useEffect(() => {
         dispatch(syncWithUrl(searchParamsToFilter(searchParams)));
@@ -60,6 +57,7 @@ const RoomsListPage = () => {
         if (filter && !loading) {
             const params = filterToSearchParams(filter);
             setSearchParams(params);
+            setRoomsData((prev: PaginationResponse<Room>) => ({ ...prev, currentPage: 1 }));
         }
     }, [filter, setSearchParams, loading]);
 
@@ -79,9 +77,12 @@ const RoomsListPage = () => {
                     const response = await api.getRooms(
                         tenantId,
                         Object.fromEntries(searchParams.entries()),
+                        {
+                            page: roomsData.currentPage,
+                            pageSize: ITEMS_PER_PAGE
+                        }
                     );
-                    setRooms(response.data);
-                    setTotalPages(Math.ceil(response.data.length / ITEMS_PER_PAGE));
+                    setRoomsData(response.data);
                 } catch (error) {
                     console.error("Error fetching rooms:", error);
                 } finally {
@@ -91,7 +92,7 @@ const RoomsListPage = () => {
         };
 
         fetchRooms();
-    }, [tenantId, loading, searchParams]);
+    }, [tenantId, searchParams, roomsData.currentPage]);
 
     if (loading || !roomsListConfig) {
         return (
@@ -139,21 +140,8 @@ const RoomsListPage = () => {
         dispatch(updateFilter({sortBy: sortOption}));
     };
 
-    const handleRoomCountChange = (value: string) => {
-        const roomCount = parseInt(value, 10);
-        dispatch(updateFilter({roomCount}));
-    };
-
-    const handleBedCountChange = (value: string) => {
-        const bedCount = parseInt(value, 10);
-        dispatch(updateFilter({bedCount}));
-    };
-
-    const handleDateSearch = () => {
-    };
-
     const handleRoomSelection = () => {
-        handleStepClick(1);
+        handleStepClick(2);
     };
 
     const handlePackageSelection = () => {
@@ -161,13 +149,8 @@ const RoomsListPage = () => {
     };
 
     const handlePageChange = (page: number) => {
-        setCurrentPage(page);
+        setRoomsData((prev: PaginationResponse<Room>) => ({ ...prev, currentPage: page }));
     };
-
-    const paginatedRooms = rooms.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -200,7 +183,7 @@ const RoomsListPage = () => {
                                     key={index}
                                     className="flex flex-col items-center z-10"
                                 >
-                                    <button
+                                    <div
                                         className={cn(
                                             "w-8 h-8 flex items-center justify-center rounded-full text-white font-bold text-sm cursor-pointer",
                                             index === currentStep
@@ -210,7 +193,6 @@ const RoomsListPage = () => {
                                                     ? "bg-[#26266D]"
                                                     : "bg-gray-300"
                                         )}
-                                        onClick={() => handleStepClick(index)}
                                     >
                                         {step.completed ||
                                         index < currentStep ? (
@@ -220,7 +202,7 @@ const RoomsListPage = () => {
                                         ) : (
                                             ""
                                         )}
-                                    </button>
+                                    </div>
 
                                     <span
                                         className={cn(
@@ -246,7 +228,6 @@ const RoomsListPage = () => {
                     filterGroups={filterGroups}
                     onSearch={(filters) => {
                         dispatch(updateFilter(filters));
-                        setCurrentPage(1); // Reset to first page when searching
                     }}
                 />
             )}
@@ -265,7 +246,7 @@ const RoomsListPage = () => {
                             <h2 className="text-xl font-bold">Room Results</h2>
                             <div className="flex items-center text-sm font-[600]">
                                 <span className="mr-6 border-r border-gray-300 pr-6">
-                                    {`Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, rooms.length)} of ${rooms.length} results`}
+                                    {`Showing ${(roomsData.currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(roomsData.currentPage * ITEMS_PER_PAGE, roomsData.total)} of ${roomsData.total} results`}
                                 </span>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger className="flex items-center">
@@ -314,8 +295,8 @@ const RoomsListPage = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-8 px-2">
-                            {rooms.length > 0 ? (
-                                paginatedRooms.map((room) => (
+                            {roomsData.items.length > 0 ? (
+                                roomsData.items.map((room: Room) => (
                                     <RoomCard
                                         key={room.roomTypeId}
                                         room={room}
@@ -324,32 +305,29 @@ const RoomsListPage = () => {
                                     />
                                 ))
                             ) : (
-                                <div className="col-span-3 text-center py-10">
-                                    <p className="text-gray-500">
-                                        No rooms match your current filters
-                                    </p>
+                                <div className="col-span-3 text-center py-8">
+                                    No rooms found
                                 </div>
                             )}
                         </div>
 
                         {/* Pagination */}
-                        {rooms.length > ITEMS_PER_PAGE && (
+                        {roomsData.totalPages > 1 && (
                             <div className="mt-8">
                                 <Pagination>
                                     <PaginationContent>
                                         <PaginationItem>
                                             <PaginationPrevious
-                                                onClick={() => handlePageChange(currentPage - 1)}
-                                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                                onClick={() => handlePageChange(roomsData.currentPage - 1)}
+                                                className={!roomsData.hasPrevious ? "pointer-events-none opacity-50" : ""}
                                             />
                                         </PaginationItem>
 
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                        {Array.from({length: roomsData.totalPages}, (_, i) => i + 1).map((page) => (
                                             <PaginationItem key={page}>
                                                 <PaginationLink
-                                                    isActive={currentPage === page}
                                                     onClick={() => handlePageChange(page)}
-                                                    className="cursor-pointer"
+                                                    isActive={page === roomsData.currentPage}
                                                 >
                                                     {page}
                                                 </PaginationLink>
@@ -358,8 +336,8 @@ const RoomsListPage = () => {
 
                                         <PaginationItem>
                                             <PaginationNext
-                                                onClick={() => handlePageChange(currentPage + 1)}
-                                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                                onClick={() => handlePageChange(roomsData.currentPage + 1)}
+                                                className={!roomsData.hasNext ? "pointer-events-none opacity-50" : ""}
                                             />
                                         </PaginationItem>
                                     </PaginationContent>

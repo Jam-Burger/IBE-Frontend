@@ -6,15 +6,15 @@ import {useParams} from "react-router-dom";
 import {api} from "../lib/api-client";
 import {useAppSelector} from "../redux/hooks";
 import {PulseLoader} from "react-spinners";
-import { Filter } from "../types";
-import { useDebounce } from "../hooks/useDebounce";
+import {Filter} from "../types";
+import {useDebounce} from "../hooks/useDebounce";
 
 function RoomFilters() {
     const dispatch = useDispatch();
     const [allAmenities, setAllAmenities] = useState<string[]>([]);
     const {tenantId} = useParams<{ tenantId: string }>();
     const filter = useAppSelector((state) => state.roomFilters.filter);
-    
+
     // Local state for immediate UI updates
     const [localFilter, setLocalFilter] = useState<Filter>(filter);
     const {bedTypes, ratings, amenities, roomSize, propertyId} = localFilter;
@@ -73,8 +73,8 @@ function RoomFilters() {
             ...bedTypes,
             singleBed: !bedTypes.singleBed,
         };
-        setLocalFilter(prev => ({ ...prev, bedTypes: newBedTypes }));
-        debouncedUpdateFilter({ bedTypes: newBedTypes });
+        setLocalFilter(prev => ({...prev, bedTypes: newBedTypes}));
+        debouncedUpdateFilter({bedTypes: newBedTypes});
     };
 
     const handleDoubleBedChange = () => {
@@ -82,16 +82,16 @@ function RoomFilters() {
             ...bedTypes,
             doubleBed: !bedTypes.doubleBed,
         };
-        setLocalFilter(prev => ({ ...prev, bedTypes: newBedTypes }));
-        debouncedUpdateFilter({ bedTypes: newBedTypes });
+        setLocalFilter(prev => ({...prev, bedTypes: newBedTypes}));
+        debouncedUpdateFilter({bedTypes: newBedTypes});
     };
 
     const handleRatingChange = (rating: number) => {
         const newRatings = ratings.includes(rating)
             ? ratings.filter((r) => r !== rating)
             : [...ratings, rating];
-        
-        setLocalFilter(prev => ({ ...prev, ratings: newRatings }));
+
+        setLocalFilter(prev => ({...prev, ratings: newRatings}));
         debouncedUpdateFilter({ratings: newRatings});
     };
 
@@ -99,22 +99,22 @@ function RoomFilters() {
         const newAmenities = amenities.includes(amenity)
             ? amenities.filter((a) => a !== amenity)
             : [...amenities, amenity];
-        
-        setLocalFilter(prev => ({ ...prev, amenities: newAmenities }));
+
+        setLocalFilter(prev => ({...prev, amenities: newAmenities}));
         debouncedUpdateFilter({amenities: newAmenities});
     };
 
     const handleRoomSizeChange = (values: number[]) => {
         const newRoomSize = [values[0], values[1]] as [number, number];
-        setLocalFilter(prev => ({ ...prev, roomSize: newRoomSize }));
-        debouncedUpdateFilter({ roomSize: newRoomSize });
+        setLocalFilter(prev => ({...prev, roomSize: newRoomSize}));
+        debouncedUpdateFilter({roomSize: newRoomSize});
     };
 
     const handleResetFilters = () => {
         const initialRoomSize = [roomSizeConfig.min, roomSizeConfig.max] as [number, number];
         setLocalFilter(prev => ({
             ...prev,
-            bedTypes: { singleBed: false, doubleBed: false },
+            bedTypes: {singleBed: false, doubleBed: false},
             ratings: [],
             amenities: [],
             roomSize: initialRoomSize,
