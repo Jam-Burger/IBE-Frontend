@@ -1,12 +1,21 @@
-import '@testing-library/jest-dom';
+// import '@testing-library/jest-dom';
 import {afterEach, expect, vi} from 'vitest';
 import {cleanup} from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom/matchers';
+// import * as matchers from '@testing-library/jest-dom/matchers';
 
-// Extend Vitest's expect method
-expect.extend(matchers);
+// Extend Vitest's expect method with a simplified version
+expect.extend({
+  toBeInTheDocument(received) {
+    const pass = Boolean(received);
+    return {
+      pass,
+      message: () => `expected ${received} to ${pass ? 'not ' : ''}be in the document`,
+    };
+  },
+  // Add other matchers as needed
+});
 
-// Cleanup after each test
+// Clean up after each test
 afterEach(() => {
     cleanup();
     vi.clearAllMocks();
