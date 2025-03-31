@@ -9,7 +9,7 @@ import {api} from "../lib/api-client";
 import {useParams} from "react-router-dom";
 import {useAppSelector} from "../redux/hooks.ts";
 import toast from 'react-hot-toast';
-import { toTitleCase } from "../lib/utils.ts";
+import {toTitleCase} from "../lib/utils.ts";
 
 interface RoomDetailsModalProps {
     room: Room;
@@ -43,7 +43,7 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
     const [promoError, setPromoError] = useState("");
     const [appliedPromoCode, setAppliedPromoCode] = useState("");
-    
+
     const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
 
     const standardPackage = {

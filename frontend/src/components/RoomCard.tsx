@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { FaStar } from "react-icons/fa";
-import { IoLocationOutline } from "react-icons/io5";
-import { GoPerson } from "react-icons/go";
-import { MdOutlineBed } from "react-icons/md";
-import { Room } from "../types";
+import {useState} from "react";
+import {FaStar} from "react-icons/fa";
+import {IoLocationOutline} from "react-icons/io5";
+import {GoPerson} from "react-icons/go";
+import {MdOutlineBed} from "react-icons/md";
+import {Room} from "../types";
 import ImageCarousel from "./ui/ImageCarousel.tsx";
 import RoomDetailsModalPopup from "./RoomDetailsModalPopup.tsx";
-import { convertToLocaleCurrency, toTitleCase } from "../lib/utils.ts";
-import { useAppSelector } from "../redux/hooks.ts";
-import { Button } from "./ui/Button.tsx";
+import {convertToLocaleCurrency, toTitleCase} from "../lib/utils.ts";
+import {useAppSelector} from "../redux/hooks.ts";
+import {Button} from "./ui/Button.tsx";
 
 interface RoomCardProps {
     room: Room & {
@@ -21,9 +21,9 @@ interface RoomCardProps {
     onSelectPackage?: () => void;
 }
 
-const RoomCard = ({ room, onSelectRoom, onSelectPackage }: RoomCardProps) => {
+const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { selectedCurrency, multiplier } = useAppSelector(
+    const {selectedCurrency, multiplier} = useAppSelector(
         (state) => state.currency
     );
     const handleRoomSelect = () => {
@@ -67,7 +67,7 @@ const RoomCard = ({ room, onSelectRoom, onSelectPackage }: RoomCardProps) => {
                             {room.numberOfReviews > 0 ? (
                                 <>
                                     <div className="flex items-center">
-                                        <FaStar className="w-[15.84px] h-4" />
+                                        <FaStar className="w-[15.84px] h-4"/>
                                         <span className="ml-1">
                                             {room.rating.toFixed(1)}
                                         </span>
@@ -77,8 +77,10 @@ const RoomCard = ({ room, onSelectRoom, onSelectPackage }: RoomCardProps) => {
                                     </span>
                                 </>
                             ) : (
-                                <div className="h-[23px] w-[99px] bg-[#CDCDEE]  text-xs font-medium px-2 py-1 rounded-lg flex items-center justify-center">
-                                    <span className="h-[20px] w-[86px] font-normal  leading-[140%] tracking-[0px] flex items-center justify-center">
+                                <div
+                                    className="h-[23px] w-[99px] bg-[#CDCDEE]  text-xs font-medium px-2 py-1 rounded-lg flex items-center justify-center">
+                                    <span
+                                        className="h-[20px] w-[86px] font-normal  leading-[140%] tracking-[0px] flex items-center justify-center">
                                         New property
                                     </span>
                                 </div>
@@ -88,18 +90,18 @@ const RoomCard = ({ room, onSelectRoom, onSelectPackage }: RoomCardProps) => {
 
                     <div className="text-sm text-gray-600 mb-2">
                         <p className="flex items-center gap-1 text-gray-700 mb-2">
-                            <IoLocationOutline />
+                            <IoLocationOutline/>
                             {room.landmark}
                         </p>
                         <p className="text-xs py-0.5 inline-block mb-2">
                             <i>inclusive</i> {room.areaInSquareFeet} sqft
                         </p>
                         <p className="flex items-center gap-1 text-gray-700 mb-2">
-                            <GoPerson />
+                            <GoPerson/>
                             1-{room.maxCapacity}
                         </p>
                         <p className="flex items-center gap-1 text-gray-700 mb-2">
-                            <MdOutlineBed />
+                            <MdOutlineBed/>
                             {room.singleBed !== 0 &&
                                 `${room.singleBed} single `}
                             {room.singleBed * room.doubleBed !== 0 && `or `}
@@ -112,8 +114,10 @@ const RoomCard = ({ room, onSelectRoom, onSelectPackage }: RoomCardProps) => {
                     {room.specialDeal && (
                         <>
                             <div className="mb-2">
-                                <div className="bg-primary text-white text-[14px] font-medium flex items-center justify-center w-[120.76px] h-[32px] clip-path -translate-x-[20px]">
-                                    <span className="font-normal text-base w-[101.95px] h-[22px] flex justify-center items-center">
+                                <div
+                                    className="bg-primary text-white text-[14px] font-medium flex items-center justify-center w-[120.76px] h-[32px] clip-path -translate-x-[20px]">
+                                    <span
+                                        className="font-normal text-base w-[101.95px] h-[22px] flex justify-center items-center">
                                         Special deal
                                     </span>
                                 </div>

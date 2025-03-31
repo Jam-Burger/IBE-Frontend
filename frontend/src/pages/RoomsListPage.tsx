@@ -1,5 +1,5 @@
 import {cn} from "../lib/utils";
-import {FaCheck} from "react-icons/fa";
+import {FaCheck, FaChevronDown} from "react-icons/fa";
 import {CSSProperties, useEffect, useState} from "react";
 import {RoomCard, RoomFilters} from "../components";
 import {ConfigType, Room, SortOption, StateStatus} from "../types";
@@ -29,7 +29,6 @@ import {
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
 import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
 import {MdOutlineCalendarMonth} from "react-icons/md";
-import {FaChevronDown} from "react-icons/fa";
 
 const RoomsListPage = () => {
     const [currentStep, setCurrentStep] = useState(0);

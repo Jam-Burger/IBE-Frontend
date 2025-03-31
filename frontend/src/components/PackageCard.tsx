@@ -1,9 +1,8 @@
-import { FC } from "react";
-import { MdClose } from "react-icons/md";
-import { MdLocalOffer } from "react-icons/md";
-import { useAppSelector } from "../redux/hooks.ts";
-import { convertToLocaleCurrency } from "../lib/utils.ts";
-import { Button } from "./ui/Button.tsx";
+import {FC} from "react";
+import {MdClose, MdLocalOffer} from "react-icons/md";
+import {useAppSelector} from "../redux/hooks.ts";
+import {convertToLocaleCurrency} from "../lib/utils.ts";
+import {Button} from "./ui/Button.tsx";
 
 interface PackageData {
     title: string;
@@ -19,12 +18,12 @@ interface HotelPackageCardProps {
 }
 
 const PackageCard: FC<HotelPackageCardProps> = ({
-    packageData,
-    onSelectPackage,
-    onRemove,
-    promoCode,
-}) => {
-    const { selectedCurrency, multiplier } = useAppSelector(
+                                                    packageData,
+                                                    onSelectPackage,
+                                                    onRemove,
+                                                    promoCode,
+                                                }) => {
+    const {selectedCurrency, multiplier} = useAppSelector(
         (state) => state.currency
     );
     return (
@@ -41,9 +40,9 @@ const PackageCard: FC<HotelPackageCardProps> = ({
                             className="hover:bg-gray-300 p-0.5 rounded-full cursor-pointer"
                             aria-label="Remove promo code"
                         >
-                            <MdClose size={16} />
+                            <MdClose size={16}/>
                         </button>
-                        <MdLocalOffer className="mr-1" size={14} />
+                        <MdLocalOffer className="mr-1" size={14}/>
                         <span className="mr-1 font-medium text-xs">
                             {promoCode}
                         </span>

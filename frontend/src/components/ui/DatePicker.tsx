@@ -8,7 +8,7 @@ import {DateRange} from "react-day-picker";
 import {StateStatus} from "../../types";
 import {SerializableDateRange} from "../../types/Filter";
 
-import {cn, formatPrice, convertToLocaleCurrency} from "../../lib/utils";
+import {cn, convertToLocaleCurrency} from "../../lib/utils";
 import {Button} from "./Button";
 import {Calendar} from "./Calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "./Popover";

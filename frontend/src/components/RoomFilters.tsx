@@ -1,19 +1,11 @@
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-    Button,
-    Checkbox,
-    Slider,
-} from "./ui";
-import { useDispatch } from "react-redux";
-import { resetFilters, updateFilter } from "../redux/filterSlice";
-import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
-import { api } from "../lib/api-client";
-import { useAppSelector } from "../redux/hooks";
-import { PulseLoader } from "react-spinners";
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Checkbox, Slider,} from "./ui";
+import {useDispatch} from "react-redux";
+import {resetFilters, updateFilter} from "../redux/filterSlice";
+import {useCallback, useEffect, useState} from "react";
+import {useParams} from "react-router-dom";
+import {api} from "../lib/api-client";
+import {useAppSelector} from "../redux/hooks";
+import {PulseLoader} from "react-spinners";
 
 interface Property {
     propertyId: number;
@@ -23,12 +15,12 @@ interface Property {
 function RoomFilters() {
     const dispatch = useDispatch();
     const [allAmenities, setAllAmenities] = useState<string[]>([]);
-    const { tenantId } = useParams<{ tenantId: string }>();
+    const {tenantId} = useParams<{ tenantId: string }>();
     const filter = useAppSelector((state) => state.roomFilters.filter);
     const globalConfig = useAppSelector((state) => state.config.globalConfig);
     const configLoading = !globalConfig;
 
-    const { bedTypes, ratings, amenities, roomSize, propertyId } = filter;
+    const {bedTypes, ratings, amenities, roomSize, propertyId} = filter;
 
     const roomsListConfig = useAppSelector(
         (state) => state.config.roomsListConfig
@@ -47,7 +39,7 @@ function RoomFilters() {
             roomSizeConfig.min,
             roomSizeConfig.max,
         ];
-        dispatch(updateFilter({ roomSize: initialRoomSize }));
+        dispatch(updateFilter({roomSize: initialRoomSize}));
     }, [dispatch, roomsListConfig, roomSize]);
 
     useEffect(() => {
@@ -84,16 +76,7 @@ function RoomFilters() {
     };
 
     const handlePropertyChange = (propertyId: number) => {
-        dispatch(updateFilter({ propertyId }));
-    };
-
-    // Get selected property name for display
-    const getSelectedPropertyName = () => {
-        if (filter.propertyId === 0) return "";
-        const property = properties.find(
-            (p) => p.propertyId === filter.propertyId
-        );
-        return property ? property.propertyName : "";
+        dispatch(updateFilter({propertyId}));
     };
 
     if (!roomsListConfig || loading || configLoading) return null;
@@ -131,7 +114,7 @@ function RoomFilters() {
             ? ratings.filter((r) => r !== rating)
             : [...ratings, rating];
 
-        dispatch(updateFilter({ ratings: newRatings }));
+        dispatch(updateFilter({ratings: newRatings}));
     };
 
     const handleAmenityChange = (amenity: string) => {
@@ -139,7 +122,7 @@ function RoomFilters() {
             ? amenities.filter((a) => a !== amenity)
             : [...amenities, amenity];
 
-        dispatch(updateFilter({ amenities: newAmenities }));
+        dispatch(updateFilter({amenities: newAmenities}));
     };
 
     // This now updates local state only (not Redux)
@@ -158,7 +141,7 @@ function RoomFilters() {
     if (loading || configLoading) {
         return (
             <div className="w-full h-full flex items-center justify-center">
-                <PulseLoader color="var(--primary)" size={10} />
+                <PulseLoader color="var(--primary)" size={10}/>
             </div>
         );
     }
@@ -336,7 +319,8 @@ function RoomFilters() {
                             {amenitiesConfig.label}
                         </AccordionTrigger>
                         <AccordionContent>
-                            <div className="flex flex-col space-y-3 max-h-[200px] overflow-y-auto pr-2 rounded-md border border-gray-200 p-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                            <div
+                                className="flex flex-col space-y-3 max-h-[200px] overflow-y-auto pr-2 rounded-md border border-gray-200 p-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                                 {allAmenities.map((amenity) => (
                                     <div
                                         key={amenity}
