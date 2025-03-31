@@ -1,5 +1,7 @@
 import {type ClassValue, clsx} from "clsx";
 import {twMerge} from "tailwind-merge";
+import {DateRange} from "react-day-picker";
+import {SerializableDateRange} from "../types/Filter";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -76,4 +78,18 @@ export const toTitleCase = (text: string): string => {
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
+};
+
+// Convert DateRange to SerializableDateRange for Redux
+export const toSerializableDateRange = (dateRange?: DateRange): SerializableDateRange | undefined => {
+    if (!dateRange) return undefined;
+
+    const result: SerializableDateRange = {};
+    if (dateRange.from) {
+        result.from = dateRange.from.toISOString();
+    }
+    if (dateRange.to) {
+        result.to = dateRange.to.toISOString();
+    }
+    return result;
 };

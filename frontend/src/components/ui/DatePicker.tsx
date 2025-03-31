@@ -8,7 +8,7 @@ import {DateRange} from "react-day-picker";
 import {StateStatus} from "../../types";
 import {SerializableDateRange} from "../../types/Filter";
 
-import {cn, convertToLocaleCurrency} from "../../lib/utils";
+import {cn, convertToLocaleCurrency, toSerializableDateRange} from "../../lib/utils";
 import {Button} from "./Button";
 import {Calendar} from "./Calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
@@ -23,6 +23,8 @@ interface DatePickerWithRangeProps {
     noBorder?: boolean;
     grayBorder?: boolean;
     displayStyle?: "default" | "checkInOut";
+    value?: SerializableDateRange;
+    onChange?: (dateRange: DateRange | undefined) => void;
 }
 
 interface RoomRates {
@@ -50,34 +52,22 @@ const toDateRange = (serializableRange?: SerializableDateRange): DateRange | und
     return result;
 };
 
-// Convert DateRange to SerializableDateRange for Redux
-const toSerializableDateRange = (dateRange?: DateRange): SerializableDateRange | undefined => {
-    if (!dateRange) return undefined;
-
-    const result: SerializableDateRange = {};
-    if (dateRange.from) {
-        result.from = dateRange.from.toISOString();
-    }
-    if (dateRange.to) {
-        result.to = dateRange.to.toISOString();
-    }
-    return result;
-};
-
 export function DatePickerWithRange({
-                                        className,
-                                        propertyId,
-                                        disabled,
-                                        noBorder = false,
-                                        grayBorder = false,
-                                        displayStyle = "default"
-                                    }: Readonly<DatePickerWithRangeProps>) {
+    className,
+    propertyId,
+    disabled,
+    noBorder = false,
+    grayBorder = false,
+    displayStyle = "default",
+    value,
+    onChange,
+}: Readonly<DatePickerWithRangeProps>) {
     const dispatch = useAppDispatch();
     const {tenantId} = useParams<{ tenantId: string }>();
     const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
     const {landingConfig} = useAppSelector(state => state.config);
-    const serializedDateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
+    const serializedDateRange = value ?? useAppSelector(state => state.roomFilters.filter.dateRange);
 
     // Convert serialized date range to DateRange for the Calendar component
     const dateRangeFromRedux = React.useMemo(() =>
@@ -149,7 +139,11 @@ export function DatePickerWithRange({
     const handleApplyDates = () => {
         // Convert Date objects to serializable ISO strings
         const serializableRange = toSerializableDateRange(date);
-        dispatch(updateFilter({dateRange: serializableRange}));
+        if (onChange) {
+            onChange(date);
+        } else {
+            dispatch(updateFilter({dateRange: serializableRange}));
+        }
         setIsOpen(false);
     };
 
@@ -216,7 +210,7 @@ export function DatePickerWithRange({
                                 </div>
                             )}
                             <div className="text-sm">
-                                {convertToLocaleCurrency(currencySymbol, discountedPrice, multiplier)}
+                                {convertToLocaleCurrency(currencySymbol, originalPrice, multiplier)}
                             </div>
                         </div>
                     )

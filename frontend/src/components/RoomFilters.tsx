@@ -1,34 +1,32 @@
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Checkbox, Slider,} from "./ui";
 import {useDispatch} from "react-redux";
 import {resetFilters, updateFilter} from "../redux/filterSlice";
-import {useCallback, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import {api} from "../lib/api-client";
 import {useAppSelector} from "../redux/hooks";
 import {PulseLoader} from "react-spinners";
-
-interface Property {
-    propertyId: number;
-    propertyName: string;
-}
+import { Filter } from "../types";
+import { useDebounce } from "../hooks/useDebounce";
 
 function RoomFilters() {
     const dispatch = useDispatch();
     const [allAmenities, setAllAmenities] = useState<string[]>([]);
     const {tenantId} = useParams<{ tenantId: string }>();
     const filter = useAppSelector((state) => state.roomFilters.filter);
-    const globalConfig = useAppSelector((state) => state.config.globalConfig);
-    const configLoading = !globalConfig;
-
-    const {bedTypes, ratings, amenities, roomSize, propertyId} = filter;
+    
+    // Local state for immediate UI updates
+    const [localFilter, setLocalFilter] = useState<Filter>(filter);
+    const {bedTypes, ratings, amenities, roomSize, propertyId} = localFilter;
 
     const roomsListConfig = useAppSelector(
         (state) => state.config.roomsListConfig
     );
 
-    const [properties, setProperties] = useState<Property[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const allowedPropertyIds = globalConfig?.configData.properties || [];
+    // Update local state when Redux state changes
+    useEffect(() => {
+        setLocalFilter(filter);
+    }, [filter]);
 
     useEffect(() => {
         const roomSizeConfig =
@@ -51,94 +49,7 @@ function RoomFilters() {
         fetchAmenities();
     }, [tenantId, propertyId]);
 
-    const fetchProperties = useCallback(async () => {
-        setLoading(true);
-        try {
-            if (!tenantId) {
-                console.error("Tenant ID is not available");
-                return;
-            }
-            const propertiesData = await api.getProperties(tenantId);
-            setProperties(propertiesData);
-        } catch (err) {
-            console.error("Error fetching properties:", err);
-        } finally {
-            setLoading(false);
-        }
-    }, [tenantId]);
-
-    useEffect(() => {
-        fetchProperties();
-    }, [fetchProperties]);
-
-    const isPropertyEnabled = (propertyId: number): boolean => {
-        return allowedPropertyIds.includes(propertyId);
-    };
-
-    const handlePropertyChange = (propertyId: number) => {
-        dispatch(updateFilter({propertyId}));
-    };
-
-    if (!roomsListConfig || loading || configLoading) return null;
-
-    const filterConfig = roomsListConfig.configData.filters;
-    const ratingFilterConfig = filterConfig.filterGroups.ratings;
-    const bedTypesConfig = filterConfig.filterGroups.bedTypes;
-    const roomSizeConfig = filterConfig.filterGroups.roomSize;
-    const amenitiesConfig = filterConfig.filterGroups.amenities;
-
-    const handleSingleBedChange = () => {
-        dispatch(
-            updateFilter({
-                bedTypes: {
-                    ...bedTypes,
-                    singleBed: !bedTypes.singleBed,
-                },
-            })
-        );
-    };
-
-    const handleDoubleBedChange = () => {
-        dispatch(
-            updateFilter({
-                bedTypes: {
-                    ...bedTypes,
-                    doubleBed: !bedTypes.doubleBed,
-                },
-            })
-        );
-    };
-
-    const handleRatingChange = (rating: number) => {
-        const newRatings = ratings.includes(rating)
-            ? ratings.filter((r) => r !== rating)
-            : [...ratings, rating];
-
-        dispatch(updateFilter({ratings: newRatings}));
-    };
-
-    const handleAmenityChange = (amenity: string) => {
-        const newAmenities = amenities.includes(amenity)
-            ? amenities.filter((a) => a !== amenity)
-            : [...amenities, amenity];
-
-        dispatch(updateFilter({amenities: newAmenities}));
-    };
-
-    // This now updates local state only (not Redux)
-    const handleRoomSizeChange = (values: number[]) => {
-        dispatch(
-            updateFilter({
-                roomSize: [values[0], values[1]] as [number, number],
-            })
-        );
-    };
-
-    const handleResetFilters = () => {
-        dispatch(resetFilters([roomSizeConfig.min, roomSizeConfig.max]));
-    };
-
-    if (loading || configLoading) {
+    if (!roomsListConfig) {
         return (
             <div className="w-full h-full flex items-center justify-center">
                 <PulseLoader color="var(--primary)" size={10}/>
@@ -146,8 +57,73 @@ function RoomFilters() {
         );
     }
 
+    const filterConfig = roomsListConfig.configData.filters;
+    const ratingFilterConfig = filterConfig.filterGroups.ratings;
+    const bedTypesConfig = filterConfig.filterGroups.bedTypes;
+    const roomSizeConfig = filterConfig.filterGroups.roomSize;
+    const amenitiesConfig = filterConfig.filterGroups.amenities;
+
+    // Create debounced versions of the filter handlers
+    const debouncedUpdateFilter = useDebounce((updates: Partial<Filter>) => {
+        dispatch(updateFilter(updates));
+    }, 500);
+
+    const handleSingleBedChange = () => {
+        const newBedTypes = {
+            ...bedTypes,
+            singleBed: !bedTypes.singleBed,
+        };
+        setLocalFilter(prev => ({ ...prev, bedTypes: newBedTypes }));
+        debouncedUpdateFilter({ bedTypes: newBedTypes });
+    };
+
+    const handleDoubleBedChange = () => {
+        const newBedTypes = {
+            ...bedTypes,
+            doubleBed: !bedTypes.doubleBed,
+        };
+        setLocalFilter(prev => ({ ...prev, bedTypes: newBedTypes }));
+        debouncedUpdateFilter({ bedTypes: newBedTypes });
+    };
+
+    const handleRatingChange = (rating: number) => {
+        const newRatings = ratings.includes(rating)
+            ? ratings.filter((r) => r !== rating)
+            : [...ratings, rating];
+        
+        setLocalFilter(prev => ({ ...prev, ratings: newRatings }));
+        debouncedUpdateFilter({ratings: newRatings});
+    };
+
+    const handleAmenityChange = (amenity: string) => {
+        const newAmenities = amenities.includes(amenity)
+            ? amenities.filter((a) => a !== amenity)
+            : [...amenities, amenity];
+        
+        setLocalFilter(prev => ({ ...prev, amenities: newAmenities }));
+        debouncedUpdateFilter({amenities: newAmenities});
+    };
+
+    const handleRoomSizeChange = (values: number[]) => {
+        const newRoomSize = [values[0], values[1]] as [number, number];
+        setLocalFilter(prev => ({ ...prev, roomSize: newRoomSize }));
+        debouncedUpdateFilter({ roomSize: newRoomSize });
+    };
+
+    const handleResetFilters = () => {
+        const initialRoomSize = [roomSizeConfig.min, roomSizeConfig.max] as [number, number];
+        setLocalFilter(prev => ({
+            ...prev,
+            bedTypes: { singleBed: false, doubleBed: false },
+            ratings: [],
+            amenities: [],
+            roomSize: initialRoomSize,
+        }));
+        dispatch(resetFilters(initialRoomSize));
+    };
+
     return (
-        <div className="w-[293px] p-8 bg-[#EFF0F1] rounded-[5px] min-h-[290px] max-h-fit">
+        <div className="w-[293px] p-6 bg-[#EFF0F1] rounded-[5px] min-h-[290px] max-h-fit">
             <div className="flex justify-between items-center mb-4 font-bold">
                 <h2 className="font-700">Narrow your results</h2>
                 <Button
@@ -161,37 +137,6 @@ function RoomFilters() {
             </div>
 
             <Accordion type="single" collapsible className="w-full">
-                {/* Property Selector */}
-                <AccordionItem value="property-filter">
-                    <AccordionTrigger>Property</AccordionTrigger>
-                    <AccordionContent>
-                        {properties
-                            .filter((property) =>
-                                isPropertyEnabled(property.propertyId)
-                            )
-                            .map((property) => (
-                                <div
-                                    key={property.propertyId}
-                                    className={`flex items-center p-2 rounded-md cursor-pointer transition-colors ${
-                                        filter.propertyId ===
-                                        property.propertyId
-                                            ? "bg-primary/10 text-primary"
-                                            : "hover:bg-gray-100"
-                                    }`}
-                                    onClick={() =>
-                                        handlePropertyChange(
-                                            property.propertyId
-                                        )
-                                    }
-                                >
-                                    <span className="text-sm">
-                                        {property.propertyName}
-                                    </span>
-                                </div>
-                            ))}
-                    </AccordionContent>
-                </AccordionItem>
-
                 {ratingFilterConfig.enabled && (
                     <AccordionItem value="rating-filter">
                         <AccordionTrigger>

@@ -1,21 +1,13 @@
 import {cn} from "../lib/utils";
 import {FaCheck, FaChevronDown} from "react-icons/fa";
 import {CSSProperties, useEffect, useState} from "react";
-import {RoomCard, RoomFilters} from "../components";
+import {RoomCard, RoomFilters, FilterRow} from "../components";
 import {ConfigType, Room, SortOption, StateStatus} from "../types";
 import {api} from "../lib/api-client";
 import {useParams, useSearchParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "../redux/hooks.ts";
 import {fetchConfig} from "../redux/configSlice";
 import {PulseLoader} from "react-spinners";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "../components/ui/DropdownMenu.tsx";
 import {
     Button,
     DatePickerWithRange,
@@ -25,10 +17,24 @@ import {
     SelectContent,
     SelectItem,
     SelectTrigger,
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "../components/ui";
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
 import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
 import {MdOutlineCalendarMonth} from "react-icons/md";
+
+const ITEMS_PER_PAGE = 3;
 
 const RoomsListPage = () => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -36,24 +42,26 @@ const RoomsListPage = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
     const dispatch = useAppDispatch();
     const {roomsListConfig, status} = useAppSelector((state) => state.config);
-    const isLoading = status === StateStatus.LOADING || !roomsListConfig;
     const [searchParams, setSearchParams] = useSearchParams();
     const filter = useAppSelector((state) => state.roomFilters.filter);
     const searchForm = useAppSelector(
         (state) => state.config.landingConfig?.configData.searchForm
     );
     const filterGroups = roomsListConfig?.configData.filters.filterGroups;
+    const [loading, setLoading] = useState(status === StateStatus.LOADING);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
         dispatch(syncWithUrl(searchParamsToFilter(searchParams)));
     }, [dispatch, searchParams]);
 
     useEffect(() => {
-        if (filter && !isLoading) {
+        if (filter && !loading) {
             const params = filterToSearchParams(filter);
             setSearchParams(params);
         }
-    }, [filter, setSearchParams, isLoading]);
+    }, [filter, setSearchParams, loading]);
 
     useEffect(() => {
         if (!tenantId) {
@@ -66,23 +74,26 @@ const RoomsListPage = () => {
 
     useEffect(() => {
         const fetchRooms = async () => {
-            if (tenantId && !isLoading) {
+            if (tenantId) {
                 try {
                     const response = await api.getRooms(
                         tenantId,
-                        Object.fromEntries(searchParams.entries())
+                        Object.fromEntries(searchParams.entries()),
                     );
                     setRooms(response.data);
+                    setTotalPages(Math.ceil(response.data.length / ITEMS_PER_PAGE));
                 } catch (error) {
                     console.error("Error fetching rooms:", error);
+                } finally {
+                    setLoading(false);
                 }
             }
         };
 
         fetchRooms();
-    }, [tenantId, isLoading, searchParams]);
+    }, [tenantId, loading, searchParams]);
 
-    if (isLoading) {
+    if (loading || !roomsListConfig) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center">
                 <PulseLoader color="var(--primary-color)" size={15}/>
@@ -105,7 +116,7 @@ const RoomsListPage = () => {
         }
     };
 
-    if (isLoading) {
+    if (loading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center">
                 <PulseLoader color="var(--primary-color)" size={15}/>
@@ -148,6 +159,15 @@ const RoomsListPage = () => {
     const handlePackageSelection = () => {
         handleStepClick(2);
     };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const paginatedRooms = rooms.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -220,154 +240,32 @@ const RoomsListPage = () => {
             </div>
 
             {searchForm && (
-                <div className="container mx-auto mt-4 mb-4">
-                    <div className="flex justify-center items-end gap-4">
-                        {searchForm.guestOptions.enabled && (
-                            <div>
-                                <GuestSelector
-                                    roomCount={filter.roomCount}
-                                    showDetailedSummary={true}
-                                    width="264px"
-                                    height="68px"
-                                />
-                            </div>
-                        )}
-
-                        {searchForm.roomOptions.enabled && (
-                            <div>
-                                <Select
-                                    value={filter.roomCount.toString()}
-                                    onValueChange={handleRoomCountChange}
-                                >
-                                    <SelectTrigger
-                                        id="rooms"
-                                        className="w-full text-gray-500 min-h-[68px] min-w-[132px] [&>svg]:!text-black"
-                                        style={
-                                            {
-                                                "--select-trigger-icon-color":
-                                                    "black",
-                                            } as CSSProperties
-                                        }
-                                    >
-                                        <div className="flex flex-col items-start">
-                                            <Label
-                                                htmlFor="rooms"
-                                                className="mb-1 block text-sm font-medium text-gray-500"
-                                            >
-                                                Rooms
-                                            </Label>
-                                            <span className="text-base font-medium text-gray-900">
-                                                {filter.roomCount}
-                                            </span>
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent position="popper">
-                                        {[
-                                            ...Array(
-                                                searchForm.roomOptions.max
-                                            ),
-                                        ].map((_, i) => (
-                                            <SelectItem
-                                                key={i}
-                                                value={String(i + 1)}
-                                            >
-                                                {i + 1}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-
-                        <div>
-                            <Select
-                                value={filter.bedCount?.toString()}
-                                onValueChange={handleBedCountChange}
-                            >
-                                <SelectTrigger
-                                    id="beds"
-                                    className="w-full text-gray-500 min-h-[68px] min-w-[132px] [&>svg]:!text-black"
-                                    style={
-                                        {
-                                            "--select-trigger-icon-color":
-                                                "black",
-                                        } as CSSProperties
-                                    }
-                                >
-                                    <div className="flex flex-col items-start">
-                                        <Label
-                                            htmlFor="beds"
-                                            className="mb-1 block text-sm font-medium text-gray-500"
-                                        >
-                                            Beds
-                                        </Label>
-                                        <span className="text-base font-medium text-gray-900">
-                                            {filter.bedCount}
-                                        </span>
-                                    </div>
-                                </SelectTrigger>
-                                <SelectContent position="popper">
-                                    {[
-                                        ...Array(
-                                            filterGroups?.bedCount.max ?? 0
-                                        ),
-                                    ].map((_, i) => (
-                                        <SelectItem
-                                            key={i}
-                                            value={String(i + 1)}
-                                        >
-                                            {i + 1}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div>
-                            <div
-                                style={{width: "510px"}}
-                                className="relative"
-                            >
-                                <DatePickerWithRange
-                                    propertyId={filter.propertyId}
-                                    disabled={false}
-                                    className="h-[68px]"
-                                    grayBorder={true}
-                                    displayStyle="checkInOut"
-                                />
-                                <div
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                    <MdOutlineCalendarMonth className="h-6 w-6 text-black"/>
-                                </div>
-                            </div>
-                        </div>
-
-                        <Button
-                            onClick={handleDateSearch}
-                            className="bg-primary text-white px-6"
-                            style={{width: "168px", height: "66px"}}
-                        >
-                            SEARCH DATES
-                        </Button>
-                    </div>
-                </div>
+                <FilterRow
+                    searchForm={searchForm}
+                    filter={filter}
+                    filterGroups={filterGroups}
+                    onSearch={(filters) => {
+                        dispatch(updateFilter(filters));
+                        setCurrentPage(1); // Reset to first page when searching
+                    }}
+                />
             )}
 
             {/* Scrollable content area with sticky filter */}
             <div className="container mx-auto flex-grow overflow-hidden">
-                <div className="flex flex-col md:flex-row h-full max-h-[calc(100vh-140px)]">
+                <div className="flex flex-col mt-6 md:flex-row h-full">
                     {/* Sticky filter sidebar */}
                     <div className="md:w-[293px] md:sticky md:top-0 self-start h-fit flex-shrink-0">
                         <RoomFilters/>
                     </div>
 
                     {/* Scrollable room results */}
-                    <div className="flex-1 md:ml-16 mt-6 md:mt-6 overflow-y-auto pb-6 pr-4">
+                    <div className="flex-1 md:ml-16 overflow-y-auto pb-6 pr-4">
                         <div className="flex justify-between items-center mb-4 sticky top-0 bg-white z-10 py-3">
                             <h2 className="text-xl font-bold">Room Results</h2>
                             <div className="flex items-center text-sm font-[600]">
                                 <span className="mr-6 border-r border-gray-300 pr-6">
-                                    {`Showing ${rooms.length}-${rooms.length} of ${rooms.length} results`}
+                                    {`Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, rooms.length)} of ${rooms.length} results`}
                                 </span>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger className="flex items-center">
@@ -417,7 +315,7 @@ const RoomsListPage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-8 px-2">
                             {rooms.length > 0 ? (
-                                rooms.map((room) => (
+                                paginatedRooms.map((room) => (
                                     <RoomCard
                                         key={room.roomTypeId}
                                         room={room}
@@ -433,6 +331,41 @@ const RoomsListPage = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* Pagination */}
+                        {rooms.length > ITEMS_PER_PAGE && (
+                            <div className="mt-8">
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                onClick={() => handlePageChange(currentPage - 1)}
+                                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                            />
+                                        </PaginationItem>
+
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                            <PaginationItem key={page}>
+                                                <PaginationLink
+                                                    isActive={currentPage === page}
+                                                    onClick={() => handlePageChange(page)}
+                                                    className="cursor-pointer"
+                                                >
+                                                    {page}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                onClick={() => handlePageChange(currentPage + 1)}
+                                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -12,21 +12,25 @@ export interface GuestSelectorProps {
     showDetailedSummary?: boolean;
     width?: string;
     height?: string;
+    value?: Record<string, number>;
+    onChange?: (guests: Record<string, number>) => void;
 }
 
 export const GuestSelector = ({
-                                  roomCount,
-                                  showDetailedSummary = false,
-                                  width,
-                                  height,
-                              }: GuestSelectorProps) => {
+    roomCount,
+    showDetailedSummary = false,
+    width,
+    height,
+    value,
+    onChange,
+}: GuestSelectorProps) => {
     const dispatch = useAppDispatch();
     const guestOptions = useAppSelector(
         (state) =>
             state.config.landingConfig?.configData.searchForm.guestOptions
     );
 
-    const allGuests = useAppSelector(
+    const allGuests = value || useAppSelector(
         (state) => state.roomFilters.filter.guests
     );
     const totalGuests = Object.values(allGuests).reduce(
@@ -45,14 +49,18 @@ export const GuestSelector = ({
                     }
                 });
 
-                dispatch(
-                    updateFilter({
-                        guests: initialCounts,
-                    })
-                );
+                if (onChange) {
+                    onChange(initialCounts);
+                } else {
+                    dispatch(
+                        updateFilter({
+                            guests: initialCounts,
+                        })
+                    );
+                }
             }
         }
-    }, [guestOptions, dispatch, totalGuests, allGuests]);
+    }, [guestOptions, dispatch, totalGuests, allGuests, onChange]);
 
     const maxGuestsPerRoom = 4;
     const totalMaxGuests = maxGuestsPerRoom * roomCount;
@@ -102,11 +110,15 @@ export const GuestSelector = ({
             [categoryName]: increment ? currentCount + 1 : currentCount - 1,
         };
 
-        dispatch(
-            updateFilter({
-                guests: {...newCounts},
-            })
-        );
+        if (onChange) {
+            onChange(newCounts);
+        } else {
+            dispatch(
+                updateFilter({
+                    guests: {...newCounts},
+                })
+            );
+        }
     };
 
     const getSummaryText = () => {

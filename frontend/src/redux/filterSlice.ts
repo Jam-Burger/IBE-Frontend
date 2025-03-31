@@ -5,9 +5,15 @@ export interface RoomFiltersState extends BaseState {
     filter: Filter;
 }
 
+const today: string = new Date().toISOString().split('T')[0];
+const tomorrow: string = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
 const initialFilter: Filter = {
-    propertyId: 9,
-    dateRange: undefined,
+    propertyId: -1,
+    dateRange: {
+        from: today,
+        to: tomorrow
+    },
     roomCount: 1,
     isAccessible: false,
     guests: {},

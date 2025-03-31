@@ -8,7 +8,7 @@ import ImageCarousel from "./ui/ImageCarousel.tsx";
 import RoomDetailsModalPopup from "./RoomDetailsModalPopup.tsx";
 import {convertToLocaleCurrency, toTitleCase} from "../lib/utils.ts";
 import {useAppSelector} from "../redux/hooks.ts";
-import {Button} from "./ui/Button.tsx";
+import {Button} from "./ui";
 
 interface RoomCardProps {
     room: Room & {
@@ -59,7 +59,7 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
 
                 {/* Resort Details */}
                 <div className="p-3">
-                    <div className="flex justify-between items-center mb-6 h">
+                    <div className="flex justify-between items-center mb-5 h">
                         <h2 className="font-bold text-base leading-[150%] w-[136.6px] h-[35px]">
                             {toTitleCase(room.roomTypeName)}
                         </h2>
@@ -88,19 +88,19 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                         </div>
                     </div>
 
-                    <div className="text-sm text-gray-600 mb-2">
-                        <p className="flex items-center gap-1 text-gray-700 mb-2">
+                    <div className="flex flex-col gap-[6px] text-gray-700 text-sm mb-2">
+                        <p className="flex items-center gap-1">
                             <IoLocationOutline/>
                             {room.landmark}
                         </p>
-                        <p className="text-xs py-0.5 inline-block mb-2">
+                        <p className="text-xs py-0.5 inline-block">
                             <i>inclusive</i> {room.areaInSquareFeet} sqft
                         </p>
-                        <p className="flex items-center gap-1 text-gray-700 mb-2">
+                        <p className="flex items-center gap-1 ">
                             <GoPerson/>
                             1-{room.maxCapacity}
                         </p>
-                        <p className="flex items-center gap-1 text-gray-700 mb-2">
+                        <p className="flex items-center gap-1">
                             <MdOutlineBed/>
                             {room.singleBed !== 0 &&
                                 `${room.singleBed} single `}

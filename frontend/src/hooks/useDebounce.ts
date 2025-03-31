@@ -1,23 +1,35 @@
-import {useEffect, useState} from 'react';
+import { useCallback, useEffect, useRef } from "react";
 
 /**
- * A hook that debounces a value, only updating after a specified delay
- * @param value The value to debounce
- * @param delay The delay in milliseconds before the value updates
- * @returns The debounced value
+ * A hook that debounces a callback function
+ * @param callback The function to debounce
+ * @param delay The delay in milliseconds
+ * @returns A debounced version of the callback
  */
-export function useDebounce<T>(value: T, delay: number): T {
-    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+export const useDebounce = <T extends (...args: any[]) => any>(
+    callback: T,
+    delay: number
+): T => {
+    const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-
         return () => {
-            clearTimeout(timer);
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
         };
-    }, [value, delay]);
+    }, []);
 
-    return debouncedValue;
-} 
+    return useCallback(
+        (...args: Parameters<T>) => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+
+            timeoutRef.current = setTimeout(() => {
+                callback(...args);
+            }, delay);
+        },
+        [callback, delay]
+    ) as T;
+}; 
