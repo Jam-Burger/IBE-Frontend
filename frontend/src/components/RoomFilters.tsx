@@ -23,6 +23,11 @@ function RoomFilters() {
         (state) => state.config.roomsListConfig
     );
 
+    // Create debounced versions of the filter handlers
+    const debouncedUpdateFilter = useDebounce((updates: Partial<Filter>) => {
+        dispatch(updateFilter(updates));
+    }, 500);
+
     // Update local state when Redux state changes
     useEffect(() => {
         setLocalFilter(filter);
@@ -31,7 +36,7 @@ function RoomFilters() {
     useEffect(() => {
         const roomSizeConfig =
             roomsListConfig?.configData.filters.filterGroups.roomSize;
-        if (!roomSizeConfig || roomSize[0] !== 0 || roomSize[1] !== 0) return;
+        if (!roomSizeConfig || (roomSize[0] !== -1 && roomSize[1] !== -1)) return;
 
         const initialRoomSize: [number, number] = [
             roomSizeConfig.min,
@@ -62,11 +67,6 @@ function RoomFilters() {
     const bedTypesConfig = filterConfig.filterGroups.bedTypes;
     const roomSizeConfig = filterConfig.filterGroups.roomSize;
     const amenitiesConfig = filterConfig.filterGroups.amenities;
-
-    // Create debounced versions of the filter handlers
-    const debouncedUpdateFilter = useDebounce((updates: Partial<Filter>) => {
-        dispatch(updateFilter(updates));
-    }, 500);
 
     const handleSingleBedChange = () => {
         const newBedTypes = {

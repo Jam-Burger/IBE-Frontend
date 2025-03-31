@@ -80,7 +80,6 @@ const CardWithForm = () => {
     };
 
     const handlePropertyChange = (propertyId: number) => {
-        console.log(propertyId);
         dispatch(updateFilter({propertyId}));
     };
 
