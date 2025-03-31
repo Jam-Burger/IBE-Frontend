@@ -64,3 +64,16 @@ export function formatPrice(price: number): string {
     }
     return price.toFixed(1);
 }
+
+/**
+ * Converts CAPITAL_CASE to Capital Case
+ * @param text Text in CAPITAL_CASE format
+ * @returns Text in Capital Case format
+ */
+export const toTitleCase = (text: string): string => {
+    return text
+        .toLowerCase()
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+};

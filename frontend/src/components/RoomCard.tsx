@@ -6,7 +6,7 @@ import { MdOutlineBed } from "react-icons/md";
 import { Room } from "../types";
 import ImageCarousel from "./ui/ImageCarousel.tsx";
 import RoomDetailsModalPopup from "./RoomDetailsModalPopup.tsx";
-import { convertToLocaleCurrency } from "../lib/utils.ts";
+import { convertToLocaleCurrency, toTitleCase } from "../lib/utils.ts";
 import { useAppSelector } from "../redux/hooks.ts";
 import { Button } from "./ui/Button.tsx";
 
@@ -61,7 +61,7 @@ const RoomCard = ({ room, onSelectRoom, onSelectPackage }: RoomCardProps) => {
                 <div className="p-3">
                     <div className="flex justify-between items-center mb-6 h">
                         <h2 className="font-bold text-base leading-[150%] w-[136.6px] h-[35px]">
-                            {room.roomTypeName}
+                            {toTitleCase(room.roomTypeName)}
                         </h2>
                         <div className="flex flex-col items-end">
                             {room.numberOfReviews > 0 ? (

@@ -14,7 +14,6 @@ interface PackageData {
 interface HotelPackageCardProps {
     packageData: PackageData;
     onSelectPackage?: () => void;
-    removable?: boolean;
     onRemove?: () => void;
     promoCode?: string;
 }
@@ -22,7 +21,6 @@ interface HotelPackageCardProps {
 const PackageCard: FC<HotelPackageCardProps> = ({
     packageData,
     onSelectPackage,
-    removable = false,
     onRemove,
     promoCode,
 }) => {

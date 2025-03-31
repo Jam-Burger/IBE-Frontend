@@ -9,6 +9,7 @@ import {api} from "../lib/api-client";
 import {useParams} from "react-router-dom";
 import {useAppSelector} from "../redux/hooks.ts";
 import toast from 'react-hot-toast';
+import { toTitleCase } from "../lib/utils.ts";
 
 interface RoomDetailsModalProps {
     room: Room;
@@ -225,7 +226,7 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                 height="381px"
                 width="100%"
                 showTitle={true}
-                title={room.roomTypeName.replace('_', ' ')}
+                title={toTitleCase(room.roomTypeName)}
                 arrowsStyle="large"
                 showDots={true}
                 autoRotate={true}
@@ -279,7 +280,6 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                             <PackageCard
                                 packageData={promoPackage}
                                 onSelectPackage={() => handleSelectPackage(promoPackage.title)}
-                                removable={true}
                                 onRemove={removePromoOffer}
                                 promoCode={appliedPromoCode}
                             />

@@ -14,13 +14,6 @@ import { useParams } from "react-router-dom";
 import { api } from "../lib/api-client";
 import { useAppSelector } from "../redux/hooks";
 import { PulseLoader } from "react-spinners";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "./ui/Select";
 
 interface Property {
     propertyId: number;
