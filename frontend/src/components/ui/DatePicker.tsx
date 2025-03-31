@@ -67,7 +67,8 @@ export function DatePickerWithRange({
     const {data: roomRates, status, error} = useAppSelector(state => state.roomRates);
     const {selectedCurrency, multiplier} = useAppSelector(state => state.currency);
     const {landingConfig} = useAppSelector(state => state.config);
-    const serializedDateRange = value ?? useAppSelector(state => state.roomFilters.filter.dateRange);
+    const filterDateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
+    const serializedDateRange = value ?? filterDateRange;
 
     // Convert serialized date range to DateRange for the Calendar component
     const dateRangeFromRedux = React.useMemo(() =>

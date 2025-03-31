@@ -30,9 +30,8 @@ export const GuestSelector = ({
             state.config.landingConfig?.configData.searchForm.guestOptions
     );
 
-    const allGuests = value || useAppSelector(
-        (state) => state.roomFilters.filter.guests
-    );
+    const filterGuests = useAppSelector((state) => state.roomFilters.filter.guests);
+    const allGuests = value || filterGuests;
     const totalGuests = Object.values(allGuests).reduce(
         (sum, count) => sum + count,
         0
