@@ -210,7 +210,7 @@ export function DatePickerWithRange({
                                 </div>
                             )}
                             <div className="text-xs">
-                                {convertToLocaleCurrency(currencySymbol, originalPrice, multiplier)}
+                                {convertToLocaleCurrency(currencySymbol, discountedPrice, multiplier)}
                             </div>
                         </div>
                     )
