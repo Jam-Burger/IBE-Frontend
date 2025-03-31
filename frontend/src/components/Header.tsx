@@ -185,7 +185,8 @@ const Header: React.FC = () => {
             </div>
 
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
-                <a href="/#" className="text-[14px] font-bold uppercase text-primary h-[20px] w-[102px]">MY BOOKINGS</a>
+                <a href="/#" className="text-[14px] font-bold uppercase text-primary h-[20px] min-w-[102px]">MY
+                    BOOKINGS</a>
                 <div className="relative">
                     <button
                         className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
@@ -236,13 +237,13 @@ const Header: React.FC = () => {
                         </div>
                     )}
                 </div>
-                <button
-                    className="bg-primary hover:bg-blue-800 text-white w-[85px] h-[35px] uppercase font-medium text-sm rounded"
+                <Button
+                    className="min-w-[85px] h-[35px] text-sm"
                     onClick={() => {
                         navigate(`/${tenantId}/login`);
                     }}>
                     LOGIN
-                </button>
+                </Button>
             </div>
         </header>
     );

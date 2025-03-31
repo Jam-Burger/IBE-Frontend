@@ -78,9 +78,9 @@ export const FilterRow = ({
 
     return (
         <div className="container mx-auto mt-4 mb-4">
-            <div className="flex flex-wrap md:flex-nowrap justify-center items-end gap-4 px-4 md:px-0">
+            <div className="flex flex-wrap lg:flex-nowrap justify-center items-end gap-4 px-4 lg:px-0">
                 {searchForm.guestOptions.enabled && (
-                    <div className="order-2 md:order-1">
+                    <div className="order-2 lg:order-1">
                         <GuestSelector
                             roomCount={localFilter.roomCount ?? 1}
                             showDetailedSummary={true}
@@ -93,7 +93,7 @@ export const FilterRow = ({
                 )}
 
                 {searchForm.roomOptions.enabled && (
-                    <div className="order-3 md:order-2">
+                    <div className="order-3 lg:order-2">
                         <Select
                             value={localFilter.roomCount?.toString()}
                             onValueChange={handleRoomCountChange}
@@ -131,7 +131,7 @@ export const FilterRow = ({
                     </div>
                 )}
 
-                <div className="order-4 md:order-3">
+                <div className="order-4 lg:order-3">
                     <Select
                         value={localFilter.bedCount?.toString()}
                         onValueChange={handleBedCountChange}
@@ -168,7 +168,7 @@ export const FilterRow = ({
                     </Select>
                 </div>
 
-                <div className="order-1 md:order-4">
+                <div className="order-1 lg:order-4">
                     <div style={{width: "510px"}} className="relative">
                         <DatePickerWithRange
                             propertyId={filter.propertyId}
@@ -187,7 +187,7 @@ export const FilterRow = ({
 
                 <Button
                     onClick={handleSearch}
-                    className="bg-primary text-white px-6 order-5 md:order-5"
+                    className="bg-primary text-white px-6 order-5 lg:order-5"
                     style={{width: "168px", height: "66px"}}
                 >
                     SEARCH DATES

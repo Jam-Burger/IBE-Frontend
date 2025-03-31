@@ -240,14 +240,14 @@ const RoomsListPage = () => {
 
             {/* Scrollable content area with sticky filter */}
             <div className="container mx-auto flex-grow overflow-hidden">
-                <div className="flex flex-col mt-6 md:flex-row h-full px-6 md:px-0">
+                <div className="flex flex-col mt-6 lg:flex-row h-full px-6 lg:px-0">
                     {/* Desktop filter sidebar - hidden on mobile */}
-                    <div className="hidden md:block md:w-[293px] md:sticky md:top-0 self-start h-fit flex-shrink-0">
+                    <div className="hidden lg:block lg:w-[293px] lg:sticky lg:top-0 self-start h-fit flex-shrink-0">
                         <RoomFilters/>
                     </div>
 
                     {/* Mobile filter button - fixed position */}
-                    <div className="fixed bottom-6 right-6 z-30 md:hidden">
+                    <div className="fixed bottom-6 right-6 z-30 lg:hidden">
                         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                             <SheetTrigger asChild>
                                 <Button
@@ -269,9 +269,9 @@ const RoomsListPage = () => {
                     </div>
 
                     {/* Scrollable room results */}
-                    <div className="flex-1 md:ml-16 overflow-y-auto pb-6 pr-4">
+                    <div className="flex-1 lg:ml-16 overflow-y-auto pb-6 pr-4">
                         <div
-                            className="flex justify-between items-center mb-4 md:sticky md:top-0 bg-white md:z-10 py-3">
+                            className="flex justify-between items-center mb-4 lg:sticky lg:top-0 bg-white lg:z-10 py-3">
                             <h2 className="text-xl font-bold">Room Results</h2>
                             <div className="flex items-center text-sm font-[600]">
                                 <span className="mr-6 border-r border-gray-300 pr-6">
@@ -324,7 +324,7 @@ const RoomsListPage = () => {
                         </div>
 
                         <div
-                            className="grid w-fit justify-self-center grid-cols-1 md:grid-cols-3 gap-4 pb-8 px-2 justify-center items-center">
+                            className="grid w-fit justify-self-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8 px-2 justify-center items-center">
                             {roomsData.items.length > 0 ? (
                                 roomsData.items.map((room: Room) => (
                                     <RoomCard

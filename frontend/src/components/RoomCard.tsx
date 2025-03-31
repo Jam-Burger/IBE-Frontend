@@ -142,7 +142,7 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                         <span className="text-sm text-gray-500">per night</span>
                     </div>
                     <Button
-                        className="w-[128px] h-[44px] font-[600] text-sm leading-[140%] tracking-[2%]   "
+                        className="min-w-[128px] h-[44px] font-[600] text-sm leading-[140%] tracking-[2%]   "
                         onClick={handleRoomSelect}
                     >
                         SELECT ROOM

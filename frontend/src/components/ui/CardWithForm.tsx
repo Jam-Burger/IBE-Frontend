@@ -120,7 +120,8 @@ const CardWithForm = () => {
                     {/* Property Name */}
                     <div className="flex flex-col space-y-2">
                         <Label htmlFor="property">Property name</Label>
-                        <Select value={propertyId.toString()} onValueChange={(value) => handlePropertyChange(parseInt(value))}>
+                        <Select value={propertyId.toString()}
+                                onValueChange={(value) => handlePropertyChange(parseInt(value))}>
                             <SelectTrigger
                                 id="property"
                                 className="w-full min-h-[48px] text-gray-700 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
@@ -156,23 +157,15 @@ const CardWithForm = () => {
 
                     <div className="flex flex-col space-y-2">
                         <Label>Select dates</Label>
-                        {propertyId !== 0 ? (
+                        {
                             <DatePickerWithRange
                                 propertyId={propertyId}
-                                disabled={false}
+                                disabled={propertyId === 0}
                                 className="h-[48px]"
                                 grayBorder={true}
                                 displayStyle="default"
                             />
-                        ) : (
-                            <DatePickerWithRange
-                                propertyId={0}
-                                disabled={true}
-                                className="h-[48px]"
-                                grayBorder={true}
-                                displayStyle="default"
-                            />
-                        )}
+                        }
                     </div>
 
                     {/* Guests & Rooms */}

@@ -5,8 +5,7 @@ import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
 import {MdOutlineCalendarMonth} from "react-icons/md";
 import {DateRange} from "react-day-picker";
-import {StateStatus} from "../../types";
-import {SerializableDateRange} from "../../types/Filter";
+import {SerializableDateRange, StateStatus} from "../../types";
 
 import {cn, convertToLocaleCurrency, toSerializableDateRange} from "../../lib/utils";
 import {Button} from "./Button";
@@ -206,11 +205,11 @@ export function DatePickerWithRange({
                     (
                         <div className={`${textColor}`}>
                             {originalPrice !== discountedPrice && (
-                                <div className="line-through text-gray-500 text-sm">
+                                <div className="line-through text-gray-500 text-xs">
                                     {convertToLocaleCurrency(currencySymbol, originalPrice, multiplier)}
                                 </div>
                             )}
-                            <div className="text-sm">
+                            <div className="text-xs">
                                 {convertToLocaleCurrency(currencySymbol, originalPrice, multiplier)}
                             </div>
                         </div>
@@ -548,7 +547,7 @@ export function DatePickerWithRange({
                             </span>
                         </div>
                         <Button
-                            className="bg-primary h-8 text-sm px-6 w-fit"
+                            className="h-8 text-sm px-6"
                             disabled={!date?.from || !date?.to}
                             onClick={handleApplyDates}
                         >
