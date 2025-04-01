@@ -10,7 +10,7 @@ import {Label} from "./Label";
 export interface GuestSelectorProps {
     roomCount: number;
     showDetailedSummary?: boolean;
-    width?: string;
+    className?: string;
     height?: string;
     value?: Record<string, number>;
     onChange?: (guests: Record<string, number>) => void;
@@ -19,7 +19,7 @@ export interface GuestSelectorProps {
 export const GuestSelector = ({
                                   roomCount,
                                   showDetailedSummary = false,
-                                  width,
+                                  className,
                                   height,
                                   value,
                                   onChange,
@@ -130,7 +130,7 @@ export const GuestSelector = ({
     if (!guestOptions?.enabled) return null;
 
     return (
-        <div style={{width: width ?? "100%"}}>
+        <div className={className}>
             <Select>
                 <SelectTrigger
                     className={`w-full text-gray-500 ${

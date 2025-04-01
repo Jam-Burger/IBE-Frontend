@@ -117,11 +117,6 @@ const RoomsListPage = () => {
         completed: currentStep > index,
     }));
 
-    const handleStepClick = (stepId: number) => {
-        if (stepId <= currentStep || stepId === currentStep + 1) {
-            setCurrentStep(stepId);
-        }
-    };
 
     if (loading) {
         return (
@@ -147,11 +142,11 @@ const RoomsListPage = () => {
     };
 
     const handleRoomSelection = () => {
-        handleStepClick(2);
+        setCurrentStep(0);
     };
 
     const handlePackageSelection = () => {
-        handleStepClick(2);
+        setCurrentStep(2);
     };
 
     const handlePageChange = (page: number) => {
@@ -166,21 +161,21 @@ const RoomsListPage = () => {
             />
             <div className="h-[92px] flex-shrink-0 bg-[#E4E4E4] flex items-center justify-center">
                 <div className="flex items-center justify-center h-[92px] flex-shrink-0">
-                    <div className="w-[417px] relative">
+                    <div className="w-[300px] md:w-[417px] relative">
                         <div className="flex items-center justify-between relative">
                             <div
                                 className={`absolute top-[14px] h-[2px] left-[32px] right-[50%] z-[1] ${
                                     currentStep > 0
-                                        ? "bg-[#26266D]"
-                                        : "bg-[#C1C2C2]"
+                                        ? "bg-primary"
+                                        : "bg-gray-300"
                                 }`}
                             ></div>
 
                             <div
                                 className={`absolute top-[14px] h-[2px] left-[50%] right-[32px] z-[1] ${
                                     currentStep > 1
-                                        ? "bg-[#26266D]"
-                                        : "bg-[#C1C2C2]"
+                                        ? "bg-primary"
+                                        : "bg-gray-300"
                                 }`}
                             ></div>
 
@@ -201,9 +196,7 @@ const RoomsListPage = () => {
                                         )}
                                     >
                                         {step.completed ||
-                                        index < currentStep ? (
-                                            <FaCheck size={16}/>
-                                        ) : index === currentStep ? (
+                                        index <= currentStep ? (
                                             <FaCheck size={16}/>
                                         ) : (
                                             ""

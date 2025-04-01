@@ -182,7 +182,7 @@ const CardWithForm = () => {
                                     }`}
                                 >
                                     <Label htmlFor="guests">Guests</Label>
-                                    <GuestSelector roomCount={roomCount} width="200px" height="48px"/>
+                                    <GuestSelector roomCount={roomCount} className="w-[200px]" height="48px"/>
                                 </div>
                             )}
 

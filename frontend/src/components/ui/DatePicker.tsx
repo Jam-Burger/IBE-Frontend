@@ -91,7 +91,7 @@ export function DatePickerWithRange({
         setDate(dateRangeFromRedux);
     }, [dateRangeFromRedux]);
 
-    const startMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 2, 1), []);
+    const startMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1), []);
     const endMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 6, 1), []);
     const [currentMonth, setCurrentMonth] = React.useState<Date>(startMonth);
 
@@ -223,21 +223,22 @@ export function DatePickerWithRange({
     const renderDateContent = () => {
         if (displayStyle === "checkInOut") {
             return (
-                <div className="flex items-center w-full">
-                    <div className="flex flex-col mr-16">
+                <div className="flex items-center justify-between gap-2 w-full">
+                    <div className="flex flex-col flex-5">
                         <span className="text-sm font-medium text-gray-500">Check in between</span>
                         <span className="text-black font-medium">
                             {date?.from ? format(date.from, "MMM dd, yyyy") : "Any Date"}
                         </span>
                     </div>
-                    <div className="text-gray-300 text-xl mx-6"
-                         style={{height: '30px', display: 'flex', alignItems: 'center'}}>|
-                    </div>
-                    <div className="flex flex-col">
+                    <div className="text-gray-400 text-xl mx-3 flex items-center f-[30px]">|</div>
+                    <div className="flex flex-col flex-5">
                         <span className="text-sm font-medium text-gray-500">Check out between</span>
                         <span className="text-black font-medium">
                             {date?.to ? format(date.to, "MMM dd, yyyy") : "Any Date"}
                         </span>
+                    </div>
+                    <div className="ml-auto">
+                        <MdOutlineCalendarMonth className="h-6 w-6 text-black"/>
                     </div>
                 </div>
             );

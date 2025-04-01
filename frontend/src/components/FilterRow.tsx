@@ -9,7 +9,6 @@ import {
     SelectItem,
     SelectTrigger
 } from "./ui";
-import {MdOutlineCalendarMonth} from "react-icons/md";
 import {Filter} from "../types";
 import {DateRange} from "react-day-picker";
 import {toSerializableDateRange} from "../lib/utils";
@@ -84,7 +83,7 @@ export const FilterRow = ({
                         <GuestSelector
                             roomCount={localFilter.roomCount ?? 1}
                             showDetailedSummary={true}
-                            width="264px"
+                            className="w-[300px] lg:w-[264px] min-h-[68px]"
                             height="68px"
                             value={localFilter.guests}
                             onChange={handleGuestChange}
@@ -169,19 +168,16 @@ export const FilterRow = ({
                 </div>
 
                 <div className="order-1 lg:order-4">
-                    <div style={{width: "510px"}} className="relative">
+                    <div className="relative w-fit">
                         <DatePickerWithRange
                             propertyId={filter.propertyId}
                             disabled={false}
-                            className="h-[68px]"
+                            className="h-[68px] w-fit md:w-[510px]"
                             grayBorder={true}
                             displayStyle="checkInOut"
                             value={localFilter.dateRange}
                             onChange={handleDateChange}
                         />
-                        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                            <MdOutlineCalendarMonth className="h-6 w-6 text-black"/>
-                        </div>
                     </div>
                 </div>
 
