@@ -13,8 +13,8 @@ const LOCATION_API_URL = import.meta.env.VITE_LOCATION_API_URL;
 
 interface RoomRateParams {
     propertyId: number;
-    startDate: string;
-    endDate: string;
+    startDate: Date;
+    endDate: Date;
 }
 
 interface SpecialDiscountParams {
@@ -40,7 +40,7 @@ export const api = {
         const {propertyId, startDate, endDate, tenantId} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-rates/daily-minimum`,
-            {params: {start_date: startDate, end_date: endDate}}
+            {params: {start_date: startDate.toISOString().split("T")[0], end_date: endDate.toISOString().split("T")[0]}}
         );
         return response.data;
     },
@@ -67,6 +67,13 @@ export const api = {
             `${tenantId}/${propertyId}/room-types/filter`,
             {params}
         );
+        const updatedItems = response.data.data.items.map((item: any) => {
+            const averageRate= item.roomRates.reduce((sum: number, rate: any) => sum + rate.price, 0) / item.roomRates.length;
+            item.averagePrice= averageRate;
+            return item;
+        });
+        console.log(updatedItems);
+        response.data.data.items = updatedItems;
         return response.data;
     },
 

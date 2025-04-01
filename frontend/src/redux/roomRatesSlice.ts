@@ -1,13 +1,12 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import {format} from 'date-fns';
 import {BaseState, RoomRate, StateStatus} from '../types';
 import {api} from '../lib/api-client';
 
 interface FetchRoomRatesParams {
     tenantId: string;
     propertyId: number;
-    currentMonth: Date;
-    endMonth: Date;
+    startDate: Date;
+    endDate: Date;
 }
 
 export interface RoomRatesState extends BaseState {
@@ -22,9 +21,7 @@ const initialState: RoomRatesState = {
 
 export const fetchRoomRates = createAsyncThunk(
     'roomRates/fetchRoomRates',
-    async ({tenantId, currentMonth, propertyId, endMonth}: FetchRoomRatesParams) => {
-        const startDate = format(currentMonth, "yyyy-MM-dd");
-        const endDate = format(endMonth, "yyyy-MM-dd");
+    async ({tenantId, startDate, propertyId, endDate}: FetchRoomRatesParams) => {
         const response = await api.getRoomRates({
             tenantId,
             propertyId,

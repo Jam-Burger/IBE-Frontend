@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useMemo} from "react";
 import {addDays, addMonths, differenceInDays, format, isBefore, startOfToday, subMonths} from "date-fns";
 import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
@@ -91,9 +90,7 @@ export function DatePickerWithRange({
         setDate(dateRangeFromRedux);
     }, [dateRangeFromRedux]);
 
-    const startMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1), []);
-    const endMonth = useMemo<Date>(() => new Date(new Date().getFullYear(), 6, 1), []);
-    const [currentMonth, setCurrentMonth] = React.useState<Date>(startMonth);
+    const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date());
 
     const handleSelect = (newRange: DateRange | undefined) => {
         if (!newRange) {
@@ -161,23 +158,21 @@ export function DatePickerWithRange({
     };
 
     const handleMonthChange = (newMonth: Date) => {
-        if (newMonth >= startMonth && newMonth <= endMonth) {
-            setCurrentMonth(newMonth);
-        }
+        setCurrentMonth(newMonth);
     };
 
     React.useEffect(() => {
         if (tenantId && propertyId) {
             dispatch(fetchRoomRates({
                 tenantId,
-                currentMonth: startMonth,
                 propertyId,
-                endMonth
+                startDate: currentMonth,
+                endDate: addMonths(currentMonth, 2)
             }));
         } else {
             dispatch(clearRoomRates());
         }
-    }, [tenantId, propertyId, dispatch, startMonth, endMonth]);
+    }, [tenantId, propertyId, dispatch, currentMonth]);
 
     const renderDayContents = (day: Date) => {
         if (isBefore(day, today)) {
