@@ -48,6 +48,11 @@ function RoomFilters() {
         };
         fetchAmenities();
     }, [tenantId, propertyId]);
+    
+    // Create debounced versions of the filter handlers
+    const debouncedUpdateFilter = useDebounce((updates: Partial<Filter>) => {
+        dispatch(updateFilter(updates));
+    }, 500);
 
     if (!roomsListConfig) {
         return (
@@ -63,10 +68,7 @@ function RoomFilters() {
     const roomSizeConfig = filterConfig.filterGroups.roomSize;
     const amenitiesConfig = filterConfig.filterGroups.amenities;
 
-    // Create debounced versions of the filter handlers
-    const debouncedUpdateFilter = useDebounce((updates: Partial<Filter>) => {
-        dispatch(updateFilter(updates));
-    }, 500);
+    
 
     const handleSingleBedChange = () => {
         const newBedTypes = {
