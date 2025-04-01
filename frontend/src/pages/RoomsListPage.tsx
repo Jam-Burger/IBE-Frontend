@@ -317,16 +317,30 @@ const RoomsListPage = () => {
                         </div>
 
                         <div
-                            className="grid w-fit justify-self-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8 px-2 justify-center items-center">
+                            className="grid w-fit justify-self-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8 px-2 justify-center items-start">
                             {roomsData.items.length > 0 ? (
-                                roomsData.items.map((room: Room) => (
-                                    <RoomCard
-                                        key={room.roomTypeId}
-                                        room={room}
+                                roomsData.items.map((room: Room) => {
+                                    // Find the room with minimum average price
+                                    const minPriceRoom = roomsData.items.reduce((min, current) => 
+                                        current.averagePrice < min.averagePrice ? current : min
+                                    );
+                                    
+                                    // Add special deal only to the room with minimum price
+                                    const roomWithDeal = {
+                                        ...room,
+                                        specialDeal: room.roomTypeId === minPriceRoom.roomTypeId ? {
+                                            discount: 10,
+                                            minNights: 3
+                                        } : undefined
+                                    };
+                                    
+                                    return <RoomCard
+                                        key={roomWithDeal.roomTypeId}
+                                        room={roomWithDeal}
                                         onSelectRoom={handleRoomSelection}
                                         onSelectPackage={handlePackageSelection}
                                     />
-                                ))
+                                })
                             ) : (
                                 <div className="col-span-3 text-center py-8">
                                     No rooms found

@@ -535,12 +535,29 @@ export function DatePickerWithRange({
                     </div>
                     <div
                         className="p-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
-                        <div className="flex items-center mb-2 sm:mb-0">
+                        <div className="flex flex-col items-start mb-2 sm:mb-0">
                             <span className="text-red-500 text-xs mr-4">
                                 {date?.from && date?.to && differenceInDays(date.to, date.from) > 14
                                     ? "Max. length of stay: 14 days"
                                     : ""}
                             </span>
+                            {date?.from && date?.to && (
+                                <div className="text-sm text-gray-700 mt-2">
+                                    Total price: {(() => {
+                                        let total = 0;
+                                        let currentDate = new Date(date.from);
+                                        while (currentDate < date.to) {
+                                            const dayStr = format(currentDate, "yyyy-MM-dd");
+                                            const rate = formattedRoomRates[dayStr];
+                                            if (rate) {
+                                                total += rate.discountedRate;
+                                            }
+                                            currentDate = addDays(currentDate, 1);
+                                        }
+                                        return convertToLocaleCurrency(selectedCurrency.symbol, total, multiplier);
+                                    })()}
+                                </div>
+                            )}
                         </div>
                         <Button
                             className="h-8 text-sm px-6"
