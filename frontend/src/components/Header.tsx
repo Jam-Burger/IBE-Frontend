@@ -11,7 +11,7 @@ import { Link, useParams } from "react-router-dom";
 import { Button, Separator, Sheet, SheetContent, SheetTrigger } from "./ui";
 import { FiMenu } from "react-icons/fi";
 import { fetchConfig } from "../redux/configSlice.ts";
-import { ConfigType } from "../types/ConfigType";
+import { ConfigType } from "../types";
 import { useAuth } from "react-oidc-context";
 
 const Header: React.FC = () => {
