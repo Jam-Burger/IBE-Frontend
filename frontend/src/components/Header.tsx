@@ -7,14 +7,16 @@ import {fetchExchangeRates, setSelectedCurrency} from "../redux/currencySlice";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
 import {FiMenu} from "react-icons/fi";
-import {BiLogIn} from "react-icons/bi";
+import {BiLogIn, BiLogOut} from "react-icons/bi";
 import {fetchConfig} from "../redux/configSlice.ts";
 import {ConfigType} from "../types/ConfigType";
+import {useAuth} from "react-oidc-context";
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {tenantId} = useParams<{ tenantId: string }>();
+    const auth = useAuth();
 
     const {selectedLanguage} = useAppSelector(state => state.language);
     const {selectedCurrency} = useAppSelector(state => state.currency);
@@ -24,6 +26,8 @@ const Header: React.FC = () => {
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
     const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+
+    const isAuthenticated = auth.isAuthenticated;
 
     useEffect(() => {
         if (!tenantId) {
@@ -66,6 +70,21 @@ const Header: React.FC = () => {
     const selectCurrency = (currency: { code: string; symbol: string }) => {
         dispatch(setSelectedCurrency(currency));
         setCurrencyDropdownOpen(false);
+    };
+
+    const handleLogin = () => {
+        navigate(`/${tenantId}/login`);
+    };
+
+    const handleLogout = () => {
+        // First remove the user locally
+        auth.removeUser();
+        
+        // Then redirect to Cognito logout
+        const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+        const logoutUri = window.location.origin + "/auth/logout";
+        const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
+        window.location.href = `https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
     };
 
     if (isLoading) {
@@ -115,16 +134,29 @@ const Header: React.FC = () => {
                                     MY BOOKINGS
                                 </Button>
 
-                                <Button
-                                    className="w-full bg-primary hover:bg-blue-800 text-white uppercase font-medium text-sm rounded"
-                                    onClick={() => {
-                                        navigate(`/${tenantId}/login`);
-                                        setMobileMenuOpen(false);
-                                    }}
-                                >
-                                    <BiLogIn className="mr-2 h-4 w-4"/>
-                                    LOGIN
-                                </Button>
+                                {isAuthenticated ? (
+                                    <Button
+                                        className="w-full bg-red-600 hover:bg-red-700 text-white uppercase font-medium text-sm rounded"
+                                        onClick={() => {
+                                            handleLogout();
+                                            setMobileMenuOpen(false);
+                                        }}
+                                    >
+                                        <BiLogOut className="mr-2 h-4 w-4"/>
+                                        LOGOUT
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        className="w-full bg-primary hover:bg-blue-800 text-white uppercase font-medium text-sm rounded"
+                                        onClick={() => {
+                                            handleLogin();
+                                            setMobileMenuOpen(false);
+                                        }}
+                                    >
+                                        <BiLogIn className="mr-2 h-4 w-4"/>
+                                        LOGIN
+                                    </Button>
+                                )}
                             </div>
 
                             <Separator className="my-4"/>
@@ -237,13 +269,22 @@ const Header: React.FC = () => {
                         </div>
                     )}
                 </div>
-                <Button
-                    className="min-w-[85px] h-[35px] text-sm"
-                    onClick={() => {
-                        navigate(`/${tenantId}/login`);
-                    }}>
-                    LOGIN
-                </Button>
+                
+                {isAuthenticated ? (
+                    <Button
+                        className="min-w-[85px] h-[35px] text-sm bg-red-600 hover:bg-red-700 flex items-center"
+                        onClick={handleLogout}>
+                        <BiLogOut className="mr-1 h-4 w-4" />
+                        LOGOUT
+                    </Button>
+                ) : (
+                    <Button
+                        className="min-w-[85px] h-[35px] text-sm flex items-center"
+                        onClick={handleLogin}>
+                        <BiLogIn className="mr-1 h-4 w-4" />
+                        LOGIN
+                    </Button>
+                )}
             </div>
         </header>
     );

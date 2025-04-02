@@ -1,10 +1,11 @@
-import {createHashRouter, Navigate} from "react-router-dom";
+import {createBrowserRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
 import {HomePage, LoginPage, NotFoundPage, RoomsListPage} from "../pages";
 import {Routes} from "./routes";
+import {AuthCallback} from "../components/auth/AuthCallback";
 
 const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID;
-export const Router = createHashRouter([
+export const Router = createBrowserRouter([
     {
         path: Routes.ROOT,
         element: <Navigate to={`/${DEFAULT_TENANT_ID}`} replace/>
@@ -12,6 +13,14 @@ export const Router = createHashRouter([
     {
         path: Routes.LOGIN,
         element: <LoginPage/>,
+    },
+    {
+        path: Routes.AUTH_CALLBACK,
+        element: <AuthCallback/>,
+    },
+    {
+        path: Routes.AUTH_LOGOUT,
+        element: <Navigate to="/" replace/>,
     },
     {
         path: Routes.HOME,

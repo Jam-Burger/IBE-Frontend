@@ -1,8 +1,44 @@
-import {Link, useParams} from "react-router-dom";
+import {Link, useParams, useNavigate} from "react-router-dom";
+import {useAuth} from "react-oidc-context";
 
 const LoginPage = () => {
-    // Get tenant ID from URL
     const {tenantId} = useParams<{ tenantId: string }>();
+    const auth = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogin = () => {
+        auth.signinRedirect();
+    };
+
+    const handleLogout = () => {
+        // Navigate to logout handler which will clear the user session
+        navigate('/auth/logout');
+    };
+
+    if (auth.isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (auth.error) {
+        return <div>Encountering error... {auth.error.message}</div>;
+    }
+
+    if (auth.isAuthenticated) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-100">
+                <div className="bg-white p-8 rounded-2xl shadow-lg w-96">
+                    <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
+                        Welcome, {auth.user?.profile.email}
+                    </h2>
+                    <button
+                        onClick={handleLogout}
+                        className="w-full bg-red-600 text-white p-3 rounded-xl font-semibold hover:bg-red-700 transition">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -10,48 +46,11 @@ const LoginPage = () => {
                 <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
                     Login to Your Account
                 </h2>
-                <form>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="email">
-                            Email
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            placeholder="Enter your email"
-                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="password">
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            placeholder="Enter your password"
-                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
-                        />
-                    </div>
-                    <div className="flex justify-between items-center mb-4">
-                        <label className="flex items-center text-sm text-gray-600">
-                            <input type="checkbox" className="mr-2"/> Remember me
-                        </label>
-                        <Link to={`/${tenantId}/forgot-password`} className="text-blue-600 text-sm hover:underline">
-                            Forgot Password?
-                        </Link>
-                    </div>
-                    <button
-                        className="w-full bg-primary text-white p-3 rounded-xl font-semibold hover:bg-[#1f1f5f] transition">
-                        Login
-                    </button>
-                </form>
-                <p className="text-center text-gray-600 text-sm mt-4">
-                    Don't have an account?
-                    <Link to={`/${tenantId}/signup`} className="text-blue-600 font-semibold hover:underline">
-                        Sign Up
-                    </Link>
-                </p>
+                <button
+                    onClick={handleLogin}
+                    className="w-full bg-primary text-white p-3 rounded-xl font-semibold hover:bg-[#1f1f5f] transition">
+                    Sign in with Cognito
+                </button>
             </div>
         </div>
     );
