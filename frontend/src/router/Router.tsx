@@ -1,6 +1,6 @@
 import {createBrowserRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
-import {HomePage, LoginPage, NotFoundPage, RoomsListPage} from "../pages";
+import {HomePage, NotFoundPage, RoomsListPage} from "../pages";
 import {Routes} from "./routes";
 import {AuthCallback} from "../components/auth/AuthCallback";
 
@@ -9,10 +9,6 @@ export const Router = createBrowserRouter([
     {
         path: Routes.ROOT,
         element: <Navigate to={`/${DEFAULT_TENANT_ID}`} replace/>
-    },
-    {
-        path: Routes.LOGIN,
-        element: <LoginPage/>,
     },
     {
         path: Routes.AUTH_CALLBACK,
