@@ -1,8 +1,7 @@
-import {Link, useParams, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {useAuth} from "react-oidc-context";
 
 const LoginPage = () => {
-    const {tenantId} = useParams<{ tenantId: string }>();
     const auth = useAuth();
     const navigate = useNavigate();
 
