@@ -27,6 +27,10 @@ jobs:
       TF_VAR_aws_region: ${{ vars.AWS_REGION }}
       TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
       TF_VAR_team_name: ${{ vars.TEAM_NAME }}
+      TF_VAR_google_client_id: ${{ vars.GOOGLE_CLIENT_ID }}
+      TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      TF_VAR_fb_app_id: ${{ vars.FB_APP_ID }}
+      TF_VAR_fb_app_secret: ${{ secrets.FB_APP_SECRET }}
 
     steps:
       - name: Checkout code
