@@ -84,54 +84,99 @@ const extractGuestType = (key: string): string => {
 };
 
 /**
+ * Validates a number parameter
+ */
+const validateNumber = (value: string): number | null => {
+    const num = Number(value);
+    return isNaN(num) ? null : num;
+};
+
+/**
+ * Validates a boolean parameter
+ */
+const validateBoolean = (value: string): boolean | null => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return null;
+};
+
+/**
  * Converts URLSearchParams back to a partial filter object
  */
 export const searchParamsToFilter = (params: URLSearchParams): Partial<Filter> => {
     // Convert URLSearchParams to a Record for easier processing
     const paramsRecord: Record<string, string> = {};
     params.forEach((value, key) => {
-        paramsRecord[key] = value;
+        paramsRecord[key.toLowerCase()] = value;
     });
 
     const filter: Partial<Filter> = {};
 
-    // Parse simple params
-    if ('propertyid' in paramsRecord) filter.propertyId = Number(paramsRecord.propertyid);
-    if ('roomcount' in paramsRecord) filter.roomCount = Number(paramsRecord.roomcount);
-    if ('isaccessible' in paramsRecord) filter.isAccessible = paramsRecord.isaccessible === 'true';
-    if ('sortby' in paramsRecord) filter.sortBy = paramsRecord.sortby as SortOption;
+    // Parse simple params with validation
+    const propertyId = validateNumber(paramsRecord.propertyid);
+    if (propertyId !== null) filter.propertyId = propertyId;
 
-    // Parse guest counts
+    const roomCount = validateNumber(paramsRecord.roomcount);
+    if (roomCount !== null && roomCount > 0) filter.roomCount = roomCount;
+
+    const isAccessible = validateBoolean(paramsRecord.isaccessible);
+    if (isAccessible !== null) filter.isAccessible = isAccessible;
+
+    if (paramsRecord.sortby && Object.values(SortOption).includes(paramsRecord.sortby as SortOption)) {
+        filter.sortBy = paramsRecord.sortby as SortOption;
+    }
+
+    // Parse guest counts with validation
     const guestEntries: [string, number][] = [];
 
     // Check for individual guest types (guest_adult, guest_child, etc)
     Object.entries(paramsRecord).forEach(([key, value]) => {
         if (key.startsWith('guest_')) {
             const guestType = extractGuestType(key);
-            guestEntries.push([guestType, Number(value)]);
+            const count = validateNumber(value);
+            if (count !== null && count >= 0) {
+                guestEntries.push([guestType, count]);
+            }
         }
     });
 
-    // If we found any guest entries, create the guests object
+    // If we found any valid guest entries, create the guests object
     if (guestEntries.length > 0) {
         filter.guests = Object.fromEntries(guestEntries);
     }
     // If we only have totalGuests but no breakdown, use a default structure
-    else if ('totalguests' in paramsRecord) {
-        const totalGuests = Number(paramsRecord.totalguests);
-        filter.guests = {adult: totalGuests}; // Default all guests to adults
+    else if (paramsRecord.totalguests) {
+        const totalGuests = validateNumber(paramsRecord.totalguests);
+        if (totalGuests !== null && totalGuests > 0) {
+            filter.guests = {adult: totalGuests}; // Default all guests to adults
+        }
     }
 
-    // Parse date range - clean date strings
-    if ('datefrom' in paramsRecord || 'dateto' in paramsRecord) {
+    // Parse date range with validation
+    if (paramsRecord.datefrom || paramsRecord.dateto) {
         const dateRange: SerializableDateRange = {};
-        if ('datefrom' in paramsRecord) dateRange.from = sanitizeDate(paramsRecord.datefrom);
-        if ('dateto' in paramsRecord) dateRange.to = sanitizeDate(paramsRecord.dateto);
-        filter.dateRange = dateRange;
+        
+        if (paramsRecord.datefrom) {
+            const fromDate = sanitizeDate(paramsRecord.datefrom);
+            if (fromDate && !isNaN(Date.parse(fromDate))) {
+                dateRange.from = fromDate;
+            }
+        }
+        
+        if (paramsRecord.dateto) {
+            const toDate = sanitizeDate(paramsRecord.dateto);
+            if (toDate && !isNaN(Date.parse(toDate))) {
+                dateRange.to = toDate;
+            }
+        }
+
+        if (dateRange.from || dateRange.to) {
+            filter.dateRange = dateRange;
+        }
     }
 
-    // Parse bed types from comma-separated list
-    if ('bedtypes' in paramsRecord) {
+    // Parse bed types with validation
+    if (paramsRecord.bedtypes) {
         const bedTypesList = paramsRecord.bedtypes.split(',');
         filter.bedTypes = {
             singleBed: bedTypesList.includes('single'),
@@ -139,24 +184,37 @@ export const searchParamsToFilter = (params: URLSearchParams): Partial<Filter> =
         };
     }
 
-    // Parse arrays
-    if ('ratings' in paramsRecord) {
-        filter.ratings = paramsRecord.ratings.split(',').map(Number);
+    // Parse arrays with validation
+    if (paramsRecord.ratings) {
+        const ratings = paramsRecord.ratings.split(',')
+            .map(validateNumber)
+            .filter((rating): rating is number => rating !== null && rating >= 0 && rating <= 5);
+        if (ratings.length > 0) {
+            filter.ratings = ratings;
+        }
     }
 
-    if ('amenities' in paramsRecord) {
-        // Decode URL-encoded amenity values
-        filter.amenities = paramsRecord.amenities.split(',').map(amenity =>
-            decodeURIComponent(amenity)
-        );
+    if (paramsRecord.amenities) {
+        // Decode URL-encoded amenity values and filter out empty strings
+        const amenities = paramsRecord.amenities.split(',')
+            .map(amenity => decodeURIComponent(amenity))
+            .filter(amenity => amenity.length > 0);
+        if (amenities.length > 0) {
+            filter.amenities = amenities;
+        }
     }
 
-    // Parse room size range
-    if ('roomsizemin' in paramsRecord && 'roomsizemax' in paramsRecord) {
-        filter.roomSize = [
-            Number(paramsRecord.roomsizemin),
-            Number(paramsRecord.roomsizemax)
-        ];
+    // Parse room size range with validation
+    if (paramsRecord.roomsizemin || paramsRecord.roomsizemax) {
+        const minSize = validateNumber(paramsRecord.roomsizemin);
+        const maxSize = validateNumber(paramsRecord.roomsizemax);
+        
+        if (minSize !== null || maxSize !== null) {
+            filter.roomSize = [
+                minSize !== null ? minSize : -1,
+                maxSize !== null ? maxSize : -1
+            ];
+        }
     }
 
     return filter;
