@@ -1,6 +1,6 @@
 import {createBrowserRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
-import {HomePage, NotFoundPage, RoomsListPage} from "../pages";
+import {CheckoutPage, HomePage, NotFoundPage, RoomsListPage} from "../pages";
 import {Routes} from "./routes";
 import {AuthCallback} from "../components/auth/AuthCallback";
 
@@ -30,6 +30,13 @@ export const Router = createBrowserRouter([
         element: <AppLayout/>,
         children: [
             {index: true, element: <RoomsListPage/>},
+        ],
+    },
+    {
+        path: Routes.CHECKOUT,
+        element: <AppLayout/>,
+        children: [
+            {index: true, element: <CheckoutPage/>},
         ],
     },
     {

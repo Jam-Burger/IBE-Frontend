@@ -46,13 +46,13 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
 
     const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
     const roomsListConfig = useAppSelector(state => state.config.roomsListConfig);
-    
+
     // Check if various features are enabled based on existing config
     const showAmenities = roomsListConfig?.configData.filters.filterGroups.amenities.enabled;
     const amenitiesLabel = roomsListConfig?.configData.filters.filterGroups.amenities.label;
     const showRoomSize = roomsListConfig?.configData.filters.filterGroups.roomSize.enabled;
     const showBedTypes = roomsListConfig?.configData.filters.filterGroups.bedTypes.enabled;
-    
+
 
     const standardPackage = {
         title: "Standard Rate",
