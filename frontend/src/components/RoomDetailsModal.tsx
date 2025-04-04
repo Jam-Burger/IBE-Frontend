@@ -45,6 +45,14 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
     const [appliedPromoCode, setAppliedPromoCode] = useState("");
 
     const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
+    const roomsListConfig = useAppSelector(state => state.config.roomsListConfig);
+    
+    // Check if various features are enabled based on existing config
+    const showAmenities = roomsListConfig?.configData.filters.filterGroups.amenities.enabled;
+    const amenitiesLabel = roomsListConfig?.configData.filters.filterGroups.amenities.label;
+    const showRoomSize = roomsListConfig?.configData.filters.filterGroups.roomSize.enabled;
+    const showBedTypes = roomsListConfig?.configData.filters.filterGroups.bedTypes.enabled;
+
 
     const standardPackage = {
         title: "Standard Rate",
@@ -239,8 +247,12 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                     <div className="w-full lg:w-auto mb-6 lg:mb-0">
                         <div className="flex flex-wrap gap-3 text-gray-600 text-sm md:text-base">
                             <span className="flex items-center gap-2"><GoPerson/>{guestText}</span>
-                            <span className="flex items-center gap-2"><MdOutlineBed/>{bedText}</span>
-                            <span>{roomSize}</span>
+                            {showBedTypes && (
+                                <span className="flex items-center gap-2"><MdOutlineBed/>{bedText}</span>
+                            )}
+                            {showRoomSize && (
+                                <span>{roomSize}</span>
+                            )}
                         </div>
 
                         {/* Description */}
@@ -250,20 +262,22 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                     </div>
 
                     {/* Amenities section */}
-                    <div className="w-full lg:w-auto mt-4 lg:mt-0">
-                        <h2 className="text-base md:text-lg font-medium text-black mb-2">
-                            Amenities
-                        </h2>
+                    {showAmenities && (
+                        <div className="w-full lg:w-auto mt-4 lg:mt-0">
+                            <h2 className="text-base md:text-lg font-medium text-black mb-2">
+                                {amenitiesLabel}
+                            </h2>
 
-                        <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                            {room.amenities.map((amenity, index) => (
-                                <span key={index}
-                                      className="flex justify-start items-center gap-2 font-normal text-sm md:text-base text-[#2F2F2F]">
-                                    <FaRegCircleCheck className="text-primary flex-shrink-0"/> {amenity}
-                                </span>
-                            ))}
+                            <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                {room.amenities.map((amenity, index) => (
+                                    <span key={index}
+                                          className="flex justify-start items-center gap-2 font-normal text-sm md:text-base text-[#2F2F2F]">
+                                        <FaRegCircleCheck className="text-primary flex-shrink-0"/> {amenity}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Pricing & Packages */}

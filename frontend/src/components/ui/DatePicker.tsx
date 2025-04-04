@@ -4,7 +4,7 @@ import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
 import {MdOutlineCalendarMonth} from "react-icons/md";
 import {DateRange} from "react-day-picker";
-import {SerializableDateRange, StateStatus} from "../../types";
+import {SerializableDateRange} from "../../types";
 
 import {cn, convertToLocaleCurrency, toSerializableDateRange} from "../../lib/utils";
 import {Button} from "./Button";
@@ -13,6 +13,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
 import {clearRoomRates, fetchRoomRates} from "../../redux/roomRatesSlice";
 import {useParams} from "react-router-dom";
 import {updateFilter} from "../../redux/filterSlice";
+import { StateStatus } from "../../types/common";
 
 interface DatePickerWithRangeProps {
     className?: string;

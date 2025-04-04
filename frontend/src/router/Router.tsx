@@ -1,6 +1,6 @@
 import {createHashRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
-import {HomePage, LoginPage, NotFoundPage, RoomsListPage} from "../pages";
+import {CheckoutPage, HomePage, LoginPage, NotFoundPage, RoomsListPage} from "../pages";
 import {Routes} from "./routes";
 
 const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID;
@@ -25,6 +25,13 @@ export const Router = createHashRouter([
         element: <AppLayout/>,
         children: [
             {index: true, element: <RoomsListPage/>},
+        ],
+    },
+    {
+        path: Routes.CHECKOUT,
+        element: <AppLayout/>,
+        children: [
+            {index: true, element: <CheckoutPage/>},
         ],
     },
     {

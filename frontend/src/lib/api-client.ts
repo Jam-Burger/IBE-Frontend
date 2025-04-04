@@ -10,6 +10,7 @@ const apiClient = axios.create({
 
 const CURRENCY_API_URL = import.meta.env.VITE_CURRENCY_API_URL;
 const LOCATION_API_URL = import.meta.env.VITE_LOCATION_API_URL;
+const COUNTRY_API_KEY = import.meta.env.VITE_COUNTRY_API_KEY;
 
 interface RoomRateParams {
     propertyId: number;
@@ -107,5 +108,42 @@ export const api = {
             {params: {start_date: startDate, end_date: endDate, promo_code: promoCode}}
         );
         return response.data;
+    },
+
+    get: async (url: string, options?: any) => {
+        try {
+            const response = await axios.get(url, options);
+            return {
+                data: response.data,
+                status: response.status
+            };
+        } catch (error) {
+            console.error(`Error in API GET request to ${url}:`, error);
+            throw error;
+        }
+    },
+
+    getCountries: async () => {
+        return api.get('https://api.countrystatecity.in/v1/countries', {
+            headers: {
+                'X-CSCAPI-KEY': COUNTRY_API_KEY
+            }
+        });
+    },
+
+    getStates: async (countryCode: string) => {
+        return api.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
+            headers: {
+                'X-CSCAPI-KEY': COUNTRY_API_KEY
+            }
+        });
+    },
+
+    getCities: async (countryCode: string, stateCode: string) => {
+        return api.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`, {
+            headers: {
+                'X-CSCAPI-KEY': COUNTRY_API_KEY
+            }
+        });
     }
 };

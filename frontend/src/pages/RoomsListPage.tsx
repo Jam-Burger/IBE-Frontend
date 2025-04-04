@@ -1,4 +1,4 @@
-import {cn} from "../lib/utils";
+
 import {FaCheck, FaChevronDown, FaFilter} from "react-icons/fa";
 import {useEffect, useState} from "react";
 import {FilterRow, RoomCard, RoomFilters} from "../components";
@@ -30,6 +30,7 @@ import {
 } from "../components/ui";
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
 import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
+import { Stepper } from '../components';
 
 const ITEMS_PER_PAGE = 3;
 
@@ -117,6 +118,14 @@ const RoomsListPage = () => {
         completed: currentStep > index,
     }));
 
+    // const stepsEnabled = stepsConfig.enabled !== false;
+    // const stepLabels = stepsConfig.labels;
+
+    // const handleStepClick = (step: number) => {
+    //     if (step < currentStep) {
+    //         setCurrentStep(step);
+    //     }
+    // };
 
     if (loading) {
         return (
@@ -159,66 +168,17 @@ const RoomsListPage = () => {
                 className="w-full bg-[#858685] h-48 flex-shrink-0"
                 style={bannerStyle}
             />
-            <div className="h-[92px] flex-shrink-0 bg-[#E4E4E4] flex items-center justify-center">
-                <div className="flex items-center justify-center h-[92px] flex-shrink-0">
-                    <div className="w-[300px] md:w-[417px] relative">
-                        <div className="flex items-center justify-between relative">
-                            <div
-                                className={`absolute top-[14px] h-[2px] left-[32px] right-[50%] z-[1] ${
-                                    currentStep > 0
-                                        ? "bg-primary"
-                                        : "bg-gray-300"
-                                }`}
-                            ></div>
-
-                            <div
-                                className={`absolute top-[14px] h-[2px] left-[50%] right-[32px] z-[1] ${
-                                    currentStep > 1
-                                        ? "bg-primary"
-                                        : "bg-gray-300"
-                                }`}
-                            ></div>
-
-                            {configuredSteps.map((step, index) => (
-                                <div
-                                    key={index}
-                                    className="flex flex-col items-center z-10"
-                                >
-                                    <div
-                                        className={cn(
-                                            "w-8 h-8 flex items-center justify-center rounded-full text-white font-bold text-sm cursor-pointer",
-                                            index === currentStep
-                                                ? "bg-[#D0182B]"
-                                                : step.completed ||
-                                                index < currentStep
-                                                    ? "bg-[#26266D]"
-                                                    : "bg-gray-300"
-                                        )}
-                                    >
-                                        {step.completed ||
-                                        index <= currentStep ? (
-                                            <FaCheck size={16}/>
-                                        ) : (
-                                            ""
-                                        )}
-                                    </div>
-
-                                    <span
-                                        className={cn(
-                                            "text-xs mt-1",
-                                            index === currentStep
-                                                ? "text-primary font-medium"
-                                                : "text-gray-500"
-                                        )}
-                                    >
-                                        {index + 1}. {step.label}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {stepsConfig.enabled !== false && (
+                <Stepper 
+                    steps={configuredSteps}
+                    currentStep={currentStep}
+                    onStepClick={(step) => {
+                        if (step < currentStep) {
+                            setCurrentStep(step);
+                        }
+                    }}
+                />
+            )}
 
             {searchForm && (
                 <FilterRow
@@ -384,6 +344,8 @@ const RoomsListPage = () => {
                     </div>
                 </div>
             </div>
+
+           
         </div>
     );
 };
