@@ -40,6 +40,7 @@ interface PaymentInfoSectionProps {
   section: Section;
   expandedSection: string;
   completedSections: string[];
+  formErrors: Record<string, string>;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: GenericField) => void;
   handleNextStep?: () => void;
   handleSectionExpand: (sectionId: string) => void;

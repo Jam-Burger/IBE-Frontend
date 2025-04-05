@@ -6,5 +6,4 @@ export interface GenericField {
   enabled: boolean;
   pattern?: string | null | undefined;
   options?: string[] | null | undefined;
-  [key: string]: any; // Allow additional properties
-} 
+}

@@ -32,6 +32,7 @@ interface TravelerInfoSectionProps {
   section: CheckoutSection;
   expandedSection: string;
   completedSections: string[];
+  formErrors: Record<string, string>;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: Field) => void;
   handleNextStep: () => void;
   handleSectionExpand: (sectionId: string) => void;

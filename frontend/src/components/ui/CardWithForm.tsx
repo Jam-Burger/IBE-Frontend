@@ -63,7 +63,7 @@ const CardWithForm = () => {
                 return;
             }
             const propertiesData = await api.getProperties(tenantId);
-            setProperties(propertiesData);
+            setProperties(propertiesData.data);
         } catch (err) {
             console.error("Error fetching properties:", err);
         } finally {
