@@ -19,6 +19,7 @@ import { RootState } from '../../redux/store';
 interface Field {
   label: string;
   type: string;
+  name: string;
   required: boolean;
   enabled: boolean;
   pattern?: string | null;
@@ -67,7 +68,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
       
       section.fields.forEach(field => {
         if (field.enabled && field.required) {
-          const fieldKey = `traveler_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+          const fieldKey = field.name;
           newValidation[fieldKey] = !!formData[fieldKey];
         }
       });
@@ -91,7 +92,8 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
     
     // Update validation state for this field
     if (field.required) {
-      const fieldKey = `traveler_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+      
+      const fieldKey = field.name;
       setFieldValidation(prev => ({
         ...prev,
         [fieldKey]: !!e.target.value
@@ -125,7 +127,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
         <div className="px-4 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-4">
             {section.fields.filter((field: CheckoutField) => field.enabled).map((field: CheckoutField, index: number) => {
-              const fieldKey = `traveler_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+              const fieldKey = field.name;
               const isRequired = field.required;
               const isEmpty = isRequired && fieldValidation[fieldKey] === false;
               const showError = showValidation && isEmpty;
@@ -164,7 +166,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
                   ) : field.type === 'select' ? (
                     <>
                       <Select 
-                        onValueChange={(value) => handleSelectChange(value, field.label.toLowerCase().replace(/\s/g, '_'))}
+                        onValueChange={(value) => handleSelectChange(value, field.name)}
                         defaultValue={formData[fieldKey] || undefined}
                       >
                         <SelectTrigger 

@@ -20,6 +20,7 @@ import { GenericField } from '../../types/GenericField';
 interface Field {
   label: string;
   type: string;
+  name: string;
   required: boolean;
   enabled: boolean;
   pattern?: string;
@@ -78,7 +79,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
       
       section.fields.forEach(field => {
         if (field.enabled && field.required) {
-          const fieldKey = `payment_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+          const fieldKey = field.name;
           newValidation[fieldKey] = !!formData[fieldKey];
         }
       });
@@ -102,7 +103,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
     
     // Update validation state for this field
     if (field.required) {
-      const fieldKey = `payment_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+      const fieldKey = field.name;
       setFieldValidation(prev => ({
         ...prev,
         [fieldKey]: !!e.target.value
@@ -118,7 +119,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
     const allFieldsValid = section.fields
       .filter(field => field.enabled && field.required)
       .every(field => {
-        const fieldKey = `payment_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+        const fieldKey = field.name;
         return !!formData[fieldKey];
       });
     
@@ -153,7 +154,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
         <div className="px-4 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-4">
             {section.fields.filter(field => field.enabled).map((field, index) => {
-              const fieldKey = `payment_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+              const fieldKey = field.name;
               const isRequired = field.required;
               const isEmpty = isRequired && fieldValidation[fieldKey] === false;
               const showError = showValidation && isEmpty;
@@ -192,15 +193,15 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                         </p>
                       )}
                     </>
-                  ) : field.type === 'select' && (
+                  ) : field.type === 'select' ? (
                     <>
                       <Select 
-                        onValueChange={(value) => handleSelectChange(value, field.label.toLowerCase().replace(/\s/g, '_'))}
+                        onValueChange={(value) => handleSelectChange(value, field.name)}
                         defaultValue={formData[fieldKey] || undefined}
                       >
                         <SelectTrigger 
                           id={fieldKey} 
-                          className={`min-h-[48px] w-full ${showError ? 'border-red-500' : ''}`}
+                          className={`h-[48px] w-[340px] ${showError ? 'border-red-500' : ''}`}
                         >
                           <SelectValue placeholder="Choose" />
                         </SelectTrigger>
@@ -218,7 +219,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                         </p>
                       )}
                     </>
-                  )}
+                  ) : null}
                   {field.type === 'checkbox' && (
                     <div className="flex items-center gap-2">
                       <Checkbox 

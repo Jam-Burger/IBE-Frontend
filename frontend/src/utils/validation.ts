@@ -62,7 +62,7 @@ export function validateSection(sectionId: string, fields: Field[] | CheckoutFie
   fields.forEach(field => {
     if (!field.enabled) return;
     
-    const fieldId = `${sectionId}_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+    const fieldId = `${sectionId}_${field.name}`;
     console.log(`Looking for field with ID: ${fieldId}`);
     const element = document.getElementById(fieldId);
     

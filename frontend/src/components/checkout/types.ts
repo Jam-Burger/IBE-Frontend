@@ -2,6 +2,7 @@
 export interface Field {
   label: string;
   type: string;
+  name: string;
   required: boolean;
   enabled: boolean;
   pattern?: string;
@@ -18,6 +19,7 @@ export interface Section {
 export interface CheckoutField {
   label: string;
   type: string;
+  name: string;
   required: boolean;
   enabled: boolean;
   pattern: string | null;

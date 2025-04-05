@@ -278,13 +278,13 @@ const CheckoutPage: React.FC = () => {
         if (error) {
             setFormErrors(prev => ({
                 ...prev,
-                [`${expandedSection.split('_')[0]}_${field.label.toLowerCase().replace(/\s/g, '_')}`]: error
+                [`${expandedSection.split('_')[0]}_${field.name}`]: error
             }));
         } else {
             // Clear error if it exists
             setFormErrors(prev => {
                 const newErrors = {...prev};
-                delete newErrors[`${expandedSection.split('_')[0]}_${field.label.toLowerCase().replace(/\s/g, '_')}`];
+                delete newErrors[`${expandedSection.split('_')[0]}_${field.name}`];
                 return newErrors;
             });
         }
@@ -307,7 +307,7 @@ const CheckoutPage: React.FC = () => {
         
         // Check if all required fields have values in formData
         const isComplete = requiredFields.every(field => {
-            const fieldKey = `${sectionId.replace('_info', '')}_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+            const fieldKey = field.name;
             const hasValue = !!formData[fieldKey];
             
             // Debug logging
@@ -476,6 +476,7 @@ const CheckoutPage: React.FC = () => {
                                     expandedSection={expandedSection}
                                     completedSections={completedSections}
                                     formErrors={formErrors}
+                                    setFormErrors={setFormErrors}
                                     handleInputChange={handleInputChange}
                                     handleNextStep={handleNextStep}
                                     handleSectionExpand={handleSectionExpand}
