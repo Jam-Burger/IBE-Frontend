@@ -1,6 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
-
+import { MdOutlineClose } from "react-icons/md";
 
 interface OTPModalProps {
   isOpen: boolean;
@@ -17,7 +16,7 @@ const OTPModal: React.FC<OTPModalProps> = ({ isOpen, onClose }) => {
           onClick={onClose}
           className="w-[1.5rem] h-[1.5rem] absolute right-4 top-4 text-gray-500 hover:text-gray-700"
         >
-          <X size={24} />
+          <MdOutlineClose/>
         </button>
         
         <div>

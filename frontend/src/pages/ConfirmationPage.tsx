@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi';
 import { LuUserRound } from "react-icons/lu";
 import { Separator } from "./../components/ui/Separator";

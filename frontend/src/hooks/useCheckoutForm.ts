@@ -5,6 +5,7 @@ import { updateFormData } from '../redux/checkoutSlice';
 interface GenericField {
   label: string;
   type: string;
+  name: string;
   required: boolean;
   enabled: boolean;
   pattern?: string | null | undefined;
@@ -25,8 +26,8 @@ export const useCheckoutForm = (sectionPrefix: string) => {
       originalHandler(e, field);
     }
     
-    // Create field key and dispatch update
-    const fieldKey = `${sectionPrefix}_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+    // Use field.name directly without prefix
+    const fieldKey = field.name;
     dispatch(updateFormData({ [fieldKey]: e.target.value }));
   };
   
@@ -41,8 +42,8 @@ export const useCheckoutForm = (sectionPrefix: string) => {
       originalHandler(value, sectionId);
     }
     
-    // Create field key and dispatch update
-    const fieldKey = `${sectionPrefix}_${fieldName.toLowerCase()}`;
+    // Use fieldName directly without prefix
+    const fieldKey = fieldName;
     dispatch(updateFormData({ [fieldKey]: value }));
   };
   

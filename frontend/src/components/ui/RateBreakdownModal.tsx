@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dialog, DialogContent } from './Dialog';
-import { X } from 'lucide-react';
+import { MdOutlineClose } from "react-icons/md";
 
 interface RateBreakdownModalProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
             onClick={onClose}
             className="absolute right-0 top-0 text-black hover:text-gray-700"
           >
-            <X className="h-6 w-6" />
+            <MdOutlineClose />
           </button>
           
           <h2 className="text-2xl font-bold mb-4">Rate Breakdown</h2>
