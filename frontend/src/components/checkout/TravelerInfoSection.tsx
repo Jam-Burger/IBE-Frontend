@@ -15,6 +15,7 @@ import { CheckoutField, CheckoutSection } from './types';
 import { useCheckoutForm } from '../../hooks/useCheckoutForm';
 import { updateFormData } from '../../redux/checkoutSlice';
 import { RootState } from '../../redux/store';
+import { validateField } from '../../utils/validation';
 
 interface Field {
   label: string;
@@ -24,13 +25,13 @@ interface Field {
   enabled: boolean;
   pattern?: string | null;
   options?: string[] | null;
+  [key: string]: unknown; // Use unknown instead of any
 }
 
 interface TravelerInfoSectionProps {
   section: CheckoutSection;
   expandedSection: string;
   completedSections: string[];
-  formErrors: Record<string, string>;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: Field) => void;
   handleNextStep: () => void;
   handleSectionExpand: (sectionId: string) => void;
@@ -48,7 +49,6 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
   section,
   expandedSection,
   completedSections,
-  formErrors,
   handleInputChange,
   handleNextStep,
   handleSectionExpand
@@ -57,6 +57,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
   const formData = useSelector((state: RootState) => state.checkout.formData);
   const [fieldValidation, setFieldValidation] = useState<Record<string, boolean>>({});
   const [showValidation, setShowValidation] = useState(false);
+  const [localFormErrors, setLocalFormErrors] = useState<Record<string, string>>({});
   
   // Use our custom hook for form data storage
   const { handleInputChange: handleFormInputChange, handleSelectChange } = useCheckoutForm('traveler');
@@ -88,11 +89,28 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
     field: CheckoutField
   ) => {
     // Convert CheckoutField to Field using the adapter
-    handleFormInputChange(e, adaptField(field), handleInputChange);
+    const adaptedField = adaptField(field);
+    handleFormInputChange(e, adaptedField, handleInputChange);
+    
+    // Validate the field using the validation utility
+    const error = validateField(adaptedField, e.target.value);
+    if (error) {
+      // Update form errors
+      setLocalFormErrors(prev => ({
+        ...prev,
+        [field.name]: error
+      }));
+    } else {
+      // Clear error if it exists
+      setLocalFormErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[field.name];
+        return newErrors;
+      });
+    }
     
     // Update validation state for this field
     if (field.required) {
-      
       const fieldKey = field.name;
       setFieldValidation(prev => ({
         ...prev,
@@ -104,7 +122,31 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
   // Custom next step handler that shows validation
   const handleCustomNextStep = () => {
     setShowValidation(true);
-    handleNextStep();
+    
+    // Check if all required fields are filled
+    const requiredFields = section.fields.filter(field => field.enabled && field.required);
+    const allRequiredFieldsFilled = requiredFields.every(field => {
+      return !!formData[field.name];
+    });
+    
+    // Check for validation errors
+    const hasValidationErrors = Object.keys(localFormErrors).length > 0;
+    
+    if (allRequiredFieldsFilled && !hasValidationErrors) {
+      // All required fields are filled and valid, proceed to next step
+      handleNextStep();
+    } else {
+      // Show error message with more details
+      const missingFields = requiredFields
+        .filter(field => !formData[field.name])
+        .map(field => field.label)
+        .join(', ');
+      
+      setLocalFormErrors(prev => ({
+        ...prev,
+        section_error: `Please fill all required fields correctly in Traveler Information${missingFields ? ': ' + missingFields : ''}`
+      }));
+    }
   };
   
   return (
@@ -157,9 +199,9 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
                           This field is required
                         </p>
                       )}
-                      {formErrors[fieldKey] && (
+                      {localFormErrors[fieldKey] && (
                         <p className="text-red-500 text-xs mt-1">
-                          {formErrors[fieldKey]}
+                          {localFormErrors[fieldKey]}
                         </p>
                       )}
                     </>
@@ -215,9 +257,9 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
                           This field is required
                         </p>
                       )}
-                      {formErrors[fieldKey] && (
+                      {localFormErrors[fieldKey] && (
                         <p className="text-red-500 text-xs ml-2">
-                          {formErrors[fieldKey]}
+                          {localFormErrors[fieldKey]}
                         </p>
                       )}
                     </div>
@@ -227,10 +269,10 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
             })}
           </div>
           
-          {formErrors['section_error'] && expandedSection === 'traveler_info' && (
+          {localFormErrors['section_error'] && expandedSection === 'traveler_info' && (
             <div className="col-span-2 mt-2">
               <p className="text-red-500 text-sm font-medium">
-                {formErrors['section_error']}
+                {localFormErrors['section_error']}
               </p>
             </div>
           )}

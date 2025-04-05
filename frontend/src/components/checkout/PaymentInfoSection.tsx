@@ -15,6 +15,7 @@ import { useCheckoutForm } from '../../hooks/useCheckoutForm';
 import { updateFormData } from '../../redux/checkoutSlice';
 import { RootState } from '../../redux/store';
 import { GenericField } from '../../types/GenericField';
+import { validateField } from '../../utils/validation';
 
 // Define Field interface
 interface Field {
@@ -39,7 +40,6 @@ interface PaymentInfoSectionProps {
   section: Section;
   expandedSection: string;
   completedSections: string[];
-  formErrors: Record<string, string>;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: GenericField) => void;
   handleNextStep?: () => void;
   handleSectionExpand: (sectionId: string) => void;
@@ -58,7 +58,6 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
   section,
   expandedSection,
   completedSections,
-  formErrors,
   handleInputChange,
   handleNextStep,
   handleSectionExpand,
@@ -68,6 +67,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
   const formData = useSelector((state: RootState) => state.checkout.formData);
   const [fieldValidation, setFieldValidation] = useState<Record<string, boolean>>({});
   const [showValidation, setShowValidation] = useState(false);
+  const [localFormErrors, setLocalFormErrors] = useState<Record<string, string>>({});
   
   // Use our custom hook for form data storage
   const { handleInputChange: handleFormInputChange, handleSelectChange } = useCheckoutForm('payment');
@@ -101,6 +101,23 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
     // Use the adapter to ensure compatible types
     handleFormInputChange(e, adaptField(field), handleInputChange);
     
+    // Validate the field using the validation utility
+    const error = validateField(field, e.target.value);
+    if (error) {
+      // Update form errors
+      setLocalFormErrors(prev => ({
+        ...prev,
+        [field.name]: error
+      }));
+    } else {
+      // Clear error if it exists
+      setLocalFormErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[field.name];
+        return newErrors;
+      });
+    }
+    
     // Update validation state for this field
     if (field.required) {
       const fieldKey = field.name;
@@ -116,19 +133,31 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
     setShowValidation(true);
     
     // Check if all required fields are filled
-    const allFieldsValid = section.fields
-      .filter(field => field.enabled && field.required)
-      .every(field => {
-        const fieldKey = field.name;
-        return !!formData[fieldKey];
-      });
+    const requiredFields = section.fields.filter(field => field.enabled && field.required);
+    const allRequiredFieldsFilled = requiredFields.every(field => {
+      return !!formData[field.name];
+    });
     
-    if (allFieldsValid) {
-      // Call handleNextStep if provided before submitting
+    // Check for validation errors
+    const hasValidationErrors = Object.keys(localFormErrors).length > 0;
+    
+    if (allRequiredFieldsFilled && !hasValidationErrors) {
+      // All required fields are filled and valid, proceed to submit
       if (handleNextStep) {
         handleNextStep();
       }
       handleSubmit();
+    } else {
+      // Show error message with more details
+      const missingFields = requiredFields
+        .filter(field => !formData[field.name])
+        .map(field => field.label)
+        .join(', ');
+      
+      setLocalFormErrors(prev => ({
+        ...prev,
+        section_error: `Please fill all required fields correctly in Payment Information${missingFields ? ': ' + missingFields : ''}`
+      }));
     }
   };
   
@@ -153,17 +182,14 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
       {expandedSection === 'payment_info' && (
         <div className="px-4 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-4">
-            {section.fields.filter(field => field.enabled).map((field, index) => {
+            {section.fields.filter((field: Field) => field.enabled).map((field: Field, index: number) => {
               const fieldKey = field.name;
               const isRequired = field.required;
               const isEmpty = isRequired && fieldValidation[fieldKey] === false;
               const showError = showValidation && isEmpty;
               
               return (
-                <div key={index} className={
-                  field.type === 'checkbox' ? 'col-span-2' : 
-                  field.label === 'Card Number' || field.label === 'Cardholder Name' ? 'col-span-2' : ''
-                }>
+                <div key={index} className={field.type === 'checkbox' ? 'col-span-2' : ''}>
                   {field.type !== 'checkbox' && (
                     <Label htmlFor={fieldKey} className="text-sm mb-1 block">
                       {field.label}{isRequired && <span className="text-red-500">*</span>}
@@ -176,7 +202,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                         id={fieldKey} 
                         placeholder={field.label} 
                         type={field.type}
-                        className={`h-[48px] w-[340px] ${showError ? 'border-red-500' : ''}`}
+                        className={`h-[48px] w-[346px] ${showError ? 'border-red-500' : ''}`}
                         required={field.required}
                         pattern={field.pattern || undefined}
                         value={formData[fieldKey] || ''}
@@ -187,9 +213,9 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                           This field is required
                         </p>
                       )}
-                      {formErrors[fieldKey] && (
+                      {localFormErrors[fieldKey] && (
                         <p className="text-red-500 text-xs mt-1">
-                          {formErrors[fieldKey]}
+                          {localFormErrors[fieldKey]}
                         </p>
                       )}
                     </>
@@ -201,7 +227,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                       >
                         <SelectTrigger 
                           id={fieldKey} 
-                          className={`h-[48px] w-[340px] ${showError ? 'border-red-500' : ''}`}
+                          className={`h-[48px] w-[346px] ${showError ? 'border-red-500' : ''}`}
                         >
                           <SelectValue placeholder="Choose" />
                         </SelectTrigger>
@@ -219,8 +245,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                         </p>
                       )}
                     </>
-                  ) : null}
-                  {field.type === 'checkbox' && (
+                  ) : field.type === 'checkbox' ? (
                     <div className="flex items-center gap-2">
                       <Checkbox 
                         id={fieldKey} 
@@ -246,39 +271,39 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                           This field is required
                         </p>
                       )}
-                      {formErrors[fieldKey] && (
+                      {localFormErrors[fieldKey] && (
                         <p className="text-red-500 text-xs ml-2">
-                          {formErrors[fieldKey]}
+                          {localFormErrors[fieldKey]}
                         </p>
                       )}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               );
             })}
           </div>
           
-          {formErrors['section_error'] && expandedSection === 'payment_info' && (
-            <div className="mt-4 mb-2">
+          {localFormErrors['section_error'] && expandedSection === 'payment_info' && (
+            <div className="col-span-2 mt-2">
               <p className="text-red-500 text-sm font-medium">
-                {formErrors['section_error']}
+                {localFormErrors['section_error']}
               </p>
             </div>
           )}
           
           <div className="flex justify-end mb-4 gap-4">
-            
             <span 
               className="text-[#1E2A5A] cursor-pointer flex items-center" 
               onClick={() => handleSectionExpand('billing_info')}
             >
               Edit Billing Info
             </span>
+            
             <Button 
               onClick={handleCustomSubmit}
-              className="bg-[#1E2678] hover:bg-[#161c5e] text-white"
+              className="bg-[#1E2A5A] hover:bg-[#2A3A7A]"
             >
-              COMPLETE BOOKING
+              SUBMIT ORDER
             </Button>
           </div>
         </div>

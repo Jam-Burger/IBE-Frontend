@@ -24,26 +24,38 @@ export function validateField(field: Field | CheckoutField | GenericField, value
   }
   
   // Pattern validation for text fields
-  if (typeof value === 'string' && field.pattern && value.trim()) {
-    const pattern = typeof field.pattern === 'string' ? field.pattern : '';
-    if (pattern && !new RegExp(pattern).test(value)) {
-      return `${field.label} format is invalid`;
+  if (typeof value === 'string' && value.trim()) {
+    // First check if field has a specific pattern from config
+    if (field.pattern) {
+      const pattern = typeof field.pattern === 'string' ? field.pattern : '';
+      if (pattern && !new RegExp(pattern).test(value)) {
+        return `${field.label} format is invalid`;
+      }
+    } 
+    // Then check if field type has a default pattern
+    else if (field.type) {
+      switch (field.type) {
+        case 'email':
+          if (!validateEmail(value)) {
+            return 'Please enter a valid email address';
+          }
+          break;
+          
+        case 'tel':
+        case 'phone':
+          if (!validatePhone(value)) {
+            return 'Please enter a valid phone number';
+          }
+          break;
+          
+        case 'text':
+          // Special handling for zip code fields
+          if (field.label === 'Zip' && !validateZipCode(value)) {
+            return 'Please enter a valid zip code';
+          }
+          break;
+      }
     }
-  }
-  
-  // Field-specific validations
-  switch (field.type) {
-    case 'email':
-      if (typeof value === 'string' && value.trim() && !validateEmail(value)) {
-        return 'Please enter a valid email address';
-      }
-      break;
-      
-    case 'tel':
-      if (typeof value === 'string' && value.trim() && !validatePhone(value)) {
-        return 'Please enter a valid phone number';
-      }
-      break;
   }
   
   return '';
@@ -141,4 +153,14 @@ export function validateLocation(countryCode: string, stateName: string, validSt
   }
   
   return '';
+}
+
+/**
+ * Validates a zip code
+ * @param zipCode Zip code to validate
+ * @returns True if valid, false otherwise
+ */
+export function validateZipCode(zipCode: string): boolean {
+  // Basic US zip code validation (5 digits or 5+4 format)
+  return /^\d{5}(-\d{4})?$/.test(zipCode);
 } 

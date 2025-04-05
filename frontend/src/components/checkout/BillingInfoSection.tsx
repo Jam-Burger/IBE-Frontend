@@ -119,6 +119,12 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
         newValidation['city'] = !!cityValue;
       }
       
+      // Special handling for zip field
+      if (section.fields.find(f => f.label === 'Zip' && f.required)) {
+        const zipValue = formData['billingZip'];
+        newValidation['billingZip'] = !!zipValue;
+      }
+      
       setFieldValidation(newValidation);
     }
   }, [expandedSection, formData, section.fields, selectedCountryCode]);
@@ -133,6 +139,8 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
     e: React.ChangeEvent<HTMLInputElement>, 
     field: GenericField
   ) => {
+    console.log(`handleCustomInputChange called for field: ${field.name} with value: ${e.target.value}`);
+    
     // Use the adapter to ensure compatible types
     handleFormInputChange(e, adaptField(field), handleInputChange);
     
@@ -167,32 +175,75 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
   const handleCustomNextStep = () => {
     setShowValidation(true);
     
+    // Log all fields to debug
+    console.log('All fields:', section.fields);
+    console.log('Required fields:', section.fields.filter(field => field.enabled && field.required));
+    
+    // Map field labels to their corresponding Redux store keys
+    const fieldMapping: Record<string, string> = {
+      'Zip': 'billingZip',
+      'First Name': 'billingFirstName',
+      'Last Name': 'billingLastName',
+      'Phone': 'billingPhone',
+      'Email': 'billingEmail',
+      'Address 1': 'billingAddress1',
+      'Mailing Address 1': 'billingAddress1',
+      'Address 2': 'billingAddress2',
+      'Mailing Address 2': 'billingAddress2',
+      'Country': 'billingCountry',
+      'State': 'billingState',
+      'City': 'billingCity'
+    };
+
+    // Debug log the form data
+    console.log('Current form data:', formData);
+
     // Check if all required fields are filled
-    const allRequiredFieldsFilled = section.fields
-      .filter(field => field.enabled && field.required)
-      .every(field => {
-        const fieldKey = field.name;
-        return !!formData[fieldKey];
-      });
+    const requiredFields = section.fields.filter(field => field.enabled && field.required);
+    console.log('Checking required fields:', requiredFields);
+
+    const allRequiredFieldsFilled = requiredFields.every(field => {
+      const fieldKey = fieldMapping[field.label];
+      const value = formData[fieldKey];
+      console.log(`Checking field: ${field.label} (${fieldKey}) = ${!!value}`, { value });
+      return !!value;
+    });
     
     // Special handling for location fields
-    const countryFilled = !section.fields.find(f => f.label === 'Country' && f.required) || !!selectedCountryCode;
-    const stateFilled = !section.fields.find(f => f.label === 'State' && f.required) || !!formData['state'];
-    const cityFilled = !section.fields.find(f => f.label === 'City' && f.required) || !!formData['city'];
+    const countryFilled = !section.fields.find(f => f.label === 'Country' && f.required) || !!formData['billingCountry'];
+    const stateFilled = !section.fields.find(f => f.label === 'State' && f.required) || !!formData['billingState'];
+    const cityFilled = !section.fields.find(f => f.label === 'City' && f.required) || !!formData['billingCity'];
+    const zipFilled = !section.fields.find(f => f.label === 'Zip' && f.required) || !!formData['billingZip'];
     
     // Check for validation errors
     const hasValidationErrors = Object.keys(formErrors)
       .filter(key => key.startsWith('billing_'))
       .length > 0;
     
-    if (allRequiredFieldsFilled && countryFilled && stateFilled && cityFilled && !hasValidationErrors) {
+    console.log('Form validation status:', {
+      allRequiredFieldsFilled,
+      countryFilled,
+      stateFilled,
+      cityFilled,
+      zipFilled,
+      hasValidationErrors,
+      formData,
+      formErrors
+    });
+    
+    if (allRequiredFieldsFilled && countryFilled && stateFilled && cityFilled && zipFilled && !hasValidationErrors) {
       // All required fields are filled and valid, proceed to next step
       handleNextStep();
     } else {
-      // Show error message
+      // Show error message with more details
+      const missingFields = requiredFields
+        .filter(field => !formData[fieldMapping[field.label]])
+        .map(field => field.label)
+        .join(', ');
+      
       setFormErrors(prev => ({
         ...prev,
-        section_error: 'Please fill all required fields correctly in Billing Information'
+        section_error: `Please fill all required fields correctly in Billing Information${missingFields ? ': ' + missingFields : ''}`
       }));
     }
   };
@@ -346,12 +397,12 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                     {field.label}{field.required && <span className="text-red-500">*</span>}
                   </Label>
                   <Select 
-                    onValueChange={(value) => handleSelectChange(value, 'country', handleCustomCountryChange, 'billing_info')}
-                    defaultValue={formData['country'] || undefined}
+                    onValueChange={(value) => handleSelectChange(value, 'billingCountry', handleCustomCountryChange, 'billing_info')}
+                    defaultValue={formData['billingCountry'] || undefined}
                   >
                     <SelectTrigger 
                       id={field.name} 
-                      className={`h-[48px] min-h-[48px] w-[340px] flex items-center ${showValidation && !selectedCountryCode && field.required ? 'border-red-500' : ''}`}
+                      className={`h-[48px] min-h-[48px] w-[340px] flex items-center ${showValidation && !formData['billingCountry'] && field.required ? 'border-red-500' : ''}`}
                       style={{ height: '48px' }}
                     >
                       <SelectValue placeholder="Choose" />
@@ -364,7 +415,7 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                       ))}
                     </SelectContent>
                   </Select>
-                  {showValidation && !selectedCountryCode && field.required && (
+                  {showValidation && !formData['billingCountry'] && field.required && (
                     <p className="text-red-500 text-xs mt-1">
                       This field is required
                     </p>
@@ -387,12 +438,12 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                     City{section.fields.find(f => f.label === 'City')?.required && <span className="text-red-500">*</span>}
                   </Label>
                   <Select 
-                    onValueChange={(value) => handleSelectChange(value, 'city', handleCustomCityChange, 'billing_info')}
-                    defaultValue={formData['city'] || undefined}
+                    onValueChange={(value) => handleSelectChange(value, 'billingCity', handleCustomCityChange, 'billing_info')}
+                    defaultValue={formData['billingCity'] || undefined}
                   >
                     <SelectTrigger 
                       id="city" 
-                      className={`h-[48px] min-h-[48px] w-[340px] flex items-center ${showValidation && !formData['city'] && section.fields.find(f => f.label === 'City')?.required ? 'border-red-500' : ''}`}
+                      className={`h-[48px] min-h-[48px] w-[340px] flex items-center ${showValidation && !formData['billingCity'] && section.fields.find(f => f.label === 'City')?.required ? 'border-red-500' : ''}`}
                       style={{ height: '48px' }}
                       disabled={!selectedCountryCode}
                     >
@@ -410,13 +461,13 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                       )}
                     </SelectContent>
                   </Select>
-                  {showValidation && !formData['city'] && section.fields.find(f => f.label === 'City')?.required && (
+                  {showValidation && !formData['billingCity'] && section.fields.find(f => f.label === 'City')?.required && (
                     <p className="text-red-500 text-xs mt-1">
                       This field is required
                     </p>
                   )}
-                  {formErrors['city'] && (
-                    <p className="text-red-500 text-xs mt-1">{formErrors['city']}</p>
+                  {formErrors['billingCity'] && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors['billingCity']}</p>
                   )}
                 </div>
                 
@@ -426,12 +477,12 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                     State{section.fields.find(f => f.label === 'State')?.required && <span className="text-red-500">*</span>}
                   </Label>
                   <Select 
-                    onValueChange={(value) => handleSelectChange(value, 'state', handleCustomStateChange, 'billing_info')}
-                    defaultValue={formData['state'] || undefined}
+                    onValueChange={(value) => handleSelectChange(value, 'billingState', handleCustomStateChange, 'billing_info')}
+                    defaultValue={formData['billingState'] || undefined}
                   >
                     <SelectTrigger 
                       id="state" 
-                      className={`h-[48px] min-h-[48px] w-[184px] flex items-center ${showValidation && !formData['state'] && section.fields.find(f => f.label === 'State')?.required ? 'border-red-500' : ''}`}
+                      className={`h-[48px] min-h-[48px] w-[184px] flex items-center ${showValidation && !formData['billingState'] && section.fields.find(f => f.label === 'State')?.required ? 'border-red-500' : ''}`}
                       style={{ height: '48px' }}
                       disabled={!selectedCountryCode || safeStates.length === 0}
                     >
@@ -451,13 +502,13 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                       )}
                     </SelectContent>
                   </Select>
-                  {showValidation && !formData['state'] && section.fields.find(f => f.label === 'State')?.required && (
+                  {showValidation && !formData['billingState'] && section.fields.find(f => f.label === 'State')?.required && (
                     <p className="text-red-500 text-xs mt-1">
                       This field is required
                     </p>
                   )}
-                  {formErrors['state'] && (
-                    <p className="text-red-500 text-xs mt-1">{formErrors['state']}</p>
+                  {formErrors['billingState'] && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors['billingState']}</p>
                   )}
                 </div>
                 
@@ -470,24 +521,26 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                     id="zip" 
                     placeholder="Zip" 
                     type="text"
-                    className={`h-[48px] w-[145px] ${showValidation && !formData['zip'] && section.fields.find(f => f.label === 'Zip')?.required ? 'border-red-500' : ''}`}
+                    className={`h-[48px] w-[145px] ${showValidation && !formData['billingZip'] && section.fields.find(f => f.label === 'Zip')?.required ? 'border-red-500' : ''}`}
                     required={section.fields.find(f => f.label === 'Zip')?.required}
                     pattern={section.fields.find(f => f.label === 'Zip')?.pattern || undefined}
-                    value={formData['zip'] || ''}
+                    value={formData['billingZip'] || ''}
                     onChange={(e) => {
                       const zipField = section.fields.find(f => f.label === 'Zip');
                       if (zipField) {
+                        console.log(`Zip field found with name: ${zipField.name}`);
+                        // Use the field's name property directly
                         handleCustomInputChange(e, zipField);
                       }
                     }}
                   />
-                  {showValidation && !formData['zip'] && section.fields.find(f => f.label === 'Zip')?.required && (
+                  {showValidation && !formData['billingZip'] && section.fields.find(f => f.label === 'Zip')?.required && (
                     <p className="text-red-500 text-xs mt-1">
                       This field is required
                     </p>
                   )}
-                  {formErrors['zip'] && (
-                    <p className="text-red-500 text-xs mt-1">{formErrors['zip']}</p>
+                  {formErrors['billingZip'] && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors['billingZip']}</p>
                   )}
                 </div>
               </div>

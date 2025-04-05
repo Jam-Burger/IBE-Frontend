@@ -56,6 +56,7 @@ export const checkoutSlice = createSlice({
   initialState,
   reducers: {
     updateFormData: (state, action: PayloadAction<Record<string, string>>) => {
+      console.log('Updating form data with:', action.payload);
       state.formData = {
         ...state.formData,
         ...action.payload
