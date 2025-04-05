@@ -109,7 +109,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
     <div className="mb-6">
       {/* Gray background header - clickable but maintain original styling */}
       <div 
-        className="bg-[#E4E4E4] h-[43px] w-full flex items-center px-4 cursor-pointer"
+        className="bg-[#E4E4E4] h-[43px] w-[736px] flex items-center px-4 cursor-pointer"
         onClick={() => handleSectionExpand('traveler_info')}
       >
         <h2 className="text-base font-bold text-[#333]">
@@ -144,7 +144,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
                         id={fieldKey} 
                         placeholder={field.label} 
                         type={field.type}
-                        className={`min-h-[48px] w-full ${showError ? 'border-red-500' : ''}`}
+                        className={`h-[48px] w-[346px] ${showError ? 'border-red-500' : ''}`}
                         required={field.required}
                         pattern={field.pattern || undefined}
                         value={formData[fieldKey] || ''}
@@ -169,7 +169,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
                       >
                         <SelectTrigger 
                           id={fieldKey} 
-                          className={`min-h-[48px] w-full ${showError ? 'border-red-500' : ''}`}
+                          className={`h-[48px] w-[346px] ${showError ? 'border-red-500' : ''}`}
                         >
                           <SelectValue placeholder="Choose" />
                         </SelectTrigger>

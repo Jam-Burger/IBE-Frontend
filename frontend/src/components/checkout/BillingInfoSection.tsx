@@ -15,6 +15,7 @@ import { useCheckoutForm } from '../../hooks/useCheckoutForm';
 // import { updateFormData } from '../../redux/checkoutSlice';
 import { RootState } from '../../redux/store';
 import { GenericField } from '../../types/GenericField';
+import { validateField } from '../../utils/validation';
 
 // Define Field interface
 interface Field {
@@ -39,6 +40,7 @@ interface BillingInfoSectionProps {
   expandedSection: string;
   completedSections: string[];
   formErrors: Record<string, string>;
+  setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: GenericField) => void;
   handleNextStep: () => void;
   handleSectionExpand: (sectionId: string) => void;
@@ -64,6 +66,7 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
   expandedSection,
   completedSections,
   formErrors,
+  setFormErrors,
   handleInputChange,
   handleNextStep,
   handleSectionExpand,
@@ -132,6 +135,23 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
     // Use the adapter to ensure compatible types
     handleFormInputChange(e, adaptField(field), handleInputChange);
     
+    // Validate the field using the validation utility
+    const error = validateField(field, e.target.value);
+    if (error) {
+      // Update form errors
+      setFormErrors(prev => ({
+        ...prev,
+        [`billing_${field.label.toLowerCase().replace(/\s/g, '_')}`]: error
+      }));
+    } else {
+      // Clear error if it exists
+      setFormErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[`billing_${field.label.toLowerCase().replace(/\s/g, '_')}`];
+        return newErrors;
+      });
+    }
+    
     // Update validation state for this field
     if (field.required) {
       const fieldKey = `billing_${field.label.toLowerCase().replace(/\s/g, '_')}`;
@@ -142,10 +162,38 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
     }
   };
   
-  // Custom next step handler that shows validation
+  // Custom next step handler that shows validation and checks all required fields
   const handleCustomNextStep = () => {
     setShowValidation(true);
-    handleNextStep();
+    
+    // Check if all required fields are filled
+    const allRequiredFieldsFilled = section.fields
+      .filter(field => field.enabled && field.required)
+      .every(field => {
+        const fieldKey = `billing_${field.label.toLowerCase().replace(/\s/g, '_')}`;
+        return !!formData[fieldKey];
+      });
+    
+    // Special handling for location fields
+    const countryFilled = !section.fields.find(f => f.label === 'Country' && f.required) || !!selectedCountryCode;
+    const stateFilled = !section.fields.find(f => f.label === 'State' && f.required) || !!formData['billing_state'];
+    const cityFilled = !section.fields.find(f => f.label === 'City' && f.required) || !!formData['billing_city'];
+    
+    // Check for validation errors
+    const hasValidationErrors = Object.keys(formErrors)
+      .filter(key => key.startsWith('billing_'))
+      .length > 0;
+    
+    if (allRequiredFieldsFilled && countryFilled && stateFilled && cityFilled && !hasValidationErrors) {
+      // All required fields are filled and valid, proceed to next step
+      handleNextStep();
+    } else {
+      // Show error message
+      setFormErrors(prev => ({
+        ...prev,
+        section_error: 'Please fill all required fields correctly in Billing Information'
+      }));
+    }
   };
   
   // Custom country change handler
@@ -191,7 +239,7 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
     <div className="mb-6">
       {/* Gray background header - clickable but maintain original styling */}
       <div 
-        className={`bg-[#E4E4E4] h-[43px] w-full flex items-center px-4 ${
+        className={`bg-[#E4E4E4] h-[43px] w-[736px] flex items-center px-4 ${
           completedSections.includes('traveler_info') ? 'cursor-pointer' : 'opacity-70'
         }`}
         onClick={() => completedSections.includes('traveler_info') && handleSectionExpand('billing_info')}
@@ -227,7 +275,7 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                     id={fieldKey} 
                     placeholder={field.label} 
                     type="text"
-                    className={`min-h-[48px] w-full ${showError ? 'border-red-500' : ''}`}
+                    className={`h-[48px] w-[340px] ${showError ? 'border-red-500' : ''}`}
                     required={field.required}
                     pattern={field.pattern || undefined}
                     value={formData[fieldKey] || ''}
@@ -268,7 +316,7 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                       id={fieldKey} 
                       placeholder={field.label} 
                       type="text"
-                      className={`min-h-[48px] w-full ${showError ? 'border-red-500' : ''}`}
+                      className={`h-[48px] w-[340px] ${showError ? 'border-red-500' : ''}`}
                       required={field.required}
                       pattern={field.pattern || undefined}
                       value={formData[fieldKey] || ''}
@@ -302,13 +350,14 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                   >
                     <SelectTrigger 
                       id={`billing_${field.label.toLowerCase().replace(/\s/g, '_')}`} 
-                      className={`min-h-[48px] w-full ${showValidation && !selectedCountryCode && field.required ? 'border-red-500' : ''}`}
+                      className={`h-[48px] min-h-[48px] w-[340px] flex items-center ${showValidation && !selectedCountryCode && field.required ? 'border-red-500' : ''}`}
+                      style={{ height: '48px' }}
                     >
                       <SelectValue placeholder="Choose" />
                     </SelectTrigger>
                     <SelectContent>
                       {safeCountries.map((country) => (
-                        <SelectItem  value={country.name}>
+                        <SelectItem value={country.name}>
                           {country.name}
                         </SelectItem>
                       ))}
@@ -342,7 +391,8 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                   >
                     <SelectTrigger 
                       id="billing_city" 
-                      className={`min-h-[48px] w-full ${showValidation && !formData['billing_city'] && section.fields.find(f => f.label === 'City')?.required ? 'border-red-500' : ''}`}
+                      className={`h-[48px] min-h-[48px] w-[340px] flex items-center ${showValidation && !formData['billing_city'] && section.fields.find(f => f.label === 'City')?.required ? 'border-red-500' : ''}`}
+                      style={{ height: '48px' }}
                       disabled={!selectedCountryCode}
                     >
                       <SelectValue placeholder={!selectedCountryCode ? "Select country first" : "Choose"} />
@@ -380,7 +430,8 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                   >
                     <SelectTrigger 
                       id="billing_state" 
-                      className={`min-h-[48px] w-full ${showValidation && !formData['billing_state'] && section.fields.find(f => f.label === 'State')?.required ? 'border-red-500' : ''}`}
+                      className={`h-[48px] min-h-[48px] w-[184px] flex items-center ${showValidation && !formData['billing_state'] && section.fields.find(f => f.label === 'State')?.required ? 'border-red-500' : ''}`}
+                      style={{ height: '48px' }}
                       disabled={!selectedCountryCode || safeStates.length === 0}
                     >
                       <SelectValue placeholder={!selectedCountryCode ? "Select country first" : safeStates.length === 0 ? "Loading states..." : "Choose"} />
@@ -418,7 +469,7 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                     id="billing_zip" 
                     placeholder="Zip" 
                     type="text"
-                    className={`min-h-[48px] w-full ${showValidation && !formData['billing_zip'] && section.fields.find(f => f.label === 'Zip')?.required ? 'border-red-500' : ''}`}
+                    className={`h-[48px] w-[145px] ${showValidation && !formData['billing_zip'] && section.fields.find(f => f.label === 'Zip')?.required ? 'border-red-500' : ''}`}
                     required={section.fields.find(f => f.label === 'Zip')?.required}
                     pattern={section.fields.find(f => f.label === 'Zip')?.pattern || undefined}
                     value={formData['billing_zip'] || ''}
@@ -458,7 +509,7 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                       id={fieldKey} 
                       placeholder={field.label} 
                       type="tel"
-                      className={`min-h-[48px] w-full ${showError ? 'border-red-500' : ''}`}
+                      className={`h-[48px] w-[340px] ${showError ? 'border-red-500' : ''}`}
                       required={field.required}
                       pattern={field.pattern || undefined}
                       value={formData[fieldKey] || ''}
@@ -496,7 +547,7 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
                       id={fieldKey} 
                       placeholder={field.label} 
                       type="email"
-                      className={`min-h-[48px] w-full ${showError ? 'border-red-500' : ''}`}
+                      className={`h-[48px] w-[340px] ${showError ? 'border-red-500' : ''}`}
                       required={field.required}
                       pattern={field.pattern || undefined}
                       value={formData[fieldKey] || ''}
@@ -526,15 +577,17 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
             </div>
           )}
           
-          <div className="flex justify-between mb-4">
-            <Button 
-              variant="outline" 
+          <div className="flex justify-end mb-4 gap-4">
+            <span 
+              className="text-[#1E2A5A] cursor-pointer flex items-center" 
               onClick={() => handleSectionExpand('traveler_info')}
             >
-              EDIT TRAVELER INFO
-            </Button>
+              Edit Traveler Info
+            </span>
+            
             <Button 
               onClick={handleCustomNextStep}
+              className="bg-[#1E2A5A] hover:bg-[#2A3A7A]"
             >
               NEXT: PAYMENT INFO
             </Button>

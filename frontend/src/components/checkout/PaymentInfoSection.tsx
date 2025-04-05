@@ -135,7 +135,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
     <div className="mb-6">
       {/* Gray background header - clickable but maintain original styling */}
       <div 
-        className={`bg-[#E4E4E4] h-[43px] w-full flex items-center px-4 ${
+        className={`bg-[#E4E4E4] h-[43px] w-[736px] flex items-center px-4 ${
           completedSections.includes('billing_info') ? 'cursor-pointer' : 'opacity-70'
         }`}
         onClick={() => completedSections.includes('billing_info') && handleSectionExpand('payment_info')}
@@ -175,7 +175,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                         id={fieldKey} 
                         placeholder={field.label} 
                         type={field.type}
-                        className={`min-h-[48px] w-full ${showError ? 'border-red-500' : ''}`}
+                        className={`h-[48px] w-[340px] ${showError ? 'border-red-500' : ''}`}
                         required={field.required}
                         pattern={field.pattern || undefined}
                         value={formData[fieldKey] || ''}
@@ -265,14 +265,14 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
             </div>
           )}
           
-          <div className="flex justify-between mb-4">
-            <Button 
-              variant="outline" 
+          <div className="flex justify-end mb-4 gap-4">
+            
+            <span 
+              className="text-[#1E2A5A] cursor-pointer flex items-center" 
               onClick={() => handleSectionExpand('billing_info')}
-              className="border-[#1E2678] text-[#1E2678]"
             >
-              EDIT BILLING INFO
-            </Button>
+              Edit Billing Info
+            </span>
             <Button 
               onClick={handleCustomSubmit}
               className="bg-[#1E2678] hover:bg-[#161c5e] text-white"
