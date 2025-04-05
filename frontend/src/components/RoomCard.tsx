@@ -134,7 +134,7 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                         <span className="text-xl font-bold">
                             {convertToLocaleCurrency(
                                 selectedCurrency.symbol,
-                                room.averagePrice,
+                                room.roomRates.reduce((acc, rate) => acc + rate.price, 0) / room.roomRates.length,
                                 multiplier,
                                 false
                             )}

@@ -11,12 +11,15 @@ export function generateSummeryText(
     guestCounts: Record<string, number>
 ): string {
     const guestTypeMap: Record<string, { singular: string; plural: string }> = {
-        "Adults": {singular: "Adult", plural: "Adults"},
-        "Children": {singular: "Child", plural: "Children"},
-        "Senior Citizens": {singular: "Senior Citizen", plural: "Senior Citizens"},
-        "Teens": {singular: "Teen", plural: "Teens"},
-        "Kids": {singular: "Kid", plural: "Kids"},
-        "Infants": {singular: "Infant", plural: "Infants"},
+        Adults: {singular: "Adult", plural: "Adults"},
+        Children: {singular: "Child", plural: "Children"},
+        "Senior Citizens": {
+            singular: "Senior Citizen",
+            plural: "Senior Citizens",
+        },
+        Teens: {singular: "Teen", plural: "Teens"},
+        Kids: {singular: "Kid", plural: "Kids"},
+        Infants: {singular: "Infant", plural: "Infants"},
     };
 
     return Object.entries(guestCounts)
@@ -75,21 +78,35 @@ export function formatPrice(price: number): string {
 export const toTitleCase = (text: string): string => {
     return text
         .toLowerCase()
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
+        .split("_")
+        .map(
+            (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        )
+        .join(" ");
 };
 
 // Convert DateRange to SerializableDateRange for Redux
-export const toSerializableDateRange = (dateRange?: DateRange): SerializableDateRange | undefined => {
+export const toSerializableDateRange = (
+    dateRange?: DateRange
+): SerializableDateRange | undefined => {
     if (!dateRange) return undefined;
-
+    // yyyy-mm-dd
     const result: SerializableDateRange = {};
     if (dateRange.from) {
-        result.from = dateRange.from.toISOString();
+        result.from =
+            dateRange.from.getFullYear() +
+            "-" +
+            (dateRange.from.getMonth() + 1).toString().padStart(2, "0") +
+            "-" +
+            dateRange.from.getDate().toString().padStart(2, "0");
     }
     if (dateRange.to) {
-        result.to = dateRange.to.toISOString();
+        result.to =
+            dateRange.to.getFullYear() +
+            "-" +
+            (dateRange.to.getMonth() + 1).toString().padStart(2, "0") +
+            "-" +
+            dateRange.to.getDate().toString().padStart(2, "0");
     }
     return result;
 };

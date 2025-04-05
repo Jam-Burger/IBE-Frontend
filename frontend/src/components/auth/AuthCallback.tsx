@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { useAuth } from 'react-oidc-context';
-import { useNavigate } from 'react-router-dom';
+import React, {useEffect} from 'react';
+import {useAuth} from 'react-oidc-context';
+import {useNavigate} from 'react-router-dom';
 
 export const AuthCallback: React.FC = () => {
     const auth = useAuth();

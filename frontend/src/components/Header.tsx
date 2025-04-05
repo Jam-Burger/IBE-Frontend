@@ -1,27 +1,24 @@
-import React, { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { PulseLoader } from "react-spinners";
-import { HiGlobeAlt } from "react-icons/hi";
-import { updateLanguage } from "../redux/languageSlice";
-import {
-    fetchExchangeRates,
-    setSelectedCurrency,
-} from "../redux/currencySlice";
-import { Link, useParams } from "react-router-dom";
-import { Button, Separator, Sheet, SheetContent, SheetTrigger } from "./ui";
-import { FiMenu } from "react-icons/fi";
-import { fetchConfig } from "../redux/configSlice.ts";
-import { ConfigType } from "../types";
-import { useAuth } from "react-oidc-context";
+import React, {useEffect, useState} from "react";
+import {useAppDispatch, useAppSelector} from "../redux/hooks";
+import {PulseLoader} from "react-spinners";
+import {HiGlobeAlt} from "react-icons/hi";
+import {updateLanguage} from "../redux/languageSlice";
+import {fetchExchangeRates, setSelectedCurrency,} from "../redux/currencySlice";
+import {Link, useParams} from "react-router-dom";
+import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
+import {FiMenu} from "react-icons/fi";
+import {fetchConfig} from "../redux/configSlice.ts";
+import {ConfigType} from "../types";
+import {useAuth} from "react-oidc-context";
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
-    const { tenantId } = useParams<{ tenantId: string }>();
+    const {tenantId} = useParams<{ tenantId: string }>();
     const auth = useAuth();
 
-    const { selectedLanguage } = useAppSelector((state) => state.language);
-    const { selectedCurrency } = useAppSelector((state) => state.currency);
-    const { globalConfig } = useAppSelector((state) => state.config);
+    const {selectedLanguage} = useAppSelector((state) => state.language);
+    const {selectedCurrency} = useAppSelector((state) => state.currency);
+    const {globalConfig} = useAppSelector((state) => state.config);
     const isLoading = !globalConfig;
 
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
@@ -35,7 +32,7 @@ const Header: React.FC = () => {
             console.error("Tenant ID is not available");
             return;
         }
-        dispatch(fetchConfig({ tenantId, configType: ConfigType.GLOBAL }));
+        dispatch(fetchConfig({tenantId, configType: ConfigType.GLOBAL}));
     }, [tenantId, dispatch]);
 
     useEffect(() => {
@@ -89,17 +86,19 @@ const Header: React.FC = () => {
 
     if (isLoading) {
         return (
-            <header className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center py-4 px-6 bg-white shadow-md">
+            <header
+                className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center py-4 px-6 bg-white shadow-md">
                 <div className="w-full flex justify-center items-center h-16">
-                    <PulseLoader color="var(--primary)" size={10} />
+                    <PulseLoader color="var(--primary)" size={10}/>
                 </div>
             </header>
         );
     }
 
-    const { brand } = globalConfig.configData;
+    const {brand} = globalConfig.configData;
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
+        <header
+            className="fixed top-0 left-0 right-0 z-50 flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
             <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
                 <Link
                     to={`/${tenantId}`}
@@ -110,7 +109,8 @@ const Header: React.FC = () => {
                         alt={brand.companyName}
                         className="w-28 h-6 md:w-36 md:h-7"
                     />
-                    <span className="font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">
+                    <span
+                        className="font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">
                         {brand.pageTitle}
                     </span>
                 </Link>
@@ -124,7 +124,7 @@ const Header: React.FC = () => {
                             onClick={toggleMobileMenu}
                             aria-label="Toggle menu"
                         >
-                            <FiMenu className="h-6 w-6" />
+                            <FiMenu className="h-6 w-6"/>
                         </button>
                     </SheetTrigger>
                     <SheetContent
@@ -166,13 +166,13 @@ const Header: React.FC = () => {
                                 )}
                             </div>
 
-                            <Separator className="my-4" />
+                            <Separator className="my-4"/>
 
                             <div className="space-y-4">
                                 {/* Language selection */}
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <HiGlobeAlt className="w-5 h-5 text-primary mr-2" />
+                                        <HiGlobeAlt className="w-5 h-5 text-primary mr-2"/>
                                         <h3 className="font-medium text-sm text-primary">
                                             Language
                                         </h3>
@@ -206,7 +206,8 @@ const Header: React.FC = () => {
                                 {/* Currency selection */}
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <span className="w-4 h-4 text-primary mr-2 flex items-center justify-center font-medium text-base">
+                                        <span
+                                            className="w-4 h-4 text-primary mr-2 flex items-center justify-center font-medium text-base">
                                             {selectedCurrency.symbol}
                                         </span>
                                         <h3 className="font-medium text-sm text-primary">
@@ -256,7 +257,7 @@ const Header: React.FC = () => {
                         className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleLanguageDropdown}
                     >
-                        <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125" />
+                        <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125"/>
 
                         <span className="text-sm md:text-base text-primary ml-1 capitalize">
                             {selectedLanguage.code}

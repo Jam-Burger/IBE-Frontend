@@ -1,6 +1,5 @@
-import { Field, CheckoutField } from '../components/checkout/types';
-import { State } from '../services/LocationService';
-import { GenericField } from '../types/GenericField';
+import {State} from '../services/LocationService';
+import {GenericField} from '../types';
 
 /**
  * Validates a form field based on its type and requirements
@@ -8,45 +7,45 @@ import { GenericField } from '../types/GenericField';
  * @param value The field value
  * @returns Error message if validation fails, empty string if valid
  */
-export function validateField(field: Field | CheckoutField | GenericField, value: string | boolean): string {
-  // Skip validation for disabled fields
-  if (!field.enabled) return '';
-  
-  // Required field validation
-  if (field.required) {
-    if (typeof value === 'boolean' && !value) {
-      return `${field.label} is required`;
+export function validateField(field: GenericField, value: string | boolean): string {
+    // Skip validation for disabled fields
+    if (!field.enabled) return '';
+
+    // Required field validation
+    if (field.required) {
+        if (typeof value === 'boolean' && !value) {
+            return `${field.label} is required`;
+        }
+
+        if (typeof value === 'string' && !value.trim()) {
+            return `${field.label} is required`;
+        }
     }
-    
-    if (typeof value === 'string' && !value.trim()) {
-      return `${field.label} is required`;
+
+    // Pattern validation for text fields
+    if (typeof value === 'string' && field.pattern && value.trim()) {
+        const pattern = typeof field.pattern === 'string' ? field.pattern : '';
+        if (pattern && !new RegExp(pattern).test(value)) {
+            return `${field.label} format is invalid`;
+        }
     }
-  }
-  
-  // Pattern validation for text fields
-  if (typeof value === 'string' && field.pattern && value.trim()) {
-    const pattern = typeof field.pattern === 'string' ? field.pattern : '';
-    if (pattern && !new RegExp(pattern).test(value)) {
-      return `${field.label} format is invalid`;
+
+    // Field-specific validations
+    switch (field.type) {
+        case 'email':
+            if (typeof value === 'string' && value.trim() && !validateEmail(value)) {
+                return 'Please enter a valid email address';
+            }
+            break;
+
+        case 'tel':
+            if (typeof value === 'string' && value.trim() && !validatePhone(value)) {
+                return 'Please enter a valid phone number';
+            }
+            break;
     }
-  }
-  
-  // Field-specific validations
-  switch (field.type) {
-    case 'email':
-      if (typeof value === 'string' && value.trim() && !validateEmail(value)) {
-        return 'Please enter a valid email address';
-      }
-      break;
-      
-    case 'tel':
-      if (typeof value === 'string' && value.trim() && !validatePhone(value)) {
-        return 'Please enter a valid phone number';
-      }
-      break;
-  }
-  
-  return '';
+
+    return '';
 }
 
 /**
@@ -55,46 +54,46 @@ export function validateField(field: Field | CheckoutField | GenericField, value
  * @param fields Array of fields to validate
  * @returns Object with field IDs as keys and error messages as values
  */
-export function validateSection(sectionId: string, fields: Field[] | CheckoutField[]): Record<string, string> {
-  console.log(`Validating section: ${sectionId} with ${fields.length} fields`);
-  const errors: Record<string, string> = {};
-  
-  fields.forEach(field => {
-    if (!field.enabled) return;
-    
-    const fieldId = `${sectionId}_${field.name}`;
-    console.log(`Looking for field with ID: ${fieldId}`);
-    const element = document.getElementById(fieldId);
-    
-    if (element) {
-      console.log(`Found element with ID: ${fieldId}`);
-      let value: string | boolean;
-      
-      if (field.type === 'checkbox') {
-        value = (element as HTMLInputElement).checked;
-        console.log(`Checkbox value: ${value}`);
-      } else if (field.type === 'select') {
-        // For select elements, try to get the data-value attribute first
-        const dataValue = element.getAttribute('data-value');
-        value = dataValue || (element as HTMLSelectElement).value;
-        console.log(`Select value: ${value}`);
-      } else {
-        value = (element as HTMLInputElement).value;
-        console.log(`Input value: ${value}`);
-      }
-      
-      const error = validateField(field, value);
-      if (error) {
-        console.log(`Validation error for ${fieldId}: ${error}`);
-        errors[fieldId] = error;
-      }
-    } else {
-      console.log(`Element with ID ${fieldId} not found`);
-    }
-  });
-  
-  console.log('Validation errors:', errors);
-  return errors;
+export function validateSection(sectionId: string, fields: GenericField[]): Record<string, string> {
+    console.log(`Validating section: ${sectionId} with ${fields.length} fields`);
+    const errors: Record<string, string> = {};
+
+    fields.forEach(field => {
+        if (!field.enabled) return;
+
+        const fieldId = `${sectionId}_${field.name}`;
+        console.log(`Looking for field with ID: ${fieldId}`);
+        const element = document.getElementById(fieldId);
+
+        if (element) {
+            console.log(`Found element with ID: ${fieldId}`);
+            let value: string | boolean;
+
+            if (field.type === 'checkbox') {
+                value = (element as HTMLInputElement).checked;
+                console.log(`Checkbox value: ${value}`);
+            } else if (field.type === 'select') {
+                // For select elements, try to get the data-value attribute first
+                const dataValue = element.getAttribute('data-value');
+                value = dataValue || (element as HTMLSelectElement).value;
+                console.log(`Select value: ${value}`);
+            } else {
+                value = (element as HTMLInputElement).value;
+                console.log(`Input value: ${value}`);
+            }
+
+            const error = validateField(field, value);
+            if (error) {
+                console.log(`Validation error for ${fieldId}: ${error}`);
+                errors[fieldId] = error;
+            }
+        } else {
+            console.log(`Element with ID ${fieldId} not found`);
+        }
+    });
+
+    console.log('Validation errors:', errors);
+    return errors;
 }
 
 /**
@@ -103,8 +102,8 @@ export function validateSection(sectionId: string, fields: Field[] | CheckoutFie
  * @returns True if valid, false otherwise
  */
 function validateEmail(email: string): boolean {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
 }
 
 /**
@@ -113,8 +112,8 @@ function validateEmail(email: string): boolean {
  * @returns True if valid, false otherwise
  */
 function validatePhone(phone: string): boolean {
-  // Basic validation - can be enhanced based on requirements
-  return /^[0-9]{10,15}$/.test(phone.replace(/[^0-9]/g, ''));
+    // Basic validation - can be enhanced based on requirements
+    return /^[0-9]{10,15}$/.test(phone.replace(/[^0-9]/g, ''));
 }
 
 /**
@@ -125,20 +124,20 @@ function validatePhone(phone: string): boolean {
  * @returns Error message if validation fails, empty string if valid
  */
 export function validateLocation(countryCode: string, stateName: string, validStates: State[]): string {
-  if (!countryCode) {
-    return 'Please select a country';
-  }
-  
-  if (!stateName && validStates.length > 0) {
-    return 'Please select a state';
-  }
-  
-  if (stateName && validStates.length > 0) {
-    const isValidState = validStates.some(s => s.name === stateName);
-    if (!isValidState) {
-      return 'Selected state is not valid for the chosen country';
+    if (!countryCode) {
+        return 'Please select a country';
     }
-  }
-  
-  return '';
+
+    if (!stateName && validStates.length > 0) {
+        return 'Please select a state';
+    }
+
+    if (stateName && validStates.length > 0) {
+        const isValidState = validStates.some(s => s.name === stateName);
+        if (!isValidState) {
+            return 'Selected state is not valid for the chosen country';
+        }
+    }
+
+    return '';
 } 

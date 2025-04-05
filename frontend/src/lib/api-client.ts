@@ -1,5 +1,6 @@
 import axios from "axios";
 import {ApiResponse, ConfigType, PaginationParams, PaginationResponse, Room} from "../types";
+import {Booking} from "../types/Booking";
 
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -61,20 +62,13 @@ export const api = {
         const propertyId = params.propertyId;
         params = {
             ...params,
-            page: paginationParams?.page.toString() || '1',
-            pageSize: paginationParams?.pageSize.toString() || '3',
+            page: paginationParams?.page.toString() ?? '1',
+            pageSize: paginationParams?.pageSize.toString() ?? '3',
         };
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-types/filter`,
             {params}
         );
-        const updatedItems = response.data.data.items.map((item: any) => {
-            const averageRate= item.roomRates.reduce((sum: number, rate: any) => sum + rate.price, 0) / item.roomRates.length;
-            item.averagePrice= averageRate;
-            return item;
-        });
-        console.log(updatedItems);
-        response.data.data.items = updatedItems;
         return response.data;
     },
 
@@ -110,21 +104,8 @@ export const api = {
         return response.data;
     },
 
-    get: async (url: string, options?: any) => {
-        try {
-            const response = await axios.get(url, options);
-            return {
-                data: response.data,
-                status: response.status
-            };
-        } catch (error) {
-            console.error(`Error in API GET request to ${url}:`, error);
-            throw error;
-        }
-    },
-
     getCountries: async () => {
-        return api.get('https://api.countrystatecity.in/v1/countries', {
+        return apiClient.get('https://api.countrystatecity.in/v1/countries', {
             headers: {
                 'X-CSCAPI-KEY': COUNTRY_API_KEY
             }
@@ -132,7 +113,7 @@ export const api = {
     },
 
     getStates: async (countryCode: string) => {
-        return api.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
+        return apiClient.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
             headers: {
                 'X-CSCAPI-KEY': COUNTRY_API_KEY
             }
@@ -140,10 +121,18 @@ export const api = {
     },
 
     getCities: async (countryCode: string, stateCode: string) => {
-        return api.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`, {
+        return apiClient.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`, {
             headers: {
                 'X-CSCAPI-KEY': COUNTRY_API_KEY
             }
         });
+    },
+
+    submitBooking: async (tenantId: string, bookingData: Booking) => {
+        const response = await apiClient.post(
+            `${tenantId}/${bookingData.propertyId}/book`,
+            bookingData
+        );
+        return response.data;
     }
 };
