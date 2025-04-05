@@ -7,6 +7,7 @@ interface CheckoutState {
     config: CheckoutConfig | null;
     status: BaseState;
     formData: Record<string, string>;
+    roomTypeId: number;
     promotionApplied: SpecialDiscount | PromoOffer | null;
 }
 
@@ -17,6 +18,7 @@ const initialState: CheckoutState = {
         error: null
     },
     formData: {},
+    roomTypeId: -1,
     promotionApplied: null
 };
 
@@ -77,6 +79,9 @@ export const checkoutSlice = createSlice({
         },
         setPromotionApplied: (state, action: PayloadAction<SpecialDiscount | PromoOffer | null>) => {
             state.promotionApplied = action.payload;
+        },
+        setRoomTypeId: (state, action: PayloadAction<number>) => {
+            state.roomTypeId = action.payload;
         }
     },
     extraReducers: (builder) => {
@@ -122,6 +127,6 @@ export const checkoutSlice = createSlice({
     },
 });
 
-export const {updateFormData, clearFormData, setPromotionApplied} = checkoutSlice.actions;
+export const {updateFormData, clearFormData, setPromotionApplied, setRoomTypeId} = checkoutSlice.actions;
 
 export default checkoutSlice.reducer; 

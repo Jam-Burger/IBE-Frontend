@@ -8,5 +8,5 @@ export interface Booking {
     guests: Record<string, number>;
     bedCount: number;
     roomTypeId: number;
-    promotionId: string;
+    promotionId: string | null;
 }

@@ -1,4 +1,5 @@
 export interface SpecialDiscount {
+    id: number;
     title: string;
     description: string;
     property_id: number;
@@ -8,6 +9,7 @@ export interface SpecialDiscount {
 }
 
 export interface PromoOffer {
+    id: number;
     title: string;
     description: string;
     discount_percentage: number;
@@ -20,5 +22,4 @@ export interface PackageData {
     description: string;
 }
 
-export interface StandardPackage extends PackageData {
-}
+export type StandardPackage = PackageData

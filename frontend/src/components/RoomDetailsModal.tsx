@@ -11,7 +11,7 @@ import {useAppSelector} from "../redux/hooks.ts";
 import toast from "react-hot-toast";
 import {toTitleCase} from "../lib/utils.ts";
 import {isWithinInterval, parseISO} from "date-fns";
-import {setPromotionApplied} from "../redux/checkoutSlice";
+import {setPromotionApplied, setRoomTypeId} from "../redux/checkoutSlice";
 import {useAppDispatch} from "../redux/hooks";
 
 interface RoomDetailsModalProps {
@@ -227,7 +227,8 @@ const RoomDetailsModal = ({
     ) => {
         navigate(`/${tenantId}/checkout`);
         dispatch(setPromotionApplied(packageData));
-
+        dispatch(setRoomTypeId(room.roomTypeId));
+        
         if (onSelectRoom) {
             onSelectRoom();
         }
