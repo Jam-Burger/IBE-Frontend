@@ -1,6 +1,5 @@
-import { Field, CheckoutField } from '../components/checkout/types';
 import { State } from '../services/LocationService';
-import { GenericField } from '../types/GenericField';
+import { GenericField } from '../types';
 
 /**
  * Validates a form field based on its type and requirements
@@ -8,7 +7,7 @@ import { GenericField } from '../types/GenericField';
  * @param value The field value
  * @returns Error message if validation fails, empty string if valid
  */
-export function validateField(field: Field | CheckoutField | GenericField, value: string | boolean): string {
+export function validateField(field: GenericField, value: string | boolean): string {
   // Skip validation for disabled fields
   if (!field.enabled) return '';
   
@@ -67,7 +66,7 @@ export function validateField(field: Field | CheckoutField | GenericField, value
  * @param fields Array of fields to validate
  * @returns Object with field IDs as keys and error messages as values
  */
-export function validateSection(sectionId: string, fields: Field[] | CheckoutField[]): Record<string, string> {
+export function validateSection(sectionId: string, fields: GenericField[]): Record<string, string> {
   console.log(`Validating section: ${sectionId} with ${fields.length} fields`);
   const errors: Record<string, string> = {};
   

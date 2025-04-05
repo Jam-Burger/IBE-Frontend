@@ -1,25 +1,15 @@
 import { useDispatch } from 'react-redux';
 import { updateFormData } from '../redux/checkoutSlice';
-
-// Define a more flexible field interface
-interface GenericField {
-  label: string;
-  type: string;
-  name: string;
-  required: boolean;
-  enabled: boolean;
-  pattern?: string | null | undefined;
-  options?: string[] | null | undefined;
-  [key: string]: unknown; // Allow additional properties
-}
+import {ChangeEvent} from "react";
+import {GenericField} from "../types";
 
 export const useCheckoutForm = (sectionPrefix: string) => {
   const dispatch = useDispatch();
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: ChangeEvent<HTMLInputElement>,
     field: GenericField,
-    originalHandler?: (e: React.ChangeEvent<HTMLInputElement>, field: GenericField) => void
+    originalHandler?: (e: ChangeEvent<HTMLInputElement>, field: GenericField) => void
   ) => {
     // Call original handler if provided
     if (originalHandler) {

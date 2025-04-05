@@ -11,34 +11,23 @@ import {
   SelectValue,
   Checkbox
 } from '../../components/ui';
-import { CheckoutField, CheckoutSection } from './types';
+import { GenericField, CheckoutSection } from '../../types';
 import { useCheckoutForm } from '../../hooks/useCheckoutForm';
 import { updateFormData } from '../../redux/checkoutSlice';
 import { RootState } from '../../redux/store';
 import { validateField } from '../../utils/validation';
-
-interface Field {
-  label: string;
-  type: string;
-  name: string;
-  required: boolean;
-  enabled: boolean;
-  pattern?: string | null;
-  options?: string[] | null;
-  [key: string]: unknown; // Use unknown instead of any
-}
 
 interface TravelerInfoSectionProps {
   section: CheckoutSection;
   expandedSection: string;
   completedSections: string[];
   formErrors: Record<string, string>;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: Field) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: GenericField) => void;
   handleNextStep: () => void;
   handleSectionExpand: (sectionId: string) => void;
 }
 
-const adaptField = (field: CheckoutField): Field => {
+const adaptField = (field: GenericField): GenericField => {
   return {
     ...field,
     // Explicitly handle the pattern property
@@ -87,7 +76,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
   // Custom input change handler that also updates validation state
   const handleCustomInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: CheckoutField
+    field: GenericField
   ) => {
     // Convert CheckoutField to Field using the adapter
     const adaptedField = adaptField(field);
@@ -169,7 +158,7 @@ const TravelerInfoSection: React.FC<TravelerInfoSectionProps> = ({
       {expandedSection === 'traveler_info' && (
         <div className="px-4 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-4">
-            {section.fields.filter((field: CheckoutField) => field.enabled).map((field: CheckoutField, index: number) => {
+            {section.fields.filter((field: GenericField) => field.enabled).map((field: GenericField, index: number) => {
               const fieldKey = field.name;
               const isRequired = field.required;
               const isEmpty = isRequired && fieldValidation[fieldKey] === false;
