@@ -90,23 +90,20 @@ export const toSerializableDateRange = (
     dateRange?: DateRange
 ): SerializableDateRange | undefined => {
     if (!dateRange) return undefined;
-    // yyyy-mm-dd
-    const result: SerializableDateRange = {};
-    if (dateRange.from) {
-        result.from =
-            dateRange.from.getFullYear() +
-            "-" +
-            (dateRange.from.getMonth() + 1).toString().padStart(2, "0") +
-            "-" +
-            dateRange.from.getDate().toString().padStart(2, "0");
-    }
-    if (dateRange.to) {
-        result.to =
-            dateRange.to.getFullYear() +
-            "-" +
-            (dateRange.to.getMonth() + 1).toString().padStart(2, "0") +
-            "-" +
-            dateRange.to.getDate().toString().padStart(2, "0");
-    }
-    return result;
+    return {
+        from: dateRange.from ? formatDateToYYYYMMDD(dateRange.from) : undefined,
+        to: dateRange.to ? formatDateToYYYYMMDD(dateRange.to) : undefined,
+    };
+};
+
+/**
+ * Formats a Date object to YYYY-MM-DD string format
+ * @param date Date object to format
+ * @returns Formatted date string in YYYY-MM-DD format
+ */
+export const formatDateToYYYYMMDD = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
 };

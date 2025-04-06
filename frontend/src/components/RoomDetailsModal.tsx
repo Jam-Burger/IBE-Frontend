@@ -9,7 +9,7 @@ import {api} from "../lib/api-client";
 import {useNavigate, useParams} from "react-router-dom";
 import {useAppSelector} from "../redux/hooks.ts";
 import toast from "react-hot-toast";
-import {toTitleCase} from "../lib/utils.ts";
+import {formatDateToYYYYMMDD, toTitleCase} from "../lib/utils.ts";
 import {isWithinInterval, parseISO} from "date-fns";
 import {setPromotionApplied, setRoomTypeId} from "../redux/checkoutSlice";
 import {useAppDispatch} from "../redux/hooks";
@@ -24,6 +24,11 @@ const computeDiscountedPrice = (
     discount: SpecialDiscount,
     roomRates: Room["roomRates"]
 ): number => {
+    if(!discount.start_date || !discount.end_date) {
+        const averagePrice = roomRates.reduce((sum: number, rate: any) => sum + rate.price, 0) / roomRates.length;
+        return Math.round(averagePrice * (1 - discount.discount_percentage / 100));
+    }
+
     const discountStart = parseISO(discount.start_date);
     const discountEnd = parseISO(discount.end_date);
 
@@ -106,9 +111,8 @@ const RoomDetailsModal = ({
                 let formattedStartDate, formattedEndDate;
 
                 if (dateRange && dateRange.from && dateRange.to) {
-                    // Date strings are already in ISO format, just take the date part
-                    formattedStartDate = dateRange.from.split("T")[0];
-                    formattedEndDate = dateRange.to.split("T")[0];
+                    formattedStartDate = dateRange.from;
+                    formattedEndDate = dateRange.to;
                 } else {
                     // Fallback to default dates if no selection
                     const today = new Date();
@@ -123,8 +127,8 @@ const RoomDetailsModal = ({
                         today.getDate() + 5
                     );
 
-                    formattedStartDate = startDate.toISOString().split("T")[0];
-                    formattedEndDate = endDate.toISOString().split("T")[0];
+                    formattedStartDate = formatDateToYYYYMMDD(startDate);
+                    formattedEndDate = formatDateToYYYYMMDD(endDate);
                 }
 
                 // Use the API client's getSpecialDiscounts method
@@ -166,36 +170,18 @@ const RoomDetailsModal = ({
         setPromoError("");
 
         try {
-            // Get date range for API call
-            let formattedStartDate, formattedEndDate;
-
-            if (dateRange && dateRange.from && dateRange.to) {
-                formattedStartDate = dateRange.from.split("T")[0];
-                formattedEndDate = dateRange.to.split("T")[0];
-            } else {
-                // Fallback to default dates if no selection
-                const today = new Date();
-                const startDate = new Date(
-                    today.getFullYear(),
-                    today.getMonth(),
-                    today.getDate() + 1
-                );
-                const endDate = new Date(
-                    today.getFullYear(),
-                    today.getMonth(),
-                    today.getDate() + 5
-                );
-
-                formattedStartDate = startDate.toISOString().split("T")[0];
-                formattedEndDate = endDate.toISOString().split("T")[0];
+            if (!dateRange?.from || !dateRange?.to) {
+                toast.error("Please select a date range");
+                setPromoError("Please select a date range");
+                return;
             }
-
+            
             // Use the API client instead of fetch
             const response = await api.getPromoOffer({
                 tenantId: tenantId,
                 propertyId: room.propertyId,
-                startDate: formattedStartDate,
-                endDate: formattedEndDate,
+                startDate: dateRange?.from,
+                endDate: dateRange?.to,
                 promoCode: promoCode,
             });
 

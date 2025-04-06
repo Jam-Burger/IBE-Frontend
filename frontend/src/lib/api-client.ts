@@ -1,6 +1,7 @@
 import axios from "axios";
 import {ApiResponse, ConfigType, PaginationParams, PaginationResponse, Room} from "../types";
 import {Booking} from "../types/Booking";
+import { formatDateToYYYYMMDD } from "./utils";
 
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -42,7 +43,10 @@ export const api = {
         const {propertyId, startDate, endDate, tenantId} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-rates/daily-minimum`,
-            {params: {start_date: startDate.toISOString().split("T")[0], end_date: endDate.toISOString().split("T")[0]}}
+            {params: {
+                start_date: formatDateToYYYYMMDD(startDate), 
+                end_date: formatDateToYYYYMMDD(endDate)
+            }}
         );
         return response.data;
     },
@@ -130,7 +134,7 @@ export const api = {
 
     submitBooking: async (tenantId: string, bookingData: Booking) => {
         const response = await apiClient.post(
-            `${tenantId}/${bookingData.propertyId}/book`,
+            `${tenantId}/bookings`,
             bookingData
         );
         return response.data;

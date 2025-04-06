@@ -2,8 +2,8 @@ import {FC} from "react";
 import {MdClose, MdLocalOffer} from "react-icons/md";
 import {useAppSelector} from "../redux/hooks.ts";
 import {convertToLocaleCurrency} from "../lib/utils.ts";
-import {Button} from "./ui/Button.tsx";
-import {PackageData} from "../types/Package.ts";
+import {Button} from "./ui";
+import {PackageData} from "../types";
 
 interface HotelPackageCardProps {
     packageData: PackageData;
