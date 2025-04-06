@@ -9,3 +9,4 @@ export {SortOption} from "./SortOption";
 export {ConfigType} from "./ConfigType";
 export type {PaginationParams, PaginationResponse} from "./Pagination";
 export type {ApiResponse, ErrorResponse} from "./Response";
+export type {GenericField} from "./GenericField";

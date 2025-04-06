@@ -9,7 +9,14 @@ import { PulseLoader } from 'react-spinners';
 import TripItinerary from '../components/TripItinerary';
 import { LocationService, Country, State, City } from '../services/LocationService';
 import { StateStatus } from '../types';
-import { adaptCheckoutSection, Section, CheckoutSection } from '../components/checkout/types';
+import { 
+  adaptCheckoutSection, 
+  adaptCountries, 
+  adaptStates, 
+  adaptCities,
+  Section,
+  CheckoutSection
+} from '../components/checkout/types';
 import { validateField } from '../utils/validation';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -463,6 +470,7 @@ const CheckoutPage: React.FC = () => {
                                     expandedSection={expandedSection}
                                     completedSections={completedSections}
                                     formErrors={formErrors}
+                                    setFormErrors={setFormErrors}
                                     handleInputChange={handleInputChange}
                                     handleNextStep={handleNextStep}
                                     handleSectionExpand={handleSectionExpand}
@@ -480,10 +488,10 @@ const CheckoutPage: React.FC = () => {
                                     handleInputChange={handleInputChange}
                                     handleNextStep={handleNextStep}
                                     handleSectionExpand={handleSectionExpand}
-                                    countries={countries}
+                                    countries={adaptCountries(countries)}
                                     selectedCountryCode={selectedCountryCode}
-                                    availableStates={availableStates}
-                                    availableCities={availableCities}
+                                    availableStates={adaptStates(availableStates, selectedCountryCode)}
+                                    availableCities={adaptCities(availableCities, '')}
                                     handleCountryChange={handleCountryChange}
                                     handleStateChange={handleStateChange}
                                     handleCityChange={handleCityChange}

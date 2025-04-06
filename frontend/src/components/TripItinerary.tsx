@@ -36,7 +36,6 @@ interface TripItineraryProps {
 }
 
 const TripItinerary: React.FC<TripItineraryProps> = ({ 
-  currency = 'USD',
   roomDetails = {
     name: 'Executive Rooms',
     rate: 132,

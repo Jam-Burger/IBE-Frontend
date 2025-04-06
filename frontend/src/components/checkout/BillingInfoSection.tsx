@@ -10,57 +10,23 @@ import {
   SelectTrigger, 
   SelectValue,
 } from '../../components/ui';
-import { Country, State, City } from '../../services/LocationService';
 import { useCheckoutForm } from '../../hooks/useCheckoutForm';
 // import { updateFormData } from '../../redux/checkoutSlice';
 import { RootState } from '../../redux/store';
-import { GenericField } from '../../types/GenericField';
 import { validateField } from '../../utils/validation';
+import { 
+  BillingInfoSectionProps,
+  adaptField,
+  GenericField
+} from './types';
 
-// Define Field interface
-interface Field {
-  label: string;
-  type: string;
-  name: string;
-  required: boolean;
-  enabled: boolean;
-  pattern?: string;
-  options?: string[];
-}
-
-// Define Section interface
-interface Section {
-  id: string;
-  title: string;
-  enabled: boolean;
-  fields: Field[];
-}
-
-interface BillingInfoSectionProps {
-  section: Section;
-  expandedSection: string;
-  completedSections: string[];
-  formErrors: Record<string, string>;
-  setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: GenericField) => void;
-  handleNextStep: () => void;
-  handleSectionExpand: (sectionId: string) => void;
-  countries: Country[];
-  selectedCountryCode: string;
-  availableStates: State[];
-  availableCities: City[];
-  handleCountryChange: (countryName: string, sectionId: string) => void;
-  handleStateChange: (stateName: string, sectionId: string) => void;
-  handleCityChange: (cityName: string, sectionId: string) => void;
-}
+// Remove duplicate interface definitions
+// interface Field { ... }
+// interface Section { ... }
+// interface BillingInfoSectionProps { ... }
 
 // Update the adapter function to accept GenericField
-const adaptField = (field: GenericField): GenericField => {
-  return {
-    ...field,
-    pattern: field.pattern || undefined
-  };
-};
+// const adaptField = (field: GenericField): GenericField => { ... }
 
 const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
   section,
@@ -139,8 +105,6 @@ const BillingInfoSection: React.FC<BillingInfoSectionProps> = ({
     e: React.ChangeEvent<HTMLInputElement>, 
     field: GenericField
   ) => {
-    console.log(`handleCustomInputChange called for field: ${field.name} with value: ${e.target.value}`);
-    
     // Use the adapter to ensure compatible types
     handleFormInputChange(e, adaptField(field), handleInputChange);
     

@@ -14,45 +14,13 @@ import {
 import { useCheckoutForm } from '../../hooks/useCheckoutForm';
 import { updateFormData } from '../../redux/checkoutSlice';
 import { RootState } from '../../redux/store';
-import { GenericField } from '../../types/GenericField';
 import { validateField } from '../../utils/validation';
-
-// Define Field interface
-interface Field {
-  label: string;
-  type: string;
-  name: string;
-  required: boolean;
-  enabled: boolean;
-  pattern?: string;
-  options?: string[];
-}
-
-// Define Section interface
-interface Section {
-  id: string;
-  title: string;
-  enabled: boolean;
-  fields: Field[];
-}
-
-interface PaymentInfoSectionProps {
-  section: Section;
-  expandedSection: string;
-  completedSections: string[];
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, field: GenericField) => void;
-  handleNextStep?: () => void;
-  handleSectionExpand: (sectionId: string) => void;
-  handleSubmit: () => void;
-}
-
-// Update the adapter function to accept GenericField
-const adaptField = (field: GenericField): GenericField => {
-  return {
-    ...field,
-    pattern: field.pattern || undefined
-  };
-};
+import { 
+  PaymentInfoSectionProps,
+  adaptField,
+  GenericField,
+  Field
+} from './types';
 
 const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
   section,
@@ -206,7 +174,7 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
                         required={field.required}
                         pattern={field.pattern || undefined}
                         value={formData[fieldKey] || ''}
-                        onChange={(e) => handleCustomInputChange(e, field)}
+                        onChange={(e) => handleCustomInputChange(e, field as GenericField)}
                       />
                       {showError && (
                         <p className="text-red-500 text-xs mt-1">
