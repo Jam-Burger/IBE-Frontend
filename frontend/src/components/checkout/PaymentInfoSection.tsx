@@ -150,7 +150,64 @@ const PaymentInfoSection: React.FC<PaymentInfoSectionProps> = ({
       {expandedSection === 'payment_info' && (
         <div className="px-4 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-4">
-            {section.fields.filter((field: Field) => field.enabled).map((field: Field, index: number) => {
+            {/* Special container for card fields that should be in the same row */}
+            <div className="col-span-2 flex">
+              {section.fields
+                .filter((field: Field) => field.enabled && (field.label === 'Card Name' || field.label === 'Exp MM' || field.label === 'Exp YY'))
+                .map((field: Field, index: number) => {
+                  const fieldKey = field.name;
+                  const isRequired = field.required;
+                  const isEmpty = isRequired && fieldValidation[fieldKey] === false;
+                  const showError = showValidation && isEmpty;
+                  
+                  return (
+                    <div key={index} className={`${field.label === 'Exp MM' ? 'ml-8' : field.label === 'Exp YY' ? 'ml-2' : ''}`}>
+                      <Label htmlFor={fieldKey} className="text-sm mb-1 block">
+                        {field.label}{isRequired && <span className="text-red-500">*</span>}
+                      </Label>
+                      <Input 
+                        id={fieldKey} 
+                        placeholder={field.label} 
+                        type={field.type}
+                        className={`h-[48px] ${
+                          field.label === 'Exp MM' || field.label === 'Exp YY' || field.label === 'CVV' 
+                            ? 'w-[164px]' 
+                            : field.label === 'Card Name' 
+                              ? 'w-[340px]' 
+                              : 'w-[346px]'
+                        } ${showError ? 'border-red-500' : ''}`}
+                        style={{
+                          width: field.label === 'Exp MM' || field.label === 'Exp YY' || field.label === 'CVV Code'
+                            ? '164px' 
+                            : field.label === 'Card Name' 
+                              ? '340px' 
+                              : '346px',
+                          height: '48px'
+                        }}
+                        required={field.required}
+                        pattern={field.pattern || undefined}
+                        value={formData[fieldKey] || ''}
+                        onChange={(e) => handleCustomInputChange(e, field as GenericField)}
+                      />
+                      {showError && (
+                        <p className="text-red-500 text-xs mt-1">
+                          This field is required
+                        </p>
+                      )}
+                      {localFormErrors[fieldKey] && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {localFormErrors[fieldKey]}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+            
+            {/* Render other fields */}
+            {section.fields
+              .filter((field: Field) => field.enabled && field.label !== 'Card Name' && field.label !== 'Exp MM' && field.label !== 'Exp YY')
+              .map((field: Field, index: number) => {
               const fieldKey = field.name;
               const isRequired = field.required;
               const isEmpty = isRequired && fieldValidation[fieldKey] === false;
