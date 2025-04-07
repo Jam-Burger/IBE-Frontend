@@ -6,6 +6,7 @@ import {
     Room,
     SpecialDiscount,
     PromoOffer,
+    RoomRate,
 } from "../types";
 import { parseISO, isWithinInterval } from "date-fns";
 
@@ -162,4 +163,47 @@ export const computeDiscountedPrice = (
         );
         return totalPrice * (1 - discount.discount_percentage / 100);
     }
+};
+
+const getDailyRates = (
+    discount: SpecialDiscount | PromoOffer,
+    roomRates: Room["roomRates"]
+): RoomRate[] => {
+    if (!roomRates || roomRates.length === 0) {
+        return [];
+    }
+
+    // If no date range specified in discount, apply to all dates
+    if (
+        !("start_date" in discount) ||
+        !discount.start_date ||
+        !discount.end_date
+    ) {
+        return roomRates.map((rate) => ({
+            date: rate.date,
+            minimumRate: rate.price,
+            discountedRate:
+                rate.price * (1 - discount.discount_percentage / 100),
+        }));
+    }
+
+    const discountStart = parseISO(discount.start_date);
+    const discountEnd = parseISO(discount.end_date);
+
+    // Apply discount only to dates within the discount period
+    return roomRates.map((rate) => {
+        const rateDate = parseISO(rate.date);
+        const isWithinDiscountPeriod = isWithinInterval(rateDate, {
+            start: discountStart,
+            end: discountEnd,
+        });
+
+        return {
+            date: rate.date,
+            minimumRate: rate.price,
+            discountedRate: isWithinDiscountPeriod
+                ? rate.price * (1 - discount.discount_percentage / 100)
+                : rate.price,
+        };
+    });
 };
