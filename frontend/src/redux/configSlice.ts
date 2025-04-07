@@ -1,17 +1,27 @@
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {api} from "../lib/api-client";
-import {BaseState, ConfigType, GlobalConfig, LandingConfig, RoomsListConfig, StateStatus} from "../types";
+import {
+    BaseState,
+    CheckoutConfig,
+    ConfigType,
+    GlobalConfig,
+    LandingConfig,
+    RoomsListConfig,
+    StateStatus
+} from "../types";
 
 export interface ConfigState extends BaseState {
     globalConfig: GlobalConfig | null;
     landingConfig: LandingConfig | null;
     roomsListConfig: RoomsListConfig | null;
+    checkoutConfig: CheckoutConfig | null;
 }
 
 const initialState: ConfigState = {
     globalConfig: null,
     landingConfig: null,
     roomsListConfig: null,
+    checkoutConfig: null,
     status: StateStatus.IDLE,
     error: null
 };
@@ -47,6 +57,9 @@ const configSlice = createSlice({
                         break;
                     case ConfigType.ROOMS_LIST:
                         state.roomsListConfig = action.payload;
+                        break;
+                    case ConfigType.CHECKOUT:
+                        state.checkoutConfig = action.payload;
                         break;
                 }
             })

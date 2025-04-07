@@ -18,10 +18,3 @@ export interface CheckoutSection {
 export interface CheckoutConfig {
   sections: CheckoutSection[];
 }
-
-export interface CheckoutState {
-  config: CheckoutConfig | null;
-  loading: boolean;
-  error: string | null;
-  formValues: Record<string, string | boolean>;
-} 

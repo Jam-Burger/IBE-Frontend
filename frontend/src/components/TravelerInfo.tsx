@@ -2,9 +2,9 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Field, Formik } from 'formik';
 import * as Yup from 'yup';
-import { CheckoutField } from '../types/Checkout';
+import { CheckoutField } from '../types';
 import { RootState, AppDispatch } from '../redux/store';
-import { updateFormValue } from '../redux/checkoutSlice';
+import { updateFormData } from '../redux/checkoutSlice';
 
 interface TravelerInfoProps {
   fields: CheckoutField[];
@@ -16,7 +16,7 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
   onNext
 }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const formValues = useSelector((state: RootState) => state.checkout.formValues);
+  const formValues = useSelector((state: RootState) => state.checkout.formData);
 
   // Create validation schema based on fields
   const validationSchema = Yup.object().shape(
@@ -68,9 +68,8 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
         validateOnBlur={true}
         onSubmit={(values, { setSubmitting }) => {
           try {
-            // Update all form values in Redux store
             Object.entries(values).forEach(([name, value]) => {
-              dispatch(updateFormValue({ name, value }));
+              dispatch(updateFormData({ name, value }));
             });
 
             console.log('Traveler info submitted:', values);
@@ -131,7 +130,7 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const value = field.type === 'checkbox' ? e.target.checked : e.target.value;
                     setFieldValue(field.name, value);
-                    dispatch(updateFormValue({ name: field.name, value }));
+                    dispatch(updateFormData({ name: field.name, value }));
                   }}
                 />
                 
