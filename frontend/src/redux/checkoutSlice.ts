@@ -1,8 +1,17 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {api} from '../lib/api-client';
-import {BaseState, CheckoutConfig, ConfigType, PromoOffer, Room, SpecialDiscount, StandardPackage, StateStatus} from '../types';
+import {
+    BaseState,
+    CheckoutConfig,
+    ConfigType,
+    PromoOffer,
+    Room,
+    SpecialDiscount,
+    StandardPackage,
+    StateStatus
+} from '../types';
 import {Booking} from '../types/Booking';
-import { PropertyDetails } from '../types/PropertyDetails';
+import {PropertyDetails} from '../types/PropertyDetails';
 
 interface CheckoutState {
     config: CheckoutConfig | null;
@@ -22,7 +31,7 @@ const initialState: CheckoutState = {
     formData: {},
     room: null,
     promotionApplied: null,
-    propertyDetails: null
+    propertyDetails: null,
 };
 
 // Define the response type
@@ -69,7 +78,7 @@ export const submitBooking = createAsyncThunk(
 
 export const fetchPropertyDetails = createAsyncThunk(
     'checkout/fetchPropertyDetails',
-    async ({tenantId, propertyId}: {tenantId: string, propertyId: number}) => {
+    async ({tenantId, propertyId}: { tenantId: string, propertyId: number }) => {
         const response = await api.getPropertyDetails(tenantId, propertyId);
         return response.data;
     }
@@ -153,7 +162,7 @@ export const checkoutSlice = createSlice({
                     status: StateStatus.ERROR,
                     error: action.error.message ?? 'Failed to fetch property details'
                 };
-            });
+            })
     },
 });
 

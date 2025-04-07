@@ -1,559 +1,363 @@
-import React, {useEffect, useState} from 'react';
-import {useParams} from 'react-router-dom';
-import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {fetchConfig} from '../redux/configSlice';
-import {fetchCheckoutConfig, submitBooking, fetchPropertyDetails} from '../redux/checkoutSlice';
-import {Stepper} from '../components';
-import {PulseLoader} from 'react-spinners';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Formik } from 'formik';
+import TravelerInfo from '../components/TravelerInfo';
+import BillingInfo from '../components/BillingInfo';
+import PaymentInfo from '../components/PaymentInfo';
 import TripItinerary from '../components/TripItinerary';
-import {City, Country, LocationService, State} from '../services/LocationService';
-import {ConfigType, GenericField, PromoOffer, SpecialDiscount, StandardPackage, StateStatus} from '../types';
-import {adaptCheckoutSection, CheckoutSection, Section} from '../types/Checkout.ts';
-import {validateField} from '../utils/validation';
-import {useSelector} from 'react-redux';
-import {RootState} from '../redux/store';
-
-// Import the section components
-import TravelerInfoSection from '../components/checkout/TravelerInfoSection';
-import BillingInfoSection from '../components/checkout/BillingInfoSection';
-import PaymentInfoSection from '../components/checkout/PaymentInfoSection';
-import { Booking } from '../types/Booking.ts';
-import HelpSection from '../components/HelpSection';
+import { fetchCheckoutConfig } from '../redux/checkoutSlice';
+import { RootState, AppDispatch } from '../redux/store';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui';
 
 const CheckoutPage: React.FC = () => {
-    const {tenantId} = useParams<{ tenantId: string }>();
-    const dispatch = useAppDispatch();
-    const {roomsListConfig} = useAppSelector(state => state.config);
-    const {selectedCurrency} = useAppSelector(state => state.currency);
-    const {config: checkoutConfig, status: checkoutStatus, promotionApplied, room} = useAppSelector(state => state.checkout);
-    const {filter} = useAppSelector(state => state.roomFilters);
-    // Set to 2 for checkout step (assuming 0-indexed steps: 0=search, 1=select room, 2=checkout)
-    const [currentStep] = useState(2);
+  const dispatch = useDispatch<AppDispatch>();
+  const checkoutState = useSelector((state: RootState) => state.checkout);
+  console.log('Checkout State:', checkoutState);
+  
+  const { config, loading, error, formValues: reduxFormValues } = checkoutState;
+  const [activeSection, setActiveSection] = useState<string>('traveler_info');
+  const [isValid, setIsValid] = useState<Record<string, boolean>>({
+    traveler_info: false,
+    billing_info: false,
+    payment_info: false
+  });
+  const [formValues, setFormValues] = useState<Record<string, unknown>>({});
+  const [formErrors, setFormErrors] = useState<Record<string, unknown>>({});
 
-    // Form validation state
-    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  useEffect(() => {
+    console.log('Dispatching fetchCheckoutConfig');
+    dispatch(fetchCheckoutConfig());
+  }, [dispatch]);
 
-    // Location data state
-    const [countries, setCountries] = useState<Country[]>([]);
-    const [countryStates, setCountryStates] = useState<Record<string, State[]>>({});
-    const [selectedCountryCode, setSelectedCountryCode] = useState<string>('');
-    const [availableStates, setAvailableStates] = useState<State[]>([]);
-    const [citiesByState, setCitiesByState] = useState<Record<string, City[]>>({});
-    const [availableCities, setAvailableCities] = useState<City[]>([]);
-
-    // Section state
-    const [completedSections, setCompletedSections] = useState<string[]>([]);
-    const [expandedSection, setExpandedSection] = useState<string>('traveler_info');
-
-    // Get formData from Redux store
-    const formData = useSelector((state: RootState) => state.checkout.formData);
-
-    // Fetch countries on component mount
-    useEffect(() => {
-        const fetchCountriesData = async () => {
-            try {
-                const countriesData = await LocationService.getCountries();
-                setCountries(countriesData);
-            } catch (error) {
-                console.error('Failed to fetch countries:', error);
-            }
-        };
-
-        fetchCountriesData();
-    }, []);
-
-    // Fetch config data
-    useEffect(() => {
-        if (!tenantId) {
-            console.error("Tenant ID is not available");
-            return;
-        }
-
-        // Fetch the rooms list config if not already loaded
-        if (!roomsListConfig) {
-            dispatch(fetchConfig({tenantId, configType: ConfigType.ROOMS_LIST}));
-        }
-
-        // Fetch checkout config
-        dispatch(fetchCheckoutConfig(tenantId));
-
-        // Fetch property details if we have a room selected
-        if (room?.propertyId) {
-            dispatch(fetchPropertyDetails({tenantId, propertyId: room.propertyId}));
-        }
-    }, [tenantId, dispatch, roomsListConfig, room?.propertyId]);
-
-    // Initialize country and states when countries are loaded
-    useEffect(() => {
-        // If there's a billing section with country and state fields, initialize them
-        const billingSection = checkoutConfig?.sections.find(section => section.id === 'billing_info');
-
-        if (billingSection && countries.length > 0) {
-            const countryField = billingSection.fields.find(f => f.label === 'Country' && f.enabled);
-            if (countryField) {
-                // Set the default country to the first country
-                const defaultCountry = countries[0].name;
-                setSelectedCountryCode(defaultCountry);
-
-                // Fetch states for the default country
-                const fetchDefaultStates = async () => {
-                    try {
-                        const states = await LocationService.getStates(countries[0].iso2);
-                        setCountryStates(prev => ({
-                            ...prev,
-                            [defaultCountry]: states
-                        }));
-                        setAvailableStates(states);
-
-                        // Set the country value in the DOM element
-                        setTimeout(() => {
-                            const countryElement = document.getElementById('billing_country') as HTMLElement;
-                            if (countryElement) {
-                                countryElement.setAttribute('data-value', defaultCountry);
-                            }
-                        }, 100);
-                    } catch (error) {
-                        console.error(`Failed to fetch states for default country:`, error);
-                    }
-                };
-
-                fetchDefaultStates();
-            }
-        }
-    }, [checkoutConfig, countries]);
-
-    // Get step labels from config or use defaults
-    const stepLabels = roomsListConfig?.configData.steps?.labels || ['Search', 'Select Room', 'Checkout'];
-    const stepsEnabled = roomsListConfig?.configData.steps?.enabled !== false;
-
-    // Configure steps for the stepper
-    const configuredSteps = stepLabels.map((label, index) => ({
-        id: index,
-        label,
-        completed: currentStep > index,
+  // Update validation state when form values or errors change
+  useEffect(() => {
+    if (!config?.sections) return;
+    
+    const currentSection = activeSection;
+    const sectionFields = getSectionFields(currentSection);
+    
+    // Check if there are any errors for the current section's fields
+    const hasErrors = Object.keys(formErrors).some(key => sectionFields.includes(key));
+    
+    // Check if all required fields have values
+    const allFieldsFilled = sectionFields.every(field => {
+      const value = formValues[field];
+      return value !== undefined && value !== null && value !== '';
+    });
+    
+    // A section is valid if it has no errors and all required fields are filled
+    const isCurrentSectionValid = !hasErrors && allFieldsFilled;
+    
+    console.log(`Section ${currentSection} validation:`, {
+      hasErrors,
+      allFieldsFilled,
+      isCurrentSectionValid,
+      sectionFields,
+      fieldValues: sectionFields.map(field => ({ field, value: formValues[field] }))
+    });
+    
+    setIsValid(prev => ({
+      ...prev,
+      [currentSection]: isCurrentSectionValid
     }));
+  }, [formValues, formErrors, activeSection, config]);
 
-    // Handle country change
-    const handleCountryChange = async (countryName: string, sectionId: string) => {
-        try {
-            // Find the country object from the countries array
-            const country = countries.find(c => c.name === countryName);
-            if (!country) {
-                console.error(`Country ${countryName} not found in countries list`);
-                return;
-            }
+  // Force validation check for a specific section
+  const validateSection = (sectionId: string, values: Record<string, unknown>, errors: Record<string, unknown>): boolean => {
+    if (!config?.sections) return false;
+    
+    const sectionFields = getSectionFields(sectionId);
+    
+    // Log all values and errors for debugging
+    console.log(`Validating section ${sectionId}:`, {
+      sectionFields,
+      allValues: values,
+      allErrors: errors,
+      fieldValues: sectionFields.map(field => ({ 
+        field, 
+        value: values[field],
+        hasError: !!errors[field]
+      }))
+    });
+    
+    // Check if there are any errors for the section's fields
+    const hasErrors = Object.keys(errors).some(key => sectionFields.includes(key));
+    
+    // Check if all required fields have values
+    const allFieldsFilled = sectionFields.every(field => {
+      const value = values[field];
+      // For string values, check if they're not empty
+      if (typeof value === 'string') {
+        return value.trim() !== '';
+      }
+      // For boolean values, just check if they exist
+      if (typeof value === 'boolean') {
+        return true;
+      }
+      // For other types, check if they exist
+      return value !== undefined && value !== null;
+    });
+    
+    // A section is valid if it has no errors and all required fields are filled
+    const isSectionValid = !hasErrors && allFieldsFilled;
+    
+    console.log(`Force validation for section ${sectionId}:`, {
+      hasErrors,
+      allFieldsFilled,
+      isSectionValid,
+      sectionFields,
+      fieldValues: sectionFields.map(field => ({ field, value: values[field] }))
+    });
+    
+    return isSectionValid;
+  };
 
-            // Set the selected country code
-            setSelectedCountryCode(countryName);
-
-            // Fetch states for the selected country
-            const states = await LocationService.getStates(country.iso2);
-            setCountryStates(prev => ({
-                ...prev,
-                [countryName]: states
-            }));
-            setAvailableStates(states);
-
-            // Set the country value in the DOM element
-            const countryFieldId = `${sectionId.split('_')[0]}_country`;
-            const countryElement = document.getElementById(countryFieldId) as HTMLElement;
-            if (countryElement) {
-                countryElement.setAttribute('data-value', countryName);
-            }
-
-            // Clear any state selection if country changes
-            const stateFieldId = `${sectionId.split('_')[0]}_state`;
-            const stateElement = document.getElementById(stateFieldId) as HTMLSelectElement;
-            if (stateElement) {
-                stateElement.value = '';
-                stateElement.removeAttribute('data-value');
-            }
-
-            // Clear any state validation errors
-            setFormErrors(prev => {
-                const newErrors = {...prev};
-                delete newErrors[stateFieldId];
-                return newErrors;
-            });
-        } catch (error) {
-            console.error(`Error handling country change to ${countryName}:`, error);
-            setAvailableStates([]);
-        }
-    };
-
-    // Handle state change
-    const handleStateChange = async (stateName: string, sectionId: string) => {
-        try {
-            // Store the selected state in a data attribute for more reliable retrieval
-            const stateFieldId = `${sectionId.split('_')[0]}_state`;
-            const stateElement = document.getElementById(stateFieldId) as HTMLElement;
-            if (stateElement) {
-                stateElement.setAttribute('data-value', stateName);
-            }
-
-            // Validate the state against the selected country
-            const validStates = countryStates[selectedCountryCode] || [];
-            const isValid = validStates.some(s => s.name === stateName);
-
-            // Clear any state validation errors if a valid state is selected
-            if (isValid) {
-                setFormErrors(prev => {
-                    const newErrors = {...prev};
-                    delete newErrors[stateFieldId];
-                    return newErrors;
-                });
-
-                // Find the country and state codes for the API
-                const country = countries.find(c => c.name === selectedCountryCode);
-                const state = validStates.find(s => s.name === stateName);
-
-                if (country && state) {
-                    // Check if we already have cities for this state
-                    const stateKey = `${country.iso2}-${state.iso2}`;
-                    if (!citiesByState[stateKey]) {
-                        const cities = await LocationService.getCities(country.iso2, state.iso2);
-                        setCitiesByState(prev => ({
-                            ...prev,
-                            [stateKey]: cities
-                        }));
-                        setAvailableCities(cities);
-                    } else {
-                        setAvailableCities(citiesByState[stateKey]);
-                    }
-
-                    // Clear any city selection when state changes
-                    const cityFieldId = `${sectionId.split('_')[0]}_city`;
-                    const cityElement = document.getElementById(cityFieldId) as HTMLSelectElement;
-                    if (cityElement) {
-                        cityElement.value = '';
-                        cityElement.removeAttribute('data-value');
-                    }
-
-                    // Clear any city validation errors
-                    setFormErrors(prev => {
-                        const newErrors = {...prev};
-                        delete newErrors[cityFieldId];
-                        return newErrors;
-                    });
-                }
-            } else {
-                setFormErrors(prev => ({
-                    ...prev,
-                    [stateFieldId]: `State is not valid for the selected country`
-                }));
-
-                // Clear available cities if state is invalid
-                setAvailableCities([]);
-            }
-        } catch (error) {
-            console.error(`Error handling state change to ${stateName}:`, error);
-            setAvailableCities([]);
-        }
-    };
-
-    // Handle city change
-    const handleCityChange = (cityName: string, sectionId: string) => {
-        try {
-            // Store the selected city in a data attribute for more reliable retrieval
-            const cityFieldId = `${sectionId.split('_')[0]}_city`;
-            const cityElement = document.getElementById(cityFieldId) as HTMLElement;
-            if (cityElement) {
-                cityElement.setAttribute('data-value', cityName);
-            }
-
-            // Clear any city validation errors
-            setFormErrors(prev => {
-                const newErrors = {...prev};
-                delete newErrors[cityFieldId];
-                return newErrors;
-            });
-        } catch (error) {
-            console.error(`Error handling city change to ${cityName}:`, error);
-        }
-    };
-
-    // Handle input change
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: GenericField) => {
-        console.log(`Field changed: ${field.label}, value: ${e.target.value}`);
-
-        // Validate the field
-        const error = validateField(field, e.target.value);
-        if (error) {
-            setFormErrors(prev => ({
-                ...prev,
-                [`${expandedSection.split('_')[0]}_${field.name}`]: error
-            }));
-        } else {
-            // Clear error if it exists
-            setFormErrors(prev => {
-                const newErrors = {...prev};
-                delete newErrors[`${expandedSection.split('_')[0]}_${field.name}`];
-                return newErrors;
-            });
-        }
-    };
-
-    // Enhance the isSectionComplete function to be more thorough
-    const isSectionComplete = (sectionId: string): boolean => {
-        // Get the fields for this section
-        const sectionConfig = checkoutConfig?.sections.find(s => s.id === sectionId);
-        if (!sectionConfig) return false;
-
-        // Get required fields
-        const requiredFields = sectionConfig.fields.filter(f => f.enabled && f.required);
-
-        // If no required fields, section is complete
-        if (requiredFields.length === 0) return true;
-
-        // Debug logging
-        console.log(`Checking ${requiredFields.length} required fields for section ${sectionId}`);
-
-        // Check if all required fields have values in formData
-        const isComplete = requiredFields.every(field => {
-            const fieldKey = field.name;
-            const hasValue = !!formData[fieldKey];
-
-            // Debug logging
-            console.log(`Field ${fieldKey}: ${hasValue ? 'has value' : 'missing'}`);
-
-            return hasValue;
-        });
-
-        console.log(`Section ${sectionId} complete: ${isComplete}`);
-        return isComplete;
-    };
-
-    // Modify handleSectionExpand to be more strict
-    const handleSectionExpand = (sectionId: string) => {
-        console.log(`Attempting to expand section: ${sectionId}`);
-
-        // Only allow expanding the current section or a completed section
-        if (sectionId !== expandedSection) {
-            // If trying to move forward, validate current section
-            if (expandedSection === 'traveler_info' && sectionId === 'billing_info') {
-                if (!isSectionComplete('traveler_info')) {
-                    console.log('Traveler section incomplete, preventing navigation');
-                    // Show error message
-                    setFormErrors(prev => ({
-                        ...prev,
-                        section_error: 'Please fill all required fields in Traveler Information'
-                    }));
-                    return;
-                }
-            }
-
-            if (expandedSection === 'billing_info' && sectionId === 'payment_info') {
-                if (!isSectionComplete('billing_info')) {
-                    console.log('Billing section incomplete, preventing navigation');
-                    // Show error message
-                    setFormErrors(prev => ({
-                        ...prev,
-                        section_error: 'Please fill all required fields in Billing Information'
-                    }));
-                    return;
-                }
-            }
-
-            // If trying to move backward, always allow
-            if (
-                (expandedSection === 'billing_info' && sectionId === 'traveler_info') ||
-                (expandedSection === 'payment_info' && (sectionId === 'traveler_info' || sectionId === 'billing_info'))
-            ) {
-                console.log('Moving backward, allowing navigation');
-                setExpandedSection(sectionId);
-                setFormErrors(prev => ({...prev, section_error: ''}));
-                return;
-            }
-
-            // If section is already completed, allow expanding it
-            if (completedSections.includes(sectionId)) {
-                console.log('Section already completed, allowing navigation');
-                setExpandedSection(sectionId);
-                setFormErrors(prev => ({...prev, section_error: ''}));
-                return;
-            }
-
-            // If we get here and we're not expanding the current section,
-            // it means we're trying to skip ahead, which we should prevent
-            if (sectionId !== expandedSection) {
-                console.log('Attempting to skip ahead, preventing navigation');
-                return;
-            }
-        }
-
-        // If validation passes or it's the current section, expand it
-        console.log('Expanding section');
-        setExpandedSection(sectionId);
-        setFormErrors(prev => ({...prev, section_error: ''}));
-    };
-
-    // Also update handleNextStep to be more robust
-    const handleNextStep = () => {
-        if (expandedSection === 'traveler_info') {
-            if (isSectionComplete('traveler_info')) {
-                console.log('Traveler section complete, moving to billing');
-                setExpandedSection('billing_info');
-                setCompletedSections(prev => {
-                    if (!prev.includes('traveler_info')) {
-                        return [...prev, 'traveler_info'];
-                    }
-                    return prev;
-                });
-                setFormErrors(prev => ({...prev, section_error: ''}));
-            } else {
-                console.log('Traveler section incomplete, showing error');
-                // Show error message
-                setFormErrors(prev => ({
-                    ...prev,
-                    section_error: 'Please fill all required fields in Traveler Information'
-                }));
-            }
-        } else if (expandedSection === 'billing_info') {
-            if (isSectionComplete('billing_info')) {
-                console.log('Billing section complete, moving to payment');
-                setExpandedSection('payment_info');
-                setCompletedSections(prev => {
-                    if (!prev.includes('billing_info')) {
-                        return [...prev, 'billing_info'];
-                    }
-                    return prev;
-                });
-                setFormErrors(prev => ({...prev, section_error: ''}));
-            } else {
-                console.log('Billing section incomplete, showing error');
-                // Show error message
-                setFormErrors(prev => ({
-                    ...prev,
-                    section_error: 'Please fill all required fields in Billing Information'
-                }));
-            }
-        }
-    };
-
-    const getPromotionId = (promotion: SpecialDiscount | PromoOffer | StandardPackage | null) => {
-        if(!promotion || !("id" in promotion)) {
-            return null;
-        }
-        if("start_date" in promotion) {
-            return "R_" + promotion.id;
-        } else {
-            return "G_" + promotion.id;
-        }
-    };
-    const handleSubmitBooking = () => {
-        if (!tenantId) {
-            console.error("Tenant ID is not available");
-            return;
-        }
-
-        const bookingData: Booking = {
-            formData,
-            propertyId: filter.propertyId,
-            dateRange: filter.dateRange,
-            roomCount: filter.roomCount,
-            guests: filter.guests,
-            roomTypeId: room?.roomTypeId ?? -1,
-            bedCount: filter.bedCount,
-            promotionId: getPromotionId(promotionApplied),
-        };
-        dispatch(submitBooking({tenantId, bookingData}));
-    };
-
-    // Loading state
-    if (checkoutStatus.status === StateStatus.LOADING) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center">
-                <PulseLoader color="var(--primary-color)" size={15}/>
-                <p className="mt-4 text-gray-600">
-                    Loading checkout configuration...
-                </p>
-            </div>
-        );
+  const handleSectionChange = (sectionId: string) => {
+    console.log(`Attempting to change to section: ${sectionId}`);
+    console.log('Current validation state:', isValid);
+    
+    // Only allow changing to the next section if current section is valid
+    if (sectionId === 'billing_info' && !isValid.traveler_info) {
+      console.log('Cannot move to billing info - traveler info not valid');
+      return;
     }
+    if (sectionId === 'payment_info' && !isValid.billing_info) {
+      console.log('Cannot move to payment info - billing info not valid');
+      return;
+    }
+    
+    console.log(`Changing to section: ${sectionId}`);
+    setActiveSection(sectionId);
+  };
 
-    return (
-        <div className="min-h-screen bg-white">
-            <div className="w-full">
-                {/* Use the reusable Stepper component */}
-                {stepsEnabled && (
-                    <Stepper
-                        steps={configuredSteps}
-                        currentStep={currentStep}
-                    />
-                )}
+  // Prevent accordion from toggling when clicking on headers
+  const handleAccordionValueChange = (value: string) => {
+    // Do nothing - this prevents the accordion from toggling when clicking on headers
+    // Navigation will only happen through the explicit buttons
+    console.log('Accordion header clicked, but navigation prevented');
+  };
 
-                <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 px-6 py-8">
-                    {/* Left column - Payment form */}
-                    <div className="w-full lg:w-7/12">
-                        <div className="rounded-lg">
-                            <h1 className="text-xl font-bold mb-6 text-[#333]">Payment Info</h1>
+  const getSectionFields = (sectionId: string): string[] => {
+    if (!config?.sections) return [];
+    
+    const section = config.sections.find(s => s.id === sectionId);
+    if (!section) return [];
+    
+    // Get all enabled and required fields for this section
+    const requiredFields = section.fields
+      .filter(field => field.enabled && field.required)
+      .map(field => field.name);
+      
+    console.log(`Required fields for section ${sectionId}:`, requiredFields);
+    
+    return requiredFields;
+  };
 
-                            {/* Traveler Info Section */}
-                            {checkoutConfig?.sections.find(section => section.id === 'traveler_info') && (
-                                <TravelerInfoSection
-                                    section={adaptCheckoutSection(checkoutConfig.sections.find(section => section.id === 'traveler_info')!) as CheckoutSection}
-                                    expandedSection={expandedSection}
-                                    completedSections={completedSections}
-                                    formErrors={formErrors}
-                                    handleInputChange={handleInputChange}
-                                    handleNextStep={handleNextStep}
-                                    handleSectionExpand={handleSectionExpand}
-                                />
-                            )}
+  if (loading) {
+    console.log('Rendering loading state');
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
-                            {/* Billing Info Section */}
-                            {checkoutConfig?.sections.find(section => section.id === 'billing_info') && (
-                                <BillingInfoSection
-                                    section={adaptCheckoutSection(checkoutConfig.sections.find(section => section.id === 'billing_info')!) as Section}
-                                    expandedSection={expandedSection}
-                                    completedSections={completedSections}
-                                    formErrors={formErrors}
-                                    setFormErrors={setFormErrors}
-                                    handleInputChange={handleInputChange}
-                                    handleNextStep={handleNextStep}
-                                    handleSectionExpand={handleSectionExpand}
-                                    countries={countries}
-                                    selectedCountryCode={selectedCountryCode}
-                                    availableStates={availableStates}
-                                    availableCities={availableCities}
-                                    handleCountryChange={handleCountryChange}
-                                    handleStateChange={handleStateChange}
-                                    handleCityChange={handleCityChange}
-                                />
-                            )}
+  if (error) {
+    console.log('Rendering error state:', error);
+    return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  }
 
-                            {/* Payment Info Section */}
-                            {checkoutConfig?.sections.find(section => section.id === 'payment_info') && (
-                                <PaymentInfoSection
-                                    section={adaptCheckoutSection(checkoutConfig.sections.find(section => section.id === 'payment_info')!) as Section}
-                                    expandedSection={expandedSection}
-                                    completedSections={completedSections}
-                                    formErrors={formErrors}
-                                    handleInputChange={handleInputChange}
-                                    handleNextStep={handleNextStep}
-                                    handleSectionExpand={handleSectionExpand}
-                                    handleSubmit={() => {
-                                        handleSubmitBooking();
-                                    }}
-                                />
-                            )}
-                        </div>
-                    </div>
+  if (!config) {
+    console.log('Rendering no config state');
+    return <div className="min-h-screen flex items-center justify-center">No configuration available</div>;
+  }
 
-                    {/* Right column - Order summary and Help */}
-                    <div className="w-full lg:w-5/12 lg:pl-12">
-                        <TripItinerary
-                            currency={selectedCurrency?.symbol || 'USD'}
-                            onRemove={() => console.log('Remove itinerary')}
+  console.log('Config:', config);
+  console.log('Config sections:', config.sections);
+  
+  // Find the sections by ID
+  const travelerInfoSection = config.sections?.find(section => section.id === 'traveler_info');
+  const billingInfoSection = config.sections?.find(section => section.id === 'billing_info');
+  const paymentInfoSection = config.sections?.find(section => section.id === 'payment_info');
+  
+  console.log('Found sections:', { 
+    travelerInfoSection, 
+    billingInfoSection, 
+    paymentInfoSection 
+  });
+
+  // Create a combined initial values object for all form fields
+  const getInitialValues = () => {
+    const values: Record<string, string | boolean> = {};
+    
+    // Add traveler info fields
+    travelerInfoSection?.fields.forEach(field => {
+      if (field.enabled) {
+        values[field.name] = field.name in reduxFormValues 
+          ? reduxFormValues[field.name] 
+          : field.type === 'checkbox' ? false : '';
+      }
+    });
+    
+    // Add billing info fields
+    billingInfoSection?.fields.forEach(field => {
+      if (field.enabled) {
+        values[field.name] = field.name in reduxFormValues 
+          ? reduxFormValues[field.name] 
+          : field.type === 'checkbox' ? false : '';
+      }
+    });
+    
+    // Add payment info fields
+    paymentInfoSection?.fields.forEach(field => {
+      if (field.enabled) {
+        values[field.name] = field.name in reduxFormValues 
+          ? reduxFormValues[field.name] 
+          : field.type === 'checkbox' ? false : '';
+      }
+    });
+    
+    return values;
+  };
+
+  const initialValues = getInitialValues();
+  console.log('Initial form values:', initialValues);
+
+  return (
+    <div className='min-h-screen p-8 flex justify-between gap-8n px-20'>
+      {/* Left Column - Form */}
+      <div className='w-[736px]'>
+        <div className='space-y-8'>
+          {/* Payment Info Header */}
+          <h1 className='text-xl font-semibold'>Payment Info</h1>
+
+          <Formik
+            initialValues={initialValues}
+            onSubmit={(values) => {
+              console.log('Final form submission:', values);
+              // Here you would typically send the data to your backend
+              alert('Form submitted successfully!');
+            }}
+          >
+            {(formikProps) => {
+              // Update form state on every render
+              setFormValues(formikProps.values);
+              setFormErrors(formikProps.errors);
+              
+              return (
+                <Accordion 
+                  type="single" 
+                  collapsible 
+                  defaultValue="traveler_info"
+                  value={activeSection}
+                  onValueChange={handleAccordionValueChange}
+                  className="w-full [&_[data-slot=accordion-trigger]_svg]:hidden [&_[data-slot=accordion-item]]:border-b-0 [&_[data-slot=accordion-item]]:mb-4"
+                >
+                  {travelerInfoSection?.enabled && (
+                    <AccordionItem value="traveler_info">
+                      <AccordionTrigger className="text-lg font-semibold w-[736px] h-[43px] bg-gray-200 hover:no-underline focus:no-underline flex  items-center pl-2">
+                        1. Traveler Information
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <TravelerInfo 
+                          fields={travelerInfoSection.fields}
+                          onNext={() => {
+                            console.log('TravelerInfo onNext clicked, current validation state:', isValid.traveler_info);
+                            console.log('Current form values:', formikProps.values);
+                            console.log('Current form errors:', formikProps.errors);
+                            
+                            // Force validate traveler info section
+                            const isTravelerInfoValid = validateSection('traveler_info', formikProps.values, formikProps.errors);
+                            console.log('Force validation result for traveler info:', isTravelerInfoValid);
+                            
+                            if (isTravelerInfoValid) {
+                              // Update validation state
+                              setIsValid(prev => ({
+                                ...prev,
+                                traveler_info: true
+                              }));
+                              
+                              // Change to billing info section
+                              setActiveSection('billing_info');
+                            } else {
+                              console.log('Traveler info validation failed, cannot proceed');
+                              // Log the specific fields that are causing validation to fail
+                              const sectionFields = getSectionFields('traveler_info');
+                              const missingFields = sectionFields.filter(field => {
+                                const value = formikProps.values[field];
+                                return value === undefined || value === null || 
+                                      (typeof value === 'string' && value.trim() === '');
+                              });
+                              console.log('Missing or invalid fields:', missingFields);
+                            }
+                          }}
                         />
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
 
-                        {/* Help section */}
-                        <HelpSection />
-                    </div>
-                </div>
-            </div>
+                  {billingInfoSection?.enabled && (
+                    <AccordionItem value="billing_info">
+                      <AccordionTrigger 
+                        className={`text-lg font-semibold w-[736px] h-[43px] bg-gray-200 hover:no-underline flex  items-center pl-2 focus:no-underline ${!isValid.traveler_info ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!isValid.traveler_info}
+                      >
+                        2. Billing Information
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <BillingInfo 
+                          onNext={() => {
+                            console.log('BillingInfo onNext clicked, current validation state:', isValid.billing_info);
+                            
+                            // Force validate billing info section
+                            const isBillingInfoValid = validateSection('billing_info', formikProps.values, formikProps.errors);
+                            console.log('Force validation result for billing info:', isBillingInfoValid);
+                            
+                            if (isBillingInfoValid) {
+                              // Update validation state
+                              setIsValid(prev => ({
+                                ...prev,
+                                billing_info: true
+                              }));
+                              
+                              // Change to payment info section
+                              setActiveSection('payment_info');
+                            } else {
+                              console.log('Billing info validation failed, cannot proceed');
+                            }
+                          }}
+                          setActiveSection={(section) => handleSectionChange(section === 1 ? 'traveler_info' : 'billing_info')}
+                          fields={billingInfoSection.fields}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
+
+                  {paymentInfoSection?.enabled && (
+                    <AccordionItem value="payment_info">
+                      <AccordionTrigger 
+                        className={`text-lg font-semibold  flex  items-center pl-2 w-[736px] h-[43px] bg-gray-200 hover:no-underline focus:no-underline ${!isValid.billing_info ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!isValid.billing_info}
+                      >
+                        3. Payment Information
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <PaymentInfo 
+                          setActiveSection={(section) => handleSectionChange(section === 1 ? 'traveler_info' : section === 2 ? 'billing_info' : 'payment_info')}
+                          fields={paymentInfoSection.fields}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
+                </Accordion>
+              );
+            }}
+          </Formik>
         </div>
-    );
+      </div>
+
+     
+      <div >
+        <TripItinerary />
+      </div>
+    </div>
+  );
 };
 
 export default CheckoutPage; 

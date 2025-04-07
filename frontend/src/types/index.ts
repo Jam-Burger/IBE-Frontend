@@ -11,4 +11,3 @@ export type {PaginationParams, PaginationResponse} from "./Pagination";
 export type {ApiResponse, ErrorResponse} from "./Response";
 export type {CheckoutConfig, CheckoutSection} from "./CheckoutConfig";
 export type {StandardPackage, SpecialDiscount, PromoOffer, PackageData} from "./Package";
-export type {GenericField} from "./GenericField";

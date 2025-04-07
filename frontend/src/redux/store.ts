@@ -4,7 +4,8 @@ import configReducer from "./configSlice";
 import roomRatesReducer from "./roomRatesSlice";
 import languageReducer from "./languageSlice";
 import filterReducer from "./filterSlice";
-import checkoutReducer from './checkoutSlice';
+import checkoutReducer from "./checkoutSlice";
+
 import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
@@ -14,13 +15,13 @@ const rootReducer = combineReducers({
     currency: currencyReducer,
     roomRates: roomRatesReducer,
     roomFilters: filterReducer,
-    checkout: checkoutReducer
+    checkout: checkoutReducer,
 });
 
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['language', 'currency', 'config', "roomFilters", "checkout"]
+    whitelist: ['language', 'currency', 'config', "roomFilters"]
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
