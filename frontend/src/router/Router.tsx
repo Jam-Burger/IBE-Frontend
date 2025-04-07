@@ -4,6 +4,7 @@ import {CheckoutPage, HomePage, NotFoundPage, RoomsListPage} from "../pages";
 import {Routes} from "./routes";
 import {AuthCallback} from "../components/auth/AuthCallback";
 import ConfirmationPage from "../pages/ConfirmationPage";
+import ReviewPage from "../pages/ReviewPage";
 
 const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID;
 
@@ -46,6 +47,13 @@ export const Router = createBrowserRouter([
         element: <AppLayout/>,
         children: [
             {index: true, element: <ConfirmationPage/>},
+        ],
+    },
+    {
+        path: Routes.REVIEW,
+        element: <AppLayout/>,
+        children: [
+            {index: true, element: <ReviewPage/>},
         ],
     },
     {
