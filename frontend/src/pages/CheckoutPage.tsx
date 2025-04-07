@@ -2,12 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {fetchConfig} from '../redux/configSlice';
-import {fetchCheckoutConfig, submitBooking} from '../redux/checkoutSlice';
+import {fetchCheckoutConfig, submitBooking, fetchPropertyDetails} from '../redux/checkoutSlice';
 import {Stepper} from '../components';
 import {PulseLoader} from 'react-spinners';
 import TripItinerary from '../components/TripItinerary';
 import {City, Country, LocationService, State} from '../services/LocationService';
-import {ConfigType, GenericField, PromoOffer, SpecialDiscount, StateStatus} from '../types';
+import {ConfigType, GenericField, PromoOffer, SpecialDiscount, StandardPackage, StateStatus} from '../types';
 import {adaptCheckoutSection, CheckoutSection, Section} from '../types/Checkout.ts';
 import {validateField} from '../utils/validation';
 import {useSelector} from 'react-redux';
@@ -18,13 +18,14 @@ import TravelerInfoSection from '../components/checkout/TravelerInfoSection';
 import BillingInfoSection from '../components/checkout/BillingInfoSection';
 import PaymentInfoSection from '../components/checkout/PaymentInfoSection';
 import { Booking } from '../types/Booking.ts';
+import HelpSection from '../components/HelpSection';
 
 const CheckoutPage: React.FC = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
     const dispatch = useAppDispatch();
     const {roomsListConfig} = useAppSelector(state => state.config);
     const {selectedCurrency} = useAppSelector(state => state.currency);
-    const {config: checkoutConfig, status: checkoutStatus, promotionApplied, roomTypeId} = useAppSelector(state => state.checkout);
+    const {config: checkoutConfig, status: checkoutStatus, promotionApplied, room} = useAppSelector(state => state.checkout);
     const {filter} = useAppSelector(state => state.roomFilters);
     // Set to 2 for checkout step (assuming 0-indexed steps: 0=search, 1=select room, 2=checkout)
     const [currentStep] = useState(2);
@@ -75,7 +76,12 @@ const CheckoutPage: React.FC = () => {
 
         // Fetch checkout config
         dispatch(fetchCheckoutConfig(tenantId));
-    }, [tenantId, dispatch, roomsListConfig]);
+
+        // Fetch property details if we have a room selected
+        if (room?.propertyId) {
+            dispatch(fetchPropertyDetails({tenantId, propertyId: room.propertyId}));
+        }
+    }, [tenantId, dispatch, roomsListConfig, room?.propertyId]);
 
     // Initialize country and states when countries are loaded
     useEffect(() => {
@@ -424,8 +430,8 @@ const CheckoutPage: React.FC = () => {
         }
     };
 
-    const getPromotionId = (promotion: SpecialDiscount | PromoOffer | null) => {
-        if(!promotion) {
+    const getPromotionId = (promotion: SpecialDiscount | PromoOffer | StandardPackage | null) => {
+        if(!promotion || !("id" in promotion)) {
             return null;
         }
         if("start_date" in promotion) {
@@ -446,7 +452,7 @@ const CheckoutPage: React.FC = () => {
             dateRange: filter.dateRange,
             roomCount: filter.roomCount,
             guests: filter.guests,
-            roomTypeId: roomTypeId,
+            roomTypeId: room?.roomTypeId ?? -1,
             bedCount: filter.bedCount,
             promotionId: getPromotionId(promotionApplied),
         };
@@ -542,11 +548,7 @@ const CheckoutPage: React.FC = () => {
                         />
 
                         {/* Help section */}
-                        <div className="w-[400px] h-[150px] bg-gray-100 p-6 rounded-lg mt-6">
-                            <h2 className="text-xl font-bold mb-3">Need help?</h2>
-                            <p className="font-bold">Call 1-800-555-5555</p>
-                            <p className="text-sm text-gray-600">Mon-Fri 8a-5p EST</p>
-                        </div>
+                        <HelpSection />
                     </div>
                 </div>
             </div>

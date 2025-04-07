@@ -1,5 +1,5 @@
 import {combineReducers, configureStore} from '@reduxjs/toolkit';
-import currencyReducer, {fetchExchangeRates} from "./currencySlice";
+import currencyReducer from "./currencySlice";
 import configReducer from "./configSlice";
 import roomRatesReducer from "./roomRatesSlice";
 import languageReducer from "./languageSlice";
@@ -35,12 +35,7 @@ const store = configureStore({
         }),
 });
 
-export const persistor = persistStore(store, {}, () => {
-    const state = store.getState();
-    if (state.currency.selectedCurrency?.code !== 'USD') {
-        store.dispatch(fetchExchangeRates());
-    }
-});
+export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

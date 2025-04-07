@@ -1,14 +1,16 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {api} from '../lib/api-client';
-import {BaseState, CheckoutConfig, ConfigType, PromoOffer, SpecialDiscount, StateStatus} from '../types';
+import {BaseState, CheckoutConfig, ConfigType, PromoOffer, Room, SpecialDiscount, StandardPackage, StateStatus} from '../types';
 import {Booking} from '../types/Booking';
+import { PropertyDetails } from '../types/PropertyDetails';
 
 interface CheckoutState {
     config: CheckoutConfig | null;
     status: BaseState;
     formData: Record<string, string>;
-    roomTypeId: number;
-    promotionApplied: SpecialDiscount | PromoOffer | null;
+    room: Room | null;
+    promotionApplied: SpecialDiscount | PromoOffer | StandardPackage | null;
+    propertyDetails: PropertyDetails | null;
 }
 
 const initialState: CheckoutState = {
@@ -18,8 +20,9 @@ const initialState: CheckoutState = {
         error: null
     },
     formData: {},
-    roomTypeId: -1,
-    promotionApplied: null
+    room: null,
+    promotionApplied: null,
+    propertyDetails: null
 };
 
 // Define the response type
@@ -64,6 +67,14 @@ export const submitBooking = createAsyncThunk(
     }
 );
 
+export const fetchPropertyDetails = createAsyncThunk(
+    'checkout/fetchPropertyDetails',
+    async ({tenantId, propertyId}: {tenantId: string, propertyId: number}) => {
+        const response = await api.getPropertyDetails(tenantId, propertyId);
+        return response.data;
+    }
+);
+
 export const checkoutSlice = createSlice({
     name: 'checkout',
     initialState,
@@ -77,11 +88,11 @@ export const checkoutSlice = createSlice({
         clearFormData: (state) => {
             state.formData = {};
         },
-        setPromotionApplied: (state, action: PayloadAction<SpecialDiscount | PromoOffer | null>) => {
+        setPromotionApplied: (state, action: PayloadAction<SpecialDiscount | PromoOffer | StandardPackage>) => {
             state.promotionApplied = action.payload;
         },
-        setRoomTypeId: (state, action: PayloadAction<number>) => {
-            state.roomTypeId = action.payload;
+        setRoom: (state, action: PayloadAction<Room | null>) => {
+            state.room = action.payload;
         }
     },
     extraReducers: (builder) => {
@@ -123,10 +134,29 @@ export const checkoutSlice = createSlice({
                     status: StateStatus.ERROR,
                     error: action.error.message ?? 'Failed to submit booking'
                 };
+            })
+            .addCase(fetchPropertyDetails.pending, (state) => {
+                state.status = {
+                    status: StateStatus.LOADING,
+                    error: null
+                };
+            })
+            .addCase(fetchPropertyDetails.fulfilled, (state, action: PayloadAction<PropertyDetails>) => {
+                state.status = {
+                    status: StateStatus.IDLE,
+                    error: null
+                };
+                state.propertyDetails = action.payload;
+            })
+            .addCase(fetchPropertyDetails.rejected, (state, action) => {
+                state.status = {
+                    status: StateStatus.ERROR,
+                    error: action.error.message ?? 'Failed to fetch property details'
+                };
             });
     },
 });
 
-export const {updateFormData, clearFormData, setPromotionApplied, setRoomTypeId} = checkoutSlice.actions;
+export const {updateFormData, clearFormData, setPromotionApplied, setRoom} = checkoutSlice.actions;
 
 export default checkoutSlice.reducer; 

@@ -17,7 +17,7 @@ const Header: React.FC = () => {
     const auth = useAuth();
 
     const {selectedLanguage} = useAppSelector((state) => state.language);
-    const {selectedCurrency} = useAppSelector((state) => state.currency);
+    const {selectedCurrency, rates} = useAppSelector((state) => state.currency);
     const {globalConfig} = useAppSelector((state) => state.config);
     const isLoading = !globalConfig;
 
@@ -38,7 +38,7 @@ const Header: React.FC = () => {
     useEffect(() => {
         if (selectedCurrency) {
             dispatch(setSelectedCurrency(selectedCurrency));
-            if (selectedCurrency.code !== "USD") {
+            if (selectedCurrency.code !== "USD" && !Object.keys(rates).length) {
                 dispatch(fetchExchangeRates());
             }
         }

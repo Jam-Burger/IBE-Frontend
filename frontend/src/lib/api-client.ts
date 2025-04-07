@@ -2,6 +2,7 @@ import axios from "axios";
 import {ApiResponse, ConfigType, PaginationParams, PaginationResponse, Room} from "../types";
 import {Booking} from "../types/Booking";
 import { formatDateToYYYYMMDD } from "./utils";
+import { PropertyDetails } from "../types/PropertyDetails";
 
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -136,6 +137,13 @@ export const api = {
         const response = await apiClient.post(
             `${tenantId}/bookings`,
             bookingData
+        );
+        return response.data;
+    },
+
+    getPropertyDetails: async (tenantId: string, propertyId: number): Promise<ApiResponse<PropertyDetails>> => {
+        const response = await apiClient.get(
+            `${tenantId}/properties/${propertyId}`
         );
         return response.data;
     }
