@@ -131,7 +131,7 @@ const CheckoutPage: React.FC = () => {
   };
 
   // Prevent accordion from toggling when clicking on headers
-  const handleAccordionValueChange = (value: string) => {
+  const handleAccordionValueChange = (_value: string) => {
     // Do nothing - this prevents the accordion from toggling when clicking on headers
     // Navigation will only happen through the explicit buttons
     console.log('Accordion header clicked, but navigation prevented');
@@ -220,10 +220,10 @@ const CheckoutPage: React.FC = () => {
   console.log('Initial form values:', initialValues);
 
   return (
-    <div className='min-h-screen p-8 flex justify-between gap-8n px-20'>
+    <div className='min-h-screen p-4 md:p-8 flex flex-col lg:flex-row justify-between gap-4 md:gap-8 lg:px-20'>
       {/* Left Column - Form */}
-      <div className='w-[736px]'>
-        <div className='space-y-8'>
+      <div className='w-full lg:w-[736px]'>
+        <div className='space-y-4 md:space-y-8'>
           {/* Payment Info Header */}
           <h1 className='text-xl font-semibold'>Payment Info</h1>
 
@@ -251,7 +251,7 @@ const CheckoutPage: React.FC = () => {
                 >
                   {travelerInfoSection?.enabled && (
                     <AccordionItem value="traveler_info">
-                      <AccordionTrigger className="text-lg font-semibold w-[736px] h-[43px] bg-gray-200 hover:no-underline focus:no-underline flex  items-center pl-2">
+                      <AccordionTrigger className="text-lg font-semibold w-full lg:w-[736px] h-[43px] bg-gray-200 hover:no-underline focus:no-underline flex items-center pl-2">
                         1. Traveler Information
                       </AccordionTrigger>
                       <AccordionContent>
@@ -295,7 +295,7 @@ const CheckoutPage: React.FC = () => {
                   {billingInfoSection?.enabled && (
                     <AccordionItem value="billing_info">
                       <AccordionTrigger 
-                        className={`text-lg font-semibold w-[736px] h-[43px] bg-gray-200 hover:no-underline flex  items-center pl-2 focus:no-underline ${!isValid.traveler_info ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`text-lg font-semibold w-full lg:w-[736px] h-[43px] bg-gray-200 hover:no-underline flex items-center pl-2 focus:no-underline ${!isValid.traveler_info ? 'opacity-50 cursor-not-allowed' : ''}`}
                         disabled={!isValid.traveler_info}
                       >
                         2. Billing Information
@@ -332,7 +332,7 @@ const CheckoutPage: React.FC = () => {
                   {paymentInfoSection?.enabled && (
                     <AccordionItem value="payment_info">
                       <AccordionTrigger 
-                        className={`text-lg font-semibold  flex  items-center pl-2 w-[736px] h-[43px] bg-gray-200 hover:no-underline focus:no-underline ${!isValid.billing_info ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`text-lg font-semibold flex items-center pl-2 w-full lg:w-[736px] h-[43px] bg-gray-200 hover:no-underline focus:no-underline ${!isValid.billing_info ? 'opacity-50 cursor-not-allowed' : ''}`}
                         disabled={!isValid.billing_info}
                       >
                         3. Payment Information
@@ -353,9 +353,9 @@ const CheckoutPage: React.FC = () => {
       </div>
 
      
-      <div >
-        <TripItinerary />
-      </div>
+      <div className="w-full lg:w-auto  lg:mt-0 flex justify-center lg:justify-start px-4 sm:px-0">
+  <TripItinerary />
+</div>
     </div>
   );
 };

@@ -206,7 +206,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
   };
 
   return (
-    <div className="max-w-[680px] py-4">
+    <div className="max-w-full py-4">
       <Formik<BillingFormValues>
         initialValues={initialValues}
         validationSchema={validationSchema}
@@ -254,20 +254,20 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
       >
         {({ errors, touched, setFieldValue, values, isSubmitting }) => (
           <Form className="space-y-4">
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               {/* First Name */}
-              <div className="flex-1">
+              <div className="w-full md:flex-1">
                 <label className="block text-[#5D5D5D] text-sm mb-1">
                   First Name
                   {firstNameField?.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {firstNameField?.enabled && (
-                  <div>
+                  <div className="w-full">
                     <Field
                       type={firstNameField.type}
                       name="billingFirstName"
                       value={values.billingFirstName}
-                      className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingFirstName && touched.billingFirstName ? 'border-red-500' : ''}`}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingFirstName && touched.billingFirstName ? 'border-red-500' : ''}`}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingFirstName', value);
@@ -280,18 +280,18 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
               </div>
 
               {/* Last Name */}
-              <div className="flex-1">
+              <div className="w-full md:flex-1">
                 <label className="block text-[#5D5D5D] text-sm mb-1">
                   Last Name
                   {lastNameField?.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {lastNameField?.enabled && (
-                  <div>
+                  <div className="w-full">
                     <Field
                       type={lastNameField.type}
                       name="billingLastName"
                       value={values.billingLastName}
-                      className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingLastName && touched.billingLastName ? 'border-red-500' : ''}`}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingLastName && touched.billingLastName ? 'border-red-500' : ''}`}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingLastName', value);
@@ -305,20 +305,20 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
             </div>
 
             {/* Mailing Address 1 and 2 in a row */}
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               {/* Mailing Address 1 */}
-              <div className="flex-1">
+              <div className="w-full md:flex-1">
                 <label className="block text-[#5D5D5D] text-sm mb-1">
                   Mailing Address1
                   {address1Field?.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {address1Field?.enabled && (
-                  <div>
+                  <div className="w-full">
                     <Field
                       type={address1Field.type}
                       name="billingAddress1"
                       value={values.billingAddress1}
-                      className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingAddress1 && touched.billingAddress1 ? 'border-red-500' : ''}`}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingAddress1 && touched.billingAddress1 ? 'border-red-500' : ''}`}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingAddress1', value);
@@ -331,18 +331,18 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
               </div>
 
               {/* Mailing Address 2 */}
-              <div className="flex-1">
+              <div className="w-full md:flex-1">
                 <label className="block text-[#5D5D5D] text-sm mb-1">
                   Mailing Address2
                   {address2Field?.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {address2Field?.enabled && (
-                  <div>
+                  <div className="w-full">
                     <Field
                       type={address2Field.type}
                       name="billingAddress2"
                       value={values.billingAddress2}
-                      className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingAddress2 && touched.billingAddress2 ? 'border-red-500' : ''}`}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingAddress2 && touched.billingAddress2 ? 'border-red-500' : ''}`}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingAddress2', value);
@@ -362,12 +362,13 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                 {countryField?.required && <span className="text-red-500 ml-1">*</span>}
               </label>
               {countryField?.enabled && (
-                <div>
+                <div className="w-full relative">
                   <Field
                     as="select"
                     name="billingCountry"
                     value={values.billingCountry}
-                    className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingCountry && touched.billingCountry ? 'border-red-500' : ''}`}
+                    className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingCountry && touched.billingCountry ? 'border-red-500' : ''} max-w-full`}
+                    style={{ maxWidth: '100%' }}
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                       const value = e.target.value;
                       setFieldValue('billingCountry', value);
@@ -403,20 +404,21 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
             </div>
 
             {/* City, State, Zip in a row */}
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               {/* City */}
-              <div>
+              <div className="w-full sm:w-auto">
                 <label className="block text-[#5D5D5D] text-sm mb-1">
                   City
                   {cityField?.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {cityField?.enabled && (
-                  <div>
+                  <div className="w-full relative">
                     <Field
                       as="select"
                       name="billingCity"
                       value={values.billingCity}
-                      className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingCity && touched.billingCity ? 'border-red-500' : ''}`}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingCity && touched.billingCity ? 'border-red-500' : ''} max-w-full`}
+                      style={{ maxWidth: '100%' }}
                       onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingCity', value);
@@ -441,18 +443,19 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
               </div>
 
               {/* State */}
-              <div>
+              <div className="w-full sm:w-auto">
                 <label className="block text-[#5D5D5D] text-sm mb-1">
                   State
                   {stateField?.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {stateField?.enabled && (
-                  <div>
+                  <div className="w-full relative">
                     <Field
                       as="select"
                       name="billingState"
                       value={values.billingState}
-                      className={`border border-[#CCCCCC] p-2 rounded w-[184px] h-[48px] ${errors.billingState && touched.billingState ? 'border-red-500' : ''}`}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingState && touched.billingState ? 'border-red-500' : ''} max-w-full`}
+                      style={{ maxWidth: '100%' }}
                       onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingState', value);
@@ -486,18 +489,18 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
               </div>
 
               {/* Zip */}
-              <div>
+              <div className="w-full sm:w-auto">
                 <label className="block text-[#5D5D5D] text-sm mb-1">
                   Zip
                   {zipField?.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {zipField?.enabled && (
-                  <div>
+                  <div className="w-full">
                     <Field
                       type={zipField.type}
                       name="billingZip"
                       value={values.billingZip}
-                      className={`border border-[#CCCCCC] p-2 rounded w-[145px] h-[48px] ${errors.billingZip && touched.billingZip ? 'border-red-500' : ''}`}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingZip && touched.billingZip ? 'border-red-500' : ''}`}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingZip', value);
@@ -517,12 +520,12 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                 {phoneField?.required && <span className="text-red-500 ml-1">*</span>}
               </label>
               {phoneField?.enabled && (
-                <div>
+                <div className="w-full">
                   <Field
                     type={phoneField.type}
                     name="billingPhone"
                     value={values.billingPhone}
-                    className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingPhone && touched.billingPhone ? 'border-red-500' : ''}`}
+                    className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingPhone && touched.billingPhone ? 'border-red-500' : ''}`}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
                       setFieldValue('billingPhone', value);
@@ -541,12 +544,12 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                 {emailField?.required && <span className="text-red-500 ml-1">*</span>}
               </label>
               {emailField?.enabled && (
-                <div>
+                <div className="w-full">
                   <Field
                     type={emailField.type}
                     name="billingEmail"
                     value={values.billingEmail}
-                    className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingEmail && touched.billingEmail ? 'border-red-500' : ''}`}
+                    className={`border border-[#CCCCCC] p-2 rounded w-full h-[48px] ${errors.billingEmail && touched.billingEmail ? 'border-red-500' : ''}`}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
                       setFieldValue('billingEmail', value);
@@ -558,7 +561,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
               )}
             </div>
 
-            <div className="flex justify-end items-center mt-8 gap-4">
+            <div className="flex flex-col sm:flex-row justify-end items-center mt-8 gap-4">
               <button 
                 type="button"
                 className="text-[#4A4AFF] text-sm"
@@ -581,4 +584,4 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
   );
 };
 
-export default BillingInfo; 
+export default BillingInfo;

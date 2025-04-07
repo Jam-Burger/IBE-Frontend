@@ -90,11 +90,11 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
       >
         {({ errors, touched, setFieldValue }) => (
           <Form className="space-y-4">
-            {/* Card Name, Exp Month and Year in a row */}
-            <div className="flex gap-4">
+            {/* Card Name, Exp Month and Year in a row on desktop, stacked on mobile */}
+            <div className="flex flex-col md:flex-row md:gap-4 gap-4">
               {/* Card Name */}
               {cardNameField?.enabled && (
-                <div>
+                <div className="w-full">
                   <label className="block text-[#5D5D5D] text-sm mb-1">
                     Card Name
                     {cardNameField?.required && <span className="text-red-500 ml-1">*</span>}
@@ -103,7 +103,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                     type={cardNameField.type}
                     name="cardName"
                     placeholder={cardNameField.label}
-                    className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.cardName && touched.cardName ? 'border-red-500' : ''}`}
+                    className={`border border-[#CCCCCC] p-2 rounded w-full md:w-[340px] h-[48px] ${errors.cardName && touched.cardName ? 'border-red-500' : ''}`}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
                       setFieldValue('cardName', value);
@@ -114,49 +114,52 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                 </div>
               )}
 
-              {/* Expiration Month */}
-              {expMonthField?.enabled && (
-                <div>
-                  <label className="block text-[#5D5D5D] text-sm mb-1">
-                    Exp Month
-                    {expMonthField?.required && <span className="text-red-500 ml-1">*</span>}
-                  </label>
-                  <Field
-                    type={expMonthField.type}
-                    name="expMonth"
-                    placeholder={expMonthField.label}
-                    className={`border border-[#CCCCCC] p-2 rounded w-[164px] h-[48px] ${errors.expMonth && touched.expMonth ? 'border-red-500' : ''}`}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const value = e.target.value;
-                      setFieldValue('expMonth', value);
-                      dispatch(updateFormValue({ name: 'expMonth', value }));
-                    }}
-                  />
-                  <ErrorMessage name="expMonth" component="div" className="text-red-500 text-xs mt-1" />
-                </div>
-              )}
-              
-              {/* Expiration Year */}
-              {expYearField?.enabled && (
-                <div>
-                  <label className="block text-[#5D5D5D] text-sm mb-1">
-                    Exp Year
-                    {expYearField?.required && <span className="text-red-500 ml-1">*</span>}
-                  </label>
-                  <Field
-                    type={expYearField.type}
-                    name="expYear"
-                    placeholder={expYearField.label}
-                    className={`border border-[#CCCCCC] p-2 rounded w-[164px] h-[48px] ${errors.expYear && touched.expYear ? 'border-red-500' : ''}`}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const value = e.target.value;
-                      setFieldValue('expYear', value);
-                      dispatch(updateFormValue({ name: 'expYear', value }));
-                    }}
-                  />
-                  <ErrorMessage name="expYear" component="div" className="text-red-500 text-xs mt-1" />
-                </div>
-              )}
+              {/* Expiration Month and Year in a row on both mobile and desktop */}
+              <div className="flex gap-4 w-full">
+                {/* Expiration Month */}
+                {expMonthField?.enabled && (
+                  <div className="w-1/2 md:w-auto">
+                    <label className="block text-[#5D5D5D] text-sm mb-1">
+                      Exp Month
+                      {expMonthField?.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <Field
+                      type={expMonthField.type}
+                      name="expMonth"
+                      placeholder={expMonthField.label}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full md:w-[164px] h-[48px] ${errors.expMonth && touched.expMonth ? 'border-red-500' : ''}`}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const value = e.target.value;
+                        setFieldValue('expMonth', value);
+                        dispatch(updateFormValue({ name: 'expMonth', value }));
+                      }}
+                    />
+                    <ErrorMessage name="expMonth" component="div" className="text-red-500 text-xs mt-1" />
+                  </div>
+                )}
+                
+                {/* Expiration Year */}
+                {expYearField?.enabled && (
+                  <div className="w-1/2 md:w-auto">
+                    <label className="block text-[#5D5D5D] text-sm mb-1">
+                      Exp Year
+                      {expYearField?.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <Field
+                      type={expYearField.type}
+                      name="expYear"
+                      placeholder={expYearField.label}
+                      className={`border border-[#CCCCCC] p-2 rounded w-full md:w-[164px] h-[48px] ${errors.expYear && touched.expYear ? 'border-red-500' : ''}`}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const value = e.target.value;
+                        setFieldValue('expYear', value);
+                        dispatch(updateFormValue({ name: 'expYear', value }));
+                      }}
+                    />
+                    <ErrorMessage name="expYear" component="div" className="text-red-500 text-xs mt-1" />
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* CVV */}
@@ -170,7 +173,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                   type={cvvField.type}
                   name="cvv"
                   placeholder={cvvField.label}
-                  className={`border border-[#CCCCCC] p-2 rounded w-[164px] h-[48px] ${errors.cvv && touched.cvv ? 'border-red-500' : ''}`}
+                  className={`border border-[#CCCCCC] p-2 rounded w-full md:w-[164px] h-[48px] ${errors.cvv && touched.cvv ? 'border-red-500' : ''}`}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const value = e.target.value;
                     setFieldValue('cvv', value);
@@ -234,17 +237,17 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
               )}
             </div>
             
-            <div className='flex justify-between items-center'>
+            <div className='flex flex-col md:flex-row md:justify-end items-center gap-4 pt-4'>
               <button 
                 type="button"
-                className='text-blue-600'
+                className='text-blue-600 w-full md:w-auto'
                 onClick={() => setActiveSection(2)}
               >
                 Edit Billing Info
               </button>
               <button 
                 type="submit"
-                className='bg-indigo-900 text-white px-6 py-2 rounded'
+                className='bg-indigo-900 text-white px-6 py-2 rounded w-full md:w-auto'
               >
                 SUBMIT PAYMENT
               </button>
@@ -256,4 +259,4 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
   );
 };
 
-export default PaymentInfo; 
+export default PaymentInfo;

@@ -114,7 +114,7 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
             if (!field?.enabled) return null;
             
             return (
-              <div key={field.name}>
+              <div key={field.name} className="w-full">
                 <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">
                   {field.label}
                   {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -125,7 +125,7 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
                   name={field.name}
                   id={field.name}
                   value={values[field.name]}
-                  className={`block w-[346px] h-[48px] rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+                  className={`block w-full md:w-[346px] h-[48px] rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
                     errors[field.name] && touched[field.name] ? 'border-red-500' : ''
                   }`}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,8 +146,8 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
 
           return (
             <div className="space-y-4">
-              {/* First Name and Last Name row */}
-              <div className="flex gap-4">
+              {/* First Name and Last Name row - stacked on mobile, side by side on desktop */}
+              <div className="flex flex-col md:flex-row md:gap-4 gap-4">
                 {firstNameField && renderField(firstNameField)}
                 {lastNameField && renderField(lastNameField)}
               </div>
@@ -178,7 +178,7 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
                       console.log('Form validation state:', { isValid, dirty });
                       handleSubmit();
                     }}
-                    className="bg-indigo-900 text-white px-6 py-2 rounded"
+                    className="bg-indigo-900 text-white px-6 py-2 rounded w-full md:w-auto"
                   >
                     NEXT: BILLING INFO
                   </button>
@@ -192,4 +192,4 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
   );
 };
 
-export default TravelerInfo; 
+export default TravelerInfo;
