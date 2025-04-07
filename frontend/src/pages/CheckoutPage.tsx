@@ -130,6 +130,13 @@ const CheckoutPage: React.FC = () => {
     setActiveSection(sectionId);
   };
 
+  // Prevent accordion from toggling when clicking on headers
+  const handleAccordionValueChange = (value: string) => {
+    // Do nothing - this prevents the accordion from toggling when clicking on headers
+    // Navigation will only happen through the explicit buttons
+    console.log('Accordion header clicked, but navigation prevented');
+  };
+
   const getSectionFields = (sectionId: string): string[] => {
     if (!config?.sections) return [];
     
@@ -239,7 +246,7 @@ const CheckoutPage: React.FC = () => {
                   collapsible 
                   defaultValue="traveler_info"
                   value={activeSection}
-                  onValueChange={handleSectionChange}
+                  onValueChange={handleAccordionValueChange}
                   className="w-full [&_[data-slot=accordion-trigger]_svg]:hidden [&_[data-slot=accordion-item]]:border-b-0 [&_[data-slot=accordion-item]]:mb-4"
                 >
                   {travelerInfoSection?.enabled && (

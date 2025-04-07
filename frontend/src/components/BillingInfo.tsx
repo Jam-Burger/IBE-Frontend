@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { CheckoutField } from '../types/Checkout';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { updateFormValue } from '../redux/checkoutSlice';
+import { api } from '../lib/api-client';
 
 interface BillingInfoProps {
   onNext: (section: number) => void;
@@ -25,9 +26,31 @@ interface BillingFormValues {
   billingCity: string;
 }
 
+interface Country {
+  iso2: string;
+  name: string;
+}
+
+interface State {
+  iso2: string;
+  name: string;
+}
+
+interface City {
+  name: string;
+}
+
 const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fields }) => {
   const dispatch = useDispatch<AppDispatch>();
   const formValues = useSelector((state: RootState) => state.checkout.formValues);
+  
+  // State for countries and states
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [states, setStates] = useState<State[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
+  const [isLoadingStates, setIsLoadingStates] = useState(false);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
   
   // Find specific fields by name
   const firstNameField = fields.find(field => field.name === 'billingFirstName');
@@ -40,6 +63,75 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
   const phoneField = fields.find(field => field.name === 'billingPhone');
   const emailField = fields.find(field => field.name === 'billingEmail');
   const cityField = fields.find(field => field.name === 'billingCity');
+
+  // Fetch countries on component mount
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setIsLoadingCountries(true);
+      try {
+        const response = await api.getCountries();
+        
+        if (response.status !== 200) {
+          throw new Error('Failed to fetch countries');
+        }
+        
+        setCountries(response.data);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+      } finally {
+        setIsLoadingCountries(false);
+      }
+    };
+    
+    fetchCountries();
+  }, []);
+
+  // Function to fetch states when a country is selected
+  const fetchStates = async (countryCode: string) => {
+    if (!countryCode) {
+      setStates([]);
+      setCities([]);
+      return;
+    }
+    
+    setIsLoadingStates(true);
+    try {
+      const response = await api.getStates(countryCode);
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch states');
+      }
+      
+      setStates(response.data);
+    } catch (error) {
+      console.error('Error fetching states:', error);
+    } finally {
+      setIsLoadingStates(false);
+    }
+  };
+
+  // Function to fetch cities when a state is selected
+  const fetchCities = async (countryCode: string, stateCode: string) => {
+    if (!countryCode || !stateCode) {
+      setCities([]);
+      return;
+    }
+    
+    setIsLoadingCities(true);
+    try {
+      const response = await api.getCities(countryCode, stateCode);
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch cities');
+      }
+      
+      setCities(response.data);
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+    } finally {
+      setIsLoadingCities(false);
+    }
+  };
 
   // Create validation schema based on field patterns
   const validationSchema = Yup.object().shape({
@@ -279,12 +371,31 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                       const value = e.target.value;
                       setFieldValue('billingCountry', value);
+                      setFieldValue('billingState', ''); // Reset state when country changes
+                      setFieldValue('billingCity', ''); // Reset city when country changes
                       dispatch(updateFormValue({ name: 'billingCountry', value }));
+                      dispatch(updateFormValue({ name: 'billingState', value: '' }));
+                      dispatch(updateFormValue({ name: 'billingCity', value: '' }));
+                      
+                      // Fetch states for the selected country
+                      if (value) {
+                        fetchStates(value);
+                      } else {
+                        setStates([]);
+                        setCities([]);
+                      }
                     }}
                   >
                     <option value="">Choose</option>
-                    <option value="US">United States</option>
-                    {/* Add more country options as needed */}
+                    {isLoadingCountries ? (
+                      <option value="" disabled>Loading countries...</option>
+                    ) : (
+                      countries.map((country) => (
+                        <option key={country.iso2} value={country.iso2}>
+                          {country.name}
+                        </option>
+                      ))
+                    )}
                   </Field>
                   <ErrorMessage name="billingCountry" component="div" className="text-red-500 text-xs mt-1" />
                 </div>
@@ -302,16 +413,28 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                 {cityField?.enabled && (
                   <div>
                     <Field
-                      type="text"
+                      as="select"
                       name="billingCity"
                       value={values.billingCity}
                       className={`border border-[#CCCCCC] p-2 rounded w-[340px] h-[48px] ${errors.billingCity && touched.billingCity ? 'border-red-500' : ''}`}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingCity', value);
                         dispatch(updateFormValue({ name: 'billingCity', value }));
                       }}
-                    />
+                      disabled={!values.billingState || isLoadingCities}
+                    >
+                      <option value="">Choose City</option>
+                      {isLoadingCities ? (
+                        <option value="" disabled>Loading cities...</option>
+                      ) : (
+                        cities.map((city, index) => (
+                          <option key={index} value={city.name}>
+                            {city.name}
+                          </option>
+                        ))
+                      )}
+                    </Field>
                     <ErrorMessage name="billingCity" component="div" className="text-red-500 text-xs mt-1" />
                   </div>
                 )}
@@ -333,12 +456,29 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                       onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingState', value);
+                        setFieldValue('billingCity', ''); // Reset city when state changes
                         dispatch(updateFormValue({ name: 'billingState', value }));
+                        dispatch(updateFormValue({ name: 'billingCity', value: '' }));
+                        
+                        // Fetch cities for the selected state
+                        if (value && values.billingCountry) {
+                          fetchCities(values.billingCountry, value);
+                        } else {
+                          setCities([]);
+                        }
                       }}
+                      disabled={!values.billingCountry || isLoadingStates}
                     >
                       <option value="">State</option>
-                      <option value="AL">Alabama</option>
-                      
+                      {isLoadingStates ? (
+                        <option value="" disabled>Loading states...</option>
+                      ) : (
+                        states.map((state) => (
+                          <option key={state.iso2} value={state.iso2}>
+                            {state.name}
+                          </option>
+                        ))
+                      )}
                     </Field>
                     <ErrorMessage name="billingState" component="div" className="text-red-500 text-xs mt-1" />
                   </div>
