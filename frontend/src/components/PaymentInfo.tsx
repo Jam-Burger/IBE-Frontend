@@ -1,7 +1,7 @@
 import React from 'react';
 import {ErrorMessage, Field, Form, Formik} from 'formik';
 import * as Yup from 'yup';
-import {CheckoutField} from '../types/Checkout';
+import {CheckoutField} from '../types/CheckoutConfig.ts';
 import {useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../redux/store';
 import {updateFormData} from '../redux/checkoutSlice';

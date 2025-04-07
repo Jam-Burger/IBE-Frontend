@@ -79,10 +79,10 @@ export const checkoutSlice = createSlice({
                 };
                 state.formData = {};
             })
-            .addCase(submitBooking.rejected, (state, action) => {
+            .addCase(submitBooking.rejected, (state) => {
                 state.status = {
                     status: StateStatus.ERROR,
-                    error: action.error.message ?? 'Failed to submit booking'
+                    error: 'Failed to submit booking'
                 };
             })
             .addCase(fetchPropertyDetails.pending, (state) => {
@@ -98,11 +98,12 @@ export const checkoutSlice = createSlice({
                 };
                 state.propertyDetails = action.payload;
             })
-            .addCase(fetchPropertyDetails.rejected, (state, action) => {
+            .addCase(fetchPropertyDetails.rejected, (state) => {
                 state.status = {
                     status: StateStatus.ERROR,
-                    error: action.error.message ?? 'Failed to fetch property details'
+                    error: 'Failed to fetch property details'
                 };
+                state.propertyDetails = null;
             })
     },
 });

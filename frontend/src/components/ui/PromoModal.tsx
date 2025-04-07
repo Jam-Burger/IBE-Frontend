@@ -1,6 +1,5 @@
 import React from 'react';
 import {Dialog, DialogContent} from './Dialog';
-import {MdOutlineClose} from "react-icons/md";
 
 interface PromoModalProps {
     isOpen: boolean;
@@ -15,13 +14,6 @@ const PromoModal: React.FC<PromoModalProps> = ({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[400px] p-6">
                 <div className="relative">
-                    <button
-                        onClick={onClose}
-                        className="absolute right-0 top-0 text-black hover:text-gray-700"
-                    >
-                        <MdOutlineClose/>
-                    </button>
-
                     <h2 className="text-2xl font-bold mb-2">Circus Saving Promotion</h2>
 
                     <div className="space-y-2">

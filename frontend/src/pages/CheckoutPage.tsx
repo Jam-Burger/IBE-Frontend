@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux';
 import {Formik} from 'formik';
 import TravelerInfo from '../components/TravelerInfo';
@@ -11,12 +11,13 @@ import {useParams} from "react-router-dom";
 import {ConfigType, StateStatus} from "../types";
 import {useAppSelector} from "../redux/hooks.ts";
 import {fetchConfig} from "../redux/configSlice.ts";
+import {fetchPropertyDetails} from "../redux/checkoutSlice.ts";
 
 const CheckoutPage: React.FC = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
     const dispatch = useDispatch<AppDispatch>();
-    const {checkoutConfig: config} = useAppSelector(state => state.config);
-    const {formData: reduxFormValues, status} = useAppSelector(state => state.checkout);
+    const {checkoutConfig} = useAppSelector(state => state.config);
+    const {formData: reduxFormValues, status, room} = useAppSelector(state => state.checkout);
     const [activeSection, setActiveSection] = useState<string>('traveler_info');
     const [isValid, setIsValid] = useState<Record<string, boolean>>({
         traveler_info: false,
@@ -25,6 +26,7 @@ const CheckoutPage: React.FC = () => {
     });
     const [formValues, setFormValues] = useState<Record<string, unknown>>({});
     const [formErrors, setFormErrors] = useState<Record<string, unknown>>({});
+    const sections = checkoutConfig?.configData.sections;
 
     useEffect(() => {
         if (!tenantId) {
@@ -33,9 +35,30 @@ const CheckoutPage: React.FC = () => {
         }
         dispatch(fetchConfig({tenantId, configType: ConfigType.CHECKOUT}));
     }, [dispatch, tenantId]);
+    
+    useEffect(() => {
+        if (!tenantId || !room?.propertyId) return;
+        dispatch(fetchPropertyDetails({tenantId, propertyId: room.propertyId}))
+    }, [dispatch, tenantId, room?.propertyId]);
+
+    const getSectionFields = useCallback((sectionId: string): string[] => {
+        if (!sections) return [];
+
+        const section = sections.find(s => s.id === sectionId);
+        if (!section) return [];
+
+        // Get all enabled and required fields for this section
+        const requiredFields = section.fields
+            .filter(field => field.enabled && field.required)
+            .map(field => field.name);
+
+        console.log(`Required fields for section ${sectionId}:`, requiredFields);
+
+        return requiredFields;
+    }, [sections]);
 
     useEffect(() => {
-        if (!config?.sections) return;
+        if (!sections) return;
 
         const currentSection = activeSection;
         const sectionFields = getSectionFields(currentSection);
@@ -56,14 +79,14 @@ const CheckoutPage: React.FC = () => {
         });
 
         setIsValid(prev => ({
-            ...prev,
+                ...prev,
             [currentSection]: isCurrentSectionValid
         }));
-    }, [formValues, formErrors, activeSection, config]);
+    }, [formValues, formErrors, activeSection, sections, getSectionFields]);
 
     // Force validation check for a specific section
     const validateSection = (sectionId: string, values: Record<string, unknown>, errors: Record<string, unknown>): boolean => {
-        if (!config?.sections) return false;
+        if (!sections) return false;
 
         const sectionFields = getSectionFields(sectionId);
 
@@ -133,22 +156,6 @@ const CheckoutPage: React.FC = () => {
         console.log('Accordion header clicked, but navigation prevented: ' + value);
     };
 
-    const getSectionFields = (sectionId: string): string[] => {
-        if (!config?.sections) return [];
-
-        const section = config.sections.find(s => s.id === sectionId);
-        if (!section) return [];
-
-        // Get all enabled and required fields for this section
-        const requiredFields = section.fields
-            .filter(field => field.enabled && field.required)
-            .map(field => field.name);
-
-        console.log(`Required fields for section ${sectionId}:`, requiredFields);
-
-        return requiredFields;
-    };
-
     if (status.status === StateStatus.LOADING) {
         console.log('Rendering loading state');
         return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -159,18 +166,15 @@ const CheckoutPage: React.FC = () => {
         return <div className="min-h-screen flex items-center justify-center text-red-500">{status.error}</div>;
     }
 
-    if (!config) {
+    if (!sections) {
         console.log('Rendering no config state');
         return <div className="min-h-screen flex items-center justify-center">No configuration available</div>;
     }
 
-    console.log('Config:', config);
-    console.log('Config sections:', config.sections);
-
     // Find the sections by ID
-    const travelerInfoSection = config.sections?.find(section => section.id === 'traveler_info');
-    const billingInfoSection = config.sections?.find(section => section.id === 'billing_info');
-    const paymentInfoSection = config.sections?.find(section => section.id === 'payment_info');
+    const travelerInfoSection = sections.find(section => section.id === 'traveler_info');
+    const billingInfoSection = sections.find(section => section.id === 'billing_info');
+    const paymentInfoSection = sections.find(section => section.id === 'payment_info');
 
     console.log('Found sections:', {
         travelerInfoSection,
@@ -214,7 +218,7 @@ const CheckoutPage: React.FC = () => {
 
     const initialValues = getInitialValues();
     console.log('Initial form values:', initialValues);
-
+    
     return (
         <div className='min-h-screen p-8 flex justify-between gap-8n px-20'>
             {/* Left Column - Form */}
@@ -346,9 +350,9 @@ const CheckoutPage: React.FC = () => {
                             );
                         }}
                     </Formik>
-                </div>
-            </div>
-
+                        </div>
+                    </div>
+                    
 
             <div>
                 <TripItinerary/>
