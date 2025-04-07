@@ -15,11 +15,7 @@ import { api } from "../lib/api-client";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppSelector } from "../redux/hooks.ts";
 import toast from "react-hot-toast";
-import {
-    formatDateToYYYYMMDD,
-    toTitleCase,
-    computeDiscountedPrice,
-} from "../lib/utils.ts";
+import { formatDateToYYYYMMDD, toTitleCase, computeDiscountedPrice } from "../lib/utils.ts";
 import { setPromotionApplied, setRoom } from "../redux/checkoutSlice";
 import { useAppDispatch } from "../redux/hooks";
 
@@ -28,6 +24,7 @@ interface RoomDetailsModalProps {
     onClose?: () => void;
     onSelectRoom?: () => void;
 }
+
 
 const RoomDetailsModal = ({
     room,
@@ -78,22 +75,40 @@ const RoomDetailsModal = ({
 
     useEffect(() => {
         const fetchSpecialDiscounts = async () => {
-            if (
-                !tenantId ||
-                !room.propertyId ||
-                !dateRange?.from ||
-                !dateRange?.to
-            )
-                return;
+            if (!tenantId || !room.propertyId) return;
 
             setIsLoading(true);
             try {
+                // Use selected date range from filters if available
+                let formattedStartDate, formattedEndDate;
+
+                if (dateRange && dateRange.from && dateRange.to) {
+                    formattedStartDate = dateRange.from;
+                    formattedEndDate = dateRange.to;
+                } else {
+                    // Fallback to default dates if no selection
+                    const today = new Date();
+                    const startDate = new Date(
+                        today.getFullYear(),
+                        today.getMonth(),
+                        today.getDate() + 1
+                    );
+                    const endDate = new Date(
+                        today.getFullYear(),
+                        today.getMonth(),
+                        today.getDate() + 5
+                    );
+
+                    formattedStartDate = formatDateToYYYYMMDD(startDate);
+                    formattedEndDate = formatDateToYYYYMMDD(endDate);
+                }
+
                 // Use the API client's getSpecialDiscounts method
                 const response = await api.getSpecialDiscounts({
-                    tenantId: tenantId,
+                    tenantId: tenantId || "",
                     propertyId: room.propertyId,
-                    startDate: dateRange.from,
-                    endDate: dateRange.to,
+                    startDate: formattedStartDate,
+                    endDate: formattedEndDate,
                 });
 
                 if (response?.data) {
@@ -286,10 +301,7 @@ const RoomDetailsModal = ({
                                 packageData={{
                                     title: promoOffer.title,
                                     description: promoOffer.description,
-                                    price: computeDiscountedPrice(
-                                        promoOffer,
-                                        room.roomRates
-                                    ),
+                                    price: computeDiscountedPrice(promoOffer, room.roomRates),
                                 }}
                                 onSelectPackage={() =>
                                     handleSelectPackage(promoOffer)
