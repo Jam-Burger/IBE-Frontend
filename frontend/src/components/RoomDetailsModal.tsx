@@ -1,18 +1,23 @@
 import PackageCard from "./PackageCard.tsx";
-import {GoPerson} from "react-icons/go";
-import {MdOutlineBed} from "react-icons/md";
-import {FaRegCircleCheck} from "react-icons/fa6";
+import { GoPerson } from "react-icons/go";
+import { MdOutlineBed } from "react-icons/md";
+import { FaRegCircleCheck } from "react-icons/fa6";
 import ImageCarousel from "./ui/ImageCarousel";
-import {PackageData, PromoOffer, Room, SpecialDiscount, StandardPackage,} from "../types";
-import {useEffect, useState} from "react";
-import {api} from "../lib/api-client";
-import {useNavigate, useParams} from "react-router-dom";
-import {useAppSelector} from "../redux/hooks.ts";
+import {
+    PackageData,
+    PromoOffer,
+    Room,
+    SpecialDiscount,
+    StandardPackage,
+} from "../types";
+import { useEffect, useState } from "react";
+import { api } from "../lib/api-client";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAppSelector } from "../redux/hooks.ts";
 import toast from "react-hot-toast";
-import {formatDateToYYYYMMDD, toTitleCase} from "../lib/utils.ts";
-import {isWithinInterval, parseISO} from "date-fns";
-import {setPromotionApplied, setRoomTypeId} from "../redux/checkoutSlice";
-import {useAppDispatch} from "../redux/hooks";
+import { formatDateToYYYYMMDD, toTitleCase, computeDiscountedPrice } from "../lib/utils.ts";
+import { setPromotionApplied, setRoom } from "../redux/checkoutSlice";
+import { useAppDispatch } from "../redux/hooks";
 
 interface RoomDetailsModalProps {
     room: Room;
@@ -20,50 +25,17 @@ interface RoomDetailsModalProps {
     onSelectRoom?: () => void;
 }
 
-const computeDiscountedPrice = (
-    discount: SpecialDiscount,
-    roomRates: Room["roomRates"]
-): number => {
-    if(!discount.start_date || !discount.end_date) {
-        const averagePrice = roomRates.reduce((sum: number, rate: any) => sum + rate.price, 0) / roomRates.length;
-        return Math.round(averagePrice * (1 - discount.discount_percentage / 100));
-    }
-
-    const discountStart = parseISO(discount.start_date);
-    const discountEnd = parseISO(discount.end_date);
-
-    let totalPrice = 0;
-    let totalDays = 0;
-
-    roomRates.forEach((rate) => {
-        const rateDate = parseISO(rate.date);
-        totalDays++;
-
-        if (
-            isWithinInterval(rateDate, {
-                start: discountStart,
-                end: discountEnd,
-            })
-        ) {
-            totalPrice += rate.price * (1 - discount.discount_percentage / 100);
-        } else {
-            totalPrice += rate.price;
-        }
-    });
-
-    return totalDays > 0 ? Math.round(totalPrice / totalDays) : 0;
-};
 
 const RoomDetailsModal = ({
-                              room,
-                              onClose,
-                              onSelectRoom,
-                          }: RoomDetailsModalProps) => {
+    room,
+    onClose,
+    onSelectRoom,
+}: RoomDetailsModalProps) => {
     const [specialDiscounts, setSpecialDiscounts] = useState<SpecialDiscount[]>(
         []
     );
     const [isLoading, setIsLoading] = useState(false);
-    const {tenantId} = useParams<{ tenantId: string }>();
+    const { tenantId } = useParams<{ tenantId: string }>();
 
     const [promoCode, setPromoCode] = useState("");
     const [promoOffer, setPromoOffer] = useState<PromoOffer | null>(null);
@@ -175,7 +147,7 @@ const RoomDetailsModal = ({
                 setPromoError("Please select a date range");
                 return;
             }
-            
+
             // Use the API client instead of fetch
             const response = await api.getPromoOffer({
                 tenantId: tenantId,
@@ -209,12 +181,12 @@ const RoomDetailsModal = ({
     };
 
     const handleSelectPackage = (
-        packageData: SpecialDiscount | PromoOffer | null
+        packageData: SpecialDiscount | PromoOffer | StandardPackage
     ) => {
         navigate(`/${tenantId}/checkout`);
         dispatch(setPromotionApplied(packageData));
-        dispatch(setRoomTypeId(room.roomTypeId));
-        
+        dispatch(setRoom(room));
+
         if (onSelectRoom) {
             onSelectRoom();
         }
@@ -230,26 +202,11 @@ const RoomDetailsModal = ({
         room.singleBed > 0 && room.doubleBed > 0
             ? `${room.singleBed} Single & ${room.doubleBed} Double`
             : room.singleBed > 0
-                ? `${room.singleBed} Single Bed${room.singleBed > 1 ? "s" : ""}`
-                : `${room.doubleBed} Double Bed${room.doubleBed > 1 ? "s" : ""}`;
+            ? `${room.singleBed} Single Bed${room.singleBed > 1 ? "s" : ""}`
+            : `${room.doubleBed} Double Bed${room.doubleBed > 1 ? "s" : ""}`;
 
     // Format room size
     const roomSize = `${room.areaInSquareFeet} sqft`;
-
-    const getPromoPackage = () => {
-        if (!promoOffer) return null;
-
-        return {
-            title: promoOffer.title,
-            description: promoOffer.description,
-            price: Math.round(
-                standardPackage.price *
-                (1 - promoOffer.discount_percentage / 100)
-            ),
-        };
-    };
-
-    const promoPackage = getPromoPackage();
 
     // Add a function to remove the promo offer with toast notification
     const removePromoOffer = () => {
@@ -282,12 +239,12 @@ const RoomDetailsModal = ({
                     <div className="w-full lg:w-auto mb-6 lg:mb-0">
                         <div className="flex flex-wrap gap-3 text-gray-600 text-sm md:text-base">
                             <span className="flex items-center gap-2">
-                                <GoPerson/>
+                                <GoPerson />
                                 {guestText}
                             </span>
                             {showBedTypes && (
                                 <span className="flex items-center gap-2">
-                                    <MdOutlineBed/>
+                                    <MdOutlineBed />
                                     {bedText}
                                 </span>
                             )}
@@ -313,7 +270,7 @@ const RoomDetailsModal = ({
                                         key={index}
                                         className="flex justify-start items-center gap-2 font-normal text-sm md:text-base text-[#2F2F2F]"
                                     >
-                                        <FaRegCircleCheck className="text-primary flex-shrink-0"/>{" "}
+                                        <FaRegCircleCheck className="text-primary flex-shrink-0" />{" "}
                                         {amenity}
                                     </span>
                                 ))}
@@ -329,17 +286,23 @@ const RoomDetailsModal = ({
                     </h2>
                     <PackageCard
                         packageData={standardPackage}
-                        onSelectPackage={() => handleSelectPackage(null)}
+                        onSelectPackage={() =>
+                            handleSelectPackage(standardPackage)
+                        }
                     />
 
                     {/* Promo Package if available */}
-                    {promoPackage && (
+                    {promoOffer && (
                         <>
                             <h2 className="text-lg md:text-xl font-bold mt-6">
                                 Promo Offer
                             </h2>
                             <PackageCard
-                                packageData={promoPackage}
+                                packageData={{
+                                    title: promoOffer.title,
+                                    description: promoOffer.description,
+                                    price: computeDiscountedPrice(promoOffer, room.roomRates),
+                                }}
                                 onSelectPackage={() =>
                                     handleSelectPackage(promoOffer)
                                 }
