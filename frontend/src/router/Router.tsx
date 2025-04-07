@@ -6,6 +6,7 @@ import {AuthCallback} from "../components/auth/AuthCallback";
 import ConfirmationPage from "../pages/ConfirmationPage";
 
 const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID;
+
 export const Router = createBrowserRouter([
     {
         path: Routes.ROOT,

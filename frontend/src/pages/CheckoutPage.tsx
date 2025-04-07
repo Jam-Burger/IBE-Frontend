@@ -35,7 +35,7 @@ const CheckoutPage: React.FC = () => {
         }
         dispatch(fetchConfig({tenantId, configType: ConfigType.CHECKOUT}));
     }, [dispatch, tenantId]);
-
+    
     useEffect(() => {
         if (!tenantId || !room?.propertyId) return;
         dispatch(fetchPropertyDetails({tenantId, propertyId: room.propertyId}))
@@ -155,30 +155,8 @@ const CheckoutPage: React.FC = () => {
     const handleAccordionValueChange = (value: string) => {
         console.log('Accordion header clicked, but navigation prevented: ' + value);
     };
-  // Prevent accordion from toggling when clicking on headers
-  const handleAccordionValueChange = (_value: string) => {
-    // Do nothing - this prevents the accordion from toggling when clicking on headers
-    // Navigation will only happen through the explicit buttons
-    console.log('Accordion header clicked, but navigation prevented');
-  };
 
-  const getSectionFields = (sectionId: string): string[] => {
-    if (!sections) return [];
-
-    const section = config.sections.find(s => s.id === sectionId);
-    if (!section) return [];
-
-    // Get all enabled and required fields for this section
-    const requiredFields = section.fields
-      .filter(field => field.enabled && field.required)
-      .map(field => field.name);
-
-    console.log(`Required fields for section ${sectionId}:`, requiredFields);
-
-    return requiredFields;
-  };
-
-    if (status.status === StateStatus.LOADING) {
+    if (status.status === StateStatus.LOADING || !sections) {
         console.log('Rendering loading state');
         return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
@@ -186,11 +164,6 @@ const CheckoutPage: React.FC = () => {
     if (status.status === StateStatus.ERROR) {
         console.error('Rendering error state:', status.error);
         return <div className="min-h-screen flex items-center justify-center text-red-500">{status.error}</div>;
-    }
-
-    if (!sections) {
-        console.log('Rendering no config state');
-        return <div className="min-h-screen flex items-center justify-center">No configuration available</div>;
     }
 
     // Find the sections by ID
@@ -238,8 +211,8 @@ const CheckoutPage: React.FC = () => {
         return values;
     };
 
-  const initialValues = getInitialValues();
-  console.log('Initial form values:', initialValues);
+    const initialValues = getInitialValues();
+    console.log('Initial form values:', initialValues);
 
   return (
     <div className='min-h-screen p-4 md:p-8 flex flex-col lg:flex-row justify-between gap-4 md:gap-8 lg:px-20'>
@@ -313,71 +286,6 @@ const CheckoutPage: React.FC = () => {
                       </AccordionContent>
                     </AccordionItem>
                   )}
-                    <Formik
-                        initialValues={initialValues}
-                        onSubmit={(values) => {
-                            console.log('Final form submission:', values);
-                            // Here you would typically send the data to your backend
-                            alert('Form submitted successfully!');
-                        }}
-                    >
-                        {(formikProps) => {
-                            // Update form state on every render
-                            setFormValues(formikProps.values);
-                            setFormErrors(formikProps.errors);
-
-                            return (
-                                <Accordion
-                                    type="single"
-                                    collapsible
-                                    defaultValue="traveler_info"
-                                    value={activeSection}
-                                    onValueChange={handleAccordionValueChange}
-                                    className="w-full [&_[data-slot=accordion-trigger]_svg]:hidden [&_[data-slot=accordion-item]]:border-b-0 [&_[data-slot=accordion-item]]:mb-4"
-                                >
-                                    {travelerInfoSection?.enabled && (
-                                        <AccordionItem value="traveler_info">
-                                            <AccordionTrigger
-                                                className="text-lg font-semibold w-[736px] h-[43px] bg-gray-200 hover:no-underline focus:no-underline flex  items-center pl-2">
-                                                1. Traveler Information
-                                            </AccordionTrigger>
-                                            <AccordionContent>
-                                                <TravelerInfo
-                                                    fields={travelerInfoSection.fields}
-                                                    onNext={() => {
-                                                        console.log('TravelerInfo onNext clicked, current validation state:', isValid.traveler_info);
-                                                        console.log('Current form values:', formikProps.values);
-                                                        console.log('Current form errors:', formikProps.errors);
-
-                                                        // Force validate traveler info section
-                                                        const isTravelerInfoValid = validateSection('traveler_info', formikProps.values, formikProps.errors);
-                                                        console.log('Force validation result for traveler info:', isTravelerInfoValid);
-
-                                                        if (isTravelerInfoValid) {
-                                                            // Update validation state
-                                                            setIsValid(prev => ({
-                                                                ...prev,
-                                                                traveler_info: true
-                                                            }));
-
-                                                            // Change to billing info section
-                                                            setActiveSection('billing_info');
-                                                        } else {
-                                                            console.log('Traveler info validation failed, cannot proceed');
-                                                            // Log the specific fields that are causing validation to fail
-                                                            const sectionFields = getSectionFields('traveler_info');
-                                                            const missingFields = sectionFields.filter(field => {
-                                                                const value = formikProps.values[field];
-                                                                return value === undefined || value === null ||
-                                                                    (typeof value === 'string' && value.trim() === '');
-                                                            });
-                                                            console.log('Missing or invalid fields:', missingFields);
-                                                        }
-                                                    }}
-                                                />
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    )}
 
                   {billingInfoSection?.enabled && (
                     <AccordionItem value="billing_info">
@@ -425,7 +333,7 @@ const CheckoutPage: React.FC = () => {
                         3. Payment Information
                       </AccordionTrigger>
                       <AccordionContent>
-                        <PaymentInfo
+                        <PaymentInfo 
                           setActiveSection={(section) => handleSectionChange(section === 1 ? 'traveler_info' : section === 2 ? 'billing_info' : 'payment_info')}
                           fields={paymentInfoSection.fields}
                         />
@@ -439,12 +347,12 @@ const CheckoutPage: React.FC = () => {
         </div>
       </div>
 
-
+     
       <div className="w-full lg:w-auto  lg:mt-0 flex justify-center lg:justify-start px-4 sm:px-0">
   <TripItinerary />
 </div>
     </div>
   );
-};
+}
 
 export default CheckoutPage; 

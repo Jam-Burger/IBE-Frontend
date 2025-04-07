@@ -1,10 +1,10 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { CheckoutField } from '../types/Checkout';
+import { CheckoutField } from '../types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
-import { updateFormValue } from '../redux/checkoutSlice';
+import { updateFormData } from '../redux/checkoutSlice';
 
 interface PaymentInfoProps {
   setActiveSection: (section: number) => void;
@@ -13,7 +13,7 @@ interface PaymentInfoProps {
 
 const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const formValues = useSelector((state: RootState) => state.checkout.formValues);
+  const formValues = useSelector((state: RootState) => state.checkout.formData);
   
   // Find specific fields by name
   const cardNameField = fields.find(field => field.name === 'cardName');
@@ -107,7 +107,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
                       setFieldValue('cardName', value);
-                      dispatch(updateFormValue({ name: 'cardName', value }));
+                      dispatch(updateFormData({ name: 'cardName', value }));
                     }}
                   />
                   <ErrorMessage name="cardName" component="div" className="text-red-500 text-xs mt-1" />
@@ -131,7 +131,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('expMonth', value);
-                        dispatch(updateFormValue({ name: 'expMonth', value }));
+                        dispatch(updateFormData({ name: 'expMonth', value }));
                       }}
                     />
                     <ErrorMessage name="expMonth" component="div" className="text-red-500 text-xs mt-1" />
@@ -153,7 +153,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('expYear', value);
-                        dispatch(updateFormValue({ name: 'expYear', value }));
+                        dispatch(updateFormData({ name: 'expYear', value }));
                       }}
                     />
                     <ErrorMessage name="expYear" component="div" className="text-red-500 text-xs mt-1" />
@@ -177,7 +177,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const value = e.target.value;
                     setFieldValue('cvv', value);
-                    dispatch(updateFormValue({ name: 'cvv', value }));
+                    dispatch(updateFormData({ name: 'cvv', value }));
                   }}
                 />
                 <ErrorMessage name="cvv" component="div" className="text-red-500 text-xs mt-1" />
@@ -196,7 +196,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.checked;
                       setFieldValue('receiveOffers', value);
-                      dispatch(updateFormValue({ name: 'receiveOffers', value }));
+                      dispatch(updateFormData({ name: 'receiveOffers', value }));
                     }}
                   />
                   <label htmlFor="receiveOffers" className="text-sm">
@@ -221,7 +221,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.checked;
                       setFieldValue('agreedToTerms', value);
-                      dispatch(updateFormValue({ name: 'agreedToTerms', value }));
+                      dispatch(updateFormData({ name: 'agreedToTerms', value }));
                     }}
                   />
                   <label htmlFor="agreedToTerms" className="text-sm">
