@@ -48,14 +48,12 @@ export const checkoutSlice = createSlice({
     name: 'checkout',
     initialState,
     reducers: {
-        updateFormData: (state, action: PayloadAction<Record<string, string | boolean>>) => {
-            state.formData = {
-                ...state.formData,
-                ...action.payload
-            };
-        },
-        clearFormData: (state) => {
-            state.formData = {};
+        updateFormData: (state, action: PayloadAction<{name: string, value: string | boolean}>) => {
+            if (!action.payload) return;
+            const {name, value} = action.payload;
+            const newFormData= state.formData;
+            newFormData[name] = value;
+            state.formData = newFormData;
         },
         setPromotionApplied: (state, action: PayloadAction<SpecialDiscount | PromoOffer | StandardPackage>) => {
             state.promotionApplied = action.payload;
