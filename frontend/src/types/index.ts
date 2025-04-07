@@ -9,4 +9,5 @@ export {SortOption} from "./SortOption";
 export {ConfigType} from "./ConfigType";
 export type {PaginationParams, PaginationResponse} from "./Pagination";
 export type {ApiResponse, ErrorResponse} from "./Response";
-export type {GenericField} from "./GenericField";
+export type {CheckoutConfig, CheckoutSection, CheckoutField} from "./CheckoutConfig.ts";
+export type {StandardPackage, SpecialDiscount, PromoOffer, PackageData} from "./Package";

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { CheckoutField } from '../types/Checkout';
+import { CheckoutField } from '../types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
-import { updateFormValue } from '../redux/checkoutSlice';
+import { updateFormData } from '../redux/checkoutSlice';
 import { api } from '../lib/api-client';
 
 interface BillingInfoProps {
@@ -42,7 +42,7 @@ interface City {
 
 const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fields }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const formValues = useSelector((state: RootState) => state.checkout.formValues);
+  const formValues = useSelector((state: RootState) => state.checkout.formData);
   
   // State for countries and states
   const [countries, setCountries] = useState<Country[]>([]);
@@ -216,7 +216,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
           try {
             // Update all form values in Redux store
             Object.entries(values).forEach(([key, value]) => {
-              dispatch(updateFormValue({ name: key, value }));
+              dispatch(updateFormData({ name: key, value }));
             });
 
             console.log('Billing info submitted:', values);
@@ -271,7 +271,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingFirstName', value);
-                        dispatch(updateFormValue({ name: 'billingFirstName', value }));
+                        dispatch(updateFormData({ name: 'billingFirstName', value }));
                       }}
                     />
                     <ErrorMessage name="billingFirstName" component="div" className="text-red-500 text-xs mt-1" />
@@ -295,7 +295,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingLastName', value);
-                        dispatch(updateFormValue({ name: 'billingLastName', value }));
+                        dispatch(updateFormData({ name: 'billingLastName', value }));
                       }}
                     />
                     <ErrorMessage name="billingLastName" component="div" className="text-red-500 text-xs mt-1" />
@@ -322,7 +322,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingAddress1', value);
-                        dispatch(updateFormValue({ name: 'billingAddress1', value }));
+                        dispatch(updateFormData({ name: 'billingAddress1', value }));
                       }}
                     />
                     <ErrorMessage name="billingAddress1" component="div" className="text-red-500 text-xs mt-1" />
@@ -346,7 +346,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingAddress2', value);
-                        dispatch(updateFormValue({ name: 'billingAddress2', value }));
+                        dispatch(updateFormData({ name: 'billingAddress2', value }));
                       }}
                     />
                     <ErrorMessage name="billingAddress2" component="div" className="text-red-500 text-xs mt-1" />
@@ -374,9 +374,9 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                       setFieldValue('billingCountry', value);
                       setFieldValue('billingState', ''); // Reset state when country changes
                       setFieldValue('billingCity', ''); // Reset city when country changes
-                      dispatch(updateFormValue({ name: 'billingCountry', value }));
-                      dispatch(updateFormValue({ name: 'billingState', value: '' }));
-                      dispatch(updateFormValue({ name: 'billingCity', value: '' }));
+                      dispatch(updateFormData({ name: 'billingCountry', value }));
+                      dispatch(updateFormData({ name: 'billingState', value: '' }));
+                      dispatch(updateFormData({ name: 'billingCity', value: '' }));
                       
                       // Fetch states for the selected country
                       if (value) {
@@ -422,7 +422,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                       onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingCity', value);
-                        dispatch(updateFormValue({ name: 'billingCity', value }));
+                        dispatch(updateFormData({ name: 'billingCity', value }));
                       }}
                       disabled={!values.billingState || isLoadingCities}
                     >
@@ -460,8 +460,8 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                         const value = e.target.value;
                         setFieldValue('billingState', value);
                         setFieldValue('billingCity', ''); // Reset city when state changes
-                        dispatch(updateFormValue({ name: 'billingState', value }));
-                        dispatch(updateFormValue({ name: 'billingCity', value: '' }));
+                        dispatch(updateFormData({ name: 'billingState', value }));
+                        dispatch(updateFormData({ name: 'billingCity', value: '' }));
                         
                         // Fetch cities for the selected state
                         if (value && values.billingCountry) {
@@ -504,7 +504,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setFieldValue('billingZip', value);
-                        dispatch(updateFormValue({ name: 'billingZip', value }));
+                        dispatch(updateFormData({ name: 'billingZip', value }));
                       }}
                     />
                     <ErrorMessage name="billingZip" component="div" className="text-red-500 text-xs mt-1" />
@@ -529,7 +529,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
                       setFieldValue('billingPhone', value);
-                      dispatch(updateFormValue({ name: 'billingPhone', value }));
+                      dispatch(updateFormData({ name: 'billingPhone', value }));
                     }}
                   />
                   <ErrorMessage name="billingPhone" component="div" className="text-red-500 text-xs mt-1" />
@@ -553,7 +553,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({ onNext, setActiveSection, fie
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
                       setFieldValue('billingEmail', value);
-                      dispatch(updateFormValue({ name: 'billingEmail', value }));
+                      dispatch(updateFormData({ name: 'billingEmail', value }));
                     }}
                   />
                   <ErrorMessage name="billingEmail" component="div" className="text-red-500 text-xs mt-1" />

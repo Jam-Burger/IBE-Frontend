@@ -13,7 +13,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "./Popover";
 import {clearRoomRates, fetchRoomRates} from "../../redux/roomRatesSlice";
 import {useParams} from "react-router-dom";
 import {updateFilter} from "../../redux/filterSlice";
-import { StateStatus } from "../../types/common";
+import {StateStatus} from "../../types/common";
 
 interface DatePickerWithRangeProps {
     className?: string;
@@ -36,10 +36,6 @@ interface RoomRates {
 // Convert SerializableDateRange to DateRange for react-day-picker
 const toDateRange = (serializableRange?: SerializableDateRange): DateRange | undefined => {
     if (!serializableRange) return undefined;
-
-    // DateRange in react-day-picker is different than what TypeScript thinks
-    // It can have undefined from/to properties, but TypeScript wants them defined
-    // Using a type assertion to work around this
     const result = {} as DateRange;
 
     if (serializableRange.from) {
@@ -135,7 +131,6 @@ export function DatePickerWithRange({
     };
 
     const handleApplyDates = () => {
-        // Convert Date objects to serializable ISO strings
         const serializableRange = toSerializableDateRange(date);
         if (onChange) {
             onChange(date);
@@ -150,8 +145,8 @@ export function DatePickerWithRange({
 
         if (date?.from && !date.to) {
             const diff = differenceInDays(day, date.from);
-            const minNights = landingConfig?.configData.searchForm.lengthOfStay.min ?? 1;
-            const maxNights = landingConfig?.configData.searchForm.lengthOfStay.max ?? 14;
+            const minNights = landingConfig?.configData.searchForm.lengthOfStay.min ?? 0;
+            const maxNights = landingConfig?.configData.searchForm.lengthOfStay.max ?? 0;
             return diff < minNights || diff > maxNights;
         }
 
@@ -537,26 +532,21 @@ export function DatePickerWithRange({
                     <div
                         className="p-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
                         <div className="flex flex-col items-start mb-2 sm:mb-0">
-                            <span className="text-red-500 text-xs mr-4">
-                                {date?.from && date?.to && differenceInDays(date.to, date.from) > 14
-                                    ? "Max. length of stay: 14 days"
-                                    : ""}
-                            </span>
                             {date?.from && date?.to && (
                                 <div className="text-sm text-gray-700 mt-2">
                                     Total price: {(() => {
-                                        let total = 0;
-                                        let currentDate = new Date(date.from);
-                                        while (currentDate < date.to) {
-                                            const dayStr = format(currentDate, "yyyy-MM-dd");
-                                            const rate = formattedRoomRates[dayStr];
-                                            if (rate) {
-                                                total += rate.discountedRate;
-                                            }
-                                            currentDate = addDays(currentDate, 1);
+                                    let total = 0;
+                                    let currentDate = new Date(date.from);
+                                    while (currentDate < date.to) {
+                                        const dayStr = format(currentDate, "yyyy-MM-dd");
+                                        const rate = formattedRoomRates[dayStr];
+                                        if (rate) {
+                                            total += rate.discountedRate;
                                         }
-                                        return convertToLocaleCurrency(selectedCurrency.symbol, total, multiplier);
-                                    })()}
+                                        currentDate = addDays(currentDate, 1);
+                                    }
+                                    return convertToLocaleCurrency(selectedCurrency.symbol, total, multiplier);
+                                })()}
                                 </div>
                             )}
                         </div>

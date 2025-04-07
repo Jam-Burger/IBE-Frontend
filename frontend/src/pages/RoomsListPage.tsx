@@ -1,7 +1,6 @@
-
 import {FaCheck, FaChevronDown, FaFilter} from "react-icons/fa";
 import {useEffect, useState} from "react";
-import {FilterRow, RoomCard, RoomFilters} from "../components";
+import {FilterRow, RoomCard, RoomFilters, Stepper} from "../components";
 import {ConfigType, PaginationResponse, Room, SortOption, StateStatus} from "../types";
 import {api} from "../lib/api-client";
 import {useParams, useSearchParams} from "react-router-dom";
@@ -30,7 +29,6 @@ import {
 } from "../components/ui";
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
 import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
-import { Stepper } from '../components';
 
 const ITEMS_PER_PAGE = 3;
 
@@ -58,8 +56,10 @@ const RoomsListPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
-        dispatch(syncWithUrl(searchParamsToFilter(searchParams)));
-    }, [dispatch, searchParams]);
+        if (roomsListConfig) {
+            dispatch(syncWithUrl(searchParamsToFilter(searchParams, roomsListConfig)));
+        }
+    }, [dispatch, searchParams, roomsListConfig]);
 
     useEffect(() => {
         if (filter && !loading) {
@@ -169,7 +169,7 @@ const RoomsListPage = () => {
                 style={bannerStyle}
             />
             {stepsConfig.enabled !== false && (
-                <Stepper 
+                <Stepper
                     steps={configuredSteps}
                     currentStep={currentStep}
                     onStepClick={(step) => {
@@ -281,10 +281,16 @@ const RoomsListPage = () => {
                             {roomsData.items.length > 0 ? (
                                 roomsData.items.map((room: Room) => {
                                     // Find the room with minimum average price
-                                    const minPriceRoom = roomsData.items.reduce((min, current) => 
-                                        current.averagePrice < min.averagePrice ? current : min
+                                    const minPriceRoom = roomsData.items.reduce((min, current) =>
+                                        current.roomRates.reduce((minRate, currentRate) =>
+                                                currentRate.price < minRate.price ? currentRate : minRate,
+                                            current.roomRates[0]
+                                        ).price < min.roomRates.reduce((minRate, currentRate) =>
+                                                currentRate.price < minRate.price ? currentRate : minRate,
+                                            min.roomRates[0]
+                                        ).price ? current : min
                                     );
-                                    
+
                                     // Add special deal only to the room with minimum price
                                     const roomWithDeal = {
                                         ...room,
@@ -293,7 +299,7 @@ const RoomsListPage = () => {
                                             minNights: 3
                                         } : undefined
                                     };
-                                    
+
                                     return <RoomCard
                                         key={roomWithDeal.roomTypeId}
                                         room={roomWithDeal}
@@ -345,7 +351,7 @@ const RoomsListPage = () => {
                 </div>
             </div>
 
-           
+
         </div>
     );
 };

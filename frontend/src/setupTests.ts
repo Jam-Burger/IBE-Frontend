@@ -5,14 +5,14 @@ import {cleanup} from '@testing-library/react';
 
 // Extend Vitest's expect method with a simplified version
 expect.extend({
-  toBeInTheDocument(received) {
-    const pass = Boolean(received);
-    return {
-      pass,
-      message: () => `expected ${received} to ${pass ? 'not ' : ''}be in the document`,
-    };
-  },
-  // Add other matchers as needed
+    toBeInTheDocument(received) {
+        const pass = Boolean(received);
+        return {
+            pass,
+            message: () => `expected ${received} to ${pass ? 'not ' : ''}be in the document`,
+        };
+    },
+    // Add other matchers as needed
 });
 
 // Clean up after each test

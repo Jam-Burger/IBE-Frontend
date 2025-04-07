@@ -1,6 +1,6 @@
 import React from 'react';
-import { cn } from "../lib/utils";
-import { FaCheck } from "react-icons/fa";
+import {cn} from "../lib/utils";
+import {FaCheck} from "react-icons/fa";
 
 export interface StepperProps {
     steps: Array<{
@@ -13,10 +13,10 @@ export interface StepperProps {
 }
 
 const Stepper: React.FC<StepperProps> = ({
-    steps,
-    currentStep,
-    onStepClick
-}) => {
+                                             steps,
+                                             currentStep,
+                                             onStepClick
+                                         }) => {
     return (
         <div className="h-[92px] flex-shrink-0 bg-[#E4E4E4] flex items-center justify-center mb-8">
             <div className="flex items-center justify-center h-[92px] flex-shrink-0">
