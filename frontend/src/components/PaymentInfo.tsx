@@ -93,7 +93,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields, onS
               {cardNumberField?.enabled && (
                 <div className="w-full">
                   <label className="block text-[#5D5D5D] text-sm mb-1">
-                    Card Name
+                    Card Number
                     {cardNumberField?.required && <span className="text-red-500 ml-1">*</span>}
                   </label>
                   <Field
