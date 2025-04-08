@@ -8,8 +8,7 @@ import {
 } from "../types";
 import { Booking } from "../types/Booking";
 import { formatDateToYYYYMMDD } from "./utils";
-import { PropertyDetails } from "../types/PropertyDetails";
-import { BookingDetails } from "../types/BookingDetails";
+import { PropertyDetails } from "../types";
 
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
