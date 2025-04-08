@@ -9,14 +9,15 @@ import { updateFormData } from '../redux/checkoutSlice';
 interface PaymentInfoProps {
   setActiveSection: (section: number) => void;
   fields: CheckoutField[];
+  onSubmit: () => void
 }
 
-const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) => {
+const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields, onSubmit }) => {
   const dispatch = useDispatch<AppDispatch>();
   const formValues = useSelector((state: RootState) => state.checkout.formData);
   
   // Find specific fields by name
-  const cardNameField = fields.find(field => field.name === 'cardName');
+  const cardNumberField = fields.find(field => field.name === 'cardNumber');
   const expMonthField = fields.find(field => field.name === 'expMonth');
   const expYearField = fields.find(field => field.name === 'expYear');
   const cvvField = fields.find(field => field.name === 'cvv');
@@ -25,10 +26,10 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
 
   // Create validation schema based on field patterns
   const validationSchema = Yup.object().shape({
-    cardName: cardNameField?.enabled && cardNameField?.required
+    cardNumber: cardNumberField?.enabled && cardNumberField?.required
       ? Yup.string()
           .matches(
-            new RegExp(cardNameField.pattern || '.*'),
+            new RegExp(cardNumberField.pattern || '.*'),
             'Invalid format'
           )
           .required('Card name is required')
@@ -69,7 +70,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
 
   // Create initial values from Redux store or defaults
   const initialValues = {
-    cardName: formValues.cardName || '',
+    cardNumber: formValues.cardNumber || '',
     expMonth: formValues.expMonth || '',
     expYear: formValues.expYear || '',
     cvv: formValues.cvv || '',
@@ -82,35 +83,31 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ setActiveSection, fields }) =
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
-        onSubmit={(values) => {
-          console.log('Payment info submitted:', values);
-          // Here you would typically send the data to your backend
-          alert('Form submitted successfully!');
-        }}
+        onSubmit={onSubmit}
       >
         {({ errors, touched, setFieldValue }) => (
           <Form className="space-y-4">
             {/* Card Name, Exp Month and Year in a row on desktop, stacked on mobile */}
             <div className="flex flex-col md:flex-row md:gap-4 gap-4">
               {/* Card Name */}
-              {cardNameField?.enabled && (
+              {cardNumberField?.enabled && (
                 <div className="w-full">
                   <label className="block text-[#5D5D5D] text-sm mb-1">
                     Card Name
-                    {cardNameField?.required && <span className="text-red-500 ml-1">*</span>}
+                    {cardNumberField?.required && <span className="text-red-500 ml-1">*</span>}
                   </label>
                   <Field
-                    type={cardNameField.type}
-                    name="cardName"
-                    placeholder={cardNameField.label}
-                    className={`border border-[#CCCCCC] p-2 rounded w-full md:w-[340px] h-[48px] ${errors.cardName && touched.cardName ? 'border-red-500' : ''}`}
+                    type={cardNumberField.type}
+                    name="cardNumber"
+                    placeholder={cardNumberField.label}
+                    className={`border border-[#CCCCCC] p-2 rounded w-full md:w-[340px] h-[48px] ${errors.cardNumber && touched.cardNumber ? 'border-red-500' : ''}`}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
-                      setFieldValue('cardName', value);
-                      dispatch(updateFormData({ name: 'cardName', value }));
+                      setFieldValue('cardNumber', value);
+                      dispatch(updateFormData({ name: 'cardNumber', value }));
                     }}
                   />
-                  <ErrorMessage name="cardName" component="div" className="text-red-500 text-xs mt-1" />
+                  <ErrorMessage name="cardNumber" component="div" className="text-red-500 text-xs mt-1" />
                 </div>
               )}
 

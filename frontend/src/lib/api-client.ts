@@ -1,8 +1,15 @@
 import axios from "axios";
-import {ApiResponse, ConfigType, PaginationParams, PaginationResponse, Room} from "../types";
-import {Booking} from "../types/Booking";
+import {
+    ApiResponse,
+    ConfigType,
+    PaginationParams,
+    PaginationResponse,
+    Room,
+} from "../types";
+import { Booking } from "../types/Booking";
 import { formatDateToYYYYMMDD } from "./utils";
 import { PropertyDetails } from "../types/PropertyDetails";
+import { BookingDetails } from "../types/BookingDetails";
 
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -41,13 +48,15 @@ export const api = {
     },
 
     getRoomRates: async (params: RoomRateParams & { tenantId: string }) => {
-        const {propertyId, startDate, endDate, tenantId} = params;
+        const { propertyId, startDate, endDate, tenantId } = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-rates/daily-minimum`,
-            {params: {
-                start_date: formatDateToYYYYMMDD(startDate), 
-                end_date: formatDateToYYYYMMDD(endDate)
-            }}
+            {
+                params: {
+                    start_date: formatDateToYYYYMMDD(startDate),
+                    end_date: formatDateToYYYYMMDD(endDate),
+                },
+            }
         );
         return response.data;
     },
@@ -55,24 +64,28 @@ export const api = {
     getSpecialDiscounts: async (
         params: SpecialDiscountParams & { tenantId: string }
     ) => {
-        const {propertyId, startDate, endDate, tenantId} = params;
+        const { propertyId, startDate, endDate, tenantId } = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts`,
-            {params: {start_date: startDate, end_date: endDate}}
+            { params: { start_date: startDate, end_date: endDate } }
         );
         return response.data;
     },
 
-    getRooms: async (tenantId: string, params: Record<string, string>, paginationParams?: PaginationParams): Promise<ApiResponse<PaginationResponse<Room>>> => {
+    getRooms: async (
+        tenantId: string,
+        params: Record<string, string>,
+        paginationParams?: PaginationParams
+    ): Promise<ApiResponse<PaginationResponse<Room>>> => {
         const propertyId = params.propertyId;
         params = {
             ...params,
-            page: paginationParams?.page.toString() ?? '1',
-            pageSize: paginationParams?.pageSize.toString() ?? '3',
+            page: paginationParams?.page.toString() ?? "1",
+            pageSize: paginationParams?.pageSize.toString() ?? "3",
         };
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-types/filter`,
-            {params}
+            { params }
         );
         return response.data;
     },
@@ -101,36 +114,77 @@ export const api = {
         endDate: string;
         promoCode: string;
     }) => {
-        const {tenantId, propertyId, startDate, endDate, promoCode} = params;
+        const { tenantId, propertyId, startDate, endDate, promoCode } = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts/promo-offer`,
-            {params: {start_date: startDate, end_date: endDate, promo_code: promoCode}}
+            {
+                params: {
+                    start_date: startDate,
+                    end_date: endDate,
+                    promo_code: promoCode,
+                },
+            }
         );
         return response.data;
     },
 
     getCountries: async () => {
-        return apiClient.get('https://api.countrystatecity.in/v1/countries', {
+        return apiClient.get("https://api.countrystatecity.in/v1/countries", {
             headers: {
-                'X-CSCAPI-KEY': COUNTRY_API_KEY
-            }
+                "X-CSCAPI-KEY": COUNTRY_API_KEY,
+            },
         });
     },
 
     getStates: async (countryCode: string) => {
-        return apiClient.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
-            headers: {
-                'X-CSCAPI-KEY': COUNTRY_API_KEY
+        return apiClient.get(
+            `https://api.countrystatecity.in/v1/countries/${countryCode}/states`,
+            {
+                headers: {
+                    "X-CSCAPI-KEY": COUNTRY_API_KEY,
+                },
             }
-        });
+        );
     },
 
     getCities: async (countryCode: string, stateCode: string) => {
-        return apiClient.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`, {
-            headers: {
-                'X-CSCAPI-KEY': COUNTRY_API_KEY
+        return apiClient.get(
+            `https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`,
+            {
+                headers: {
+                    "X-CSCAPI-KEY": COUNTRY_API_KEY,
+                },
             }
-        });
+        );
+    },
+
+    getPropertyDetails: async (
+        tenantId: string,
+        propertyId: number
+    ): Promise<ApiResponse<PropertyDetails>> => {
+        const response = await apiClient.get(
+            `${tenantId}/properties/${propertyId}`
+        );
+        return response.data;
+    },
+
+    getRoomTypeDetails: async (
+        tenantId: string,
+        propertyId: number,
+        room_type_id: number,
+        dateFrom: string,
+        dateTo: string
+    ) => {
+        const response = await apiClient.get(
+            `${tenantId}/${propertyId}/room-types/${room_type_id}`,
+            {
+                params: {
+                    dateFrom,
+                    dateTo,
+                },
+            }
+        );
+        return response.data;
     },
 
     submitBooking: async (tenantId: string, bookingData: Booking) => {
@@ -141,10 +195,26 @@ export const api = {
         return response.data;
     },
 
-    getPropertyDetails: async (tenantId: string, propertyId: number): Promise<ApiResponse<PropertyDetails>> => {
+    getBookingDetails: async (tenantId: string, bookingId: string) => {
         const response = await apiClient.get(
-            `${tenantId}/properties/${propertyId}`
+            `${tenantId}/bookings/${bookingId}`
         );
         return response.data;
-    }
+    },
+
+    cancelBooking: async (tenantId: string, bookingId: string) => {
+        return await apiClient.put(`${tenantId}/bookings/${bookingId}/cancel`)
+    },
+
+    sendOtp: async (tenantId: string, email: string) => {
+        return await apiClient.post(`${tenantId}/otp/send`, null, {
+            params: { email },
+        });
+    },
+
+    verifyOtp: async (tenantId: string, email: string, otp: string) => {
+        return await apiClient.post(`${tenantId}/otp/verify`, null, {
+            params: { email, otp },
+        });
+    },
 };

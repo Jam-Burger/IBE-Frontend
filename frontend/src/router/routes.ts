@@ -5,7 +5,7 @@ export const Routes = {
     AUTH_CALLBACK: "/auth/callback",
     AUTH_LOGOUT: "/auth/logout",
     CHECKOUT: "/:tenantId/checkout",
-    CONFIRMATION: "/:tenantId/confirmation",
+    CONFIRMATION: "/:tenantId/confirmation/:bookingId",
     REVIEW: "/:tenantId/review",
     NOT_FOUND: "*",
 } as const;

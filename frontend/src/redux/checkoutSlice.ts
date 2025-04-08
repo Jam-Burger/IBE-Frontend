@@ -1,11 +1,13 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {api} from '../lib/api-client';
-import {BaseState, PromoOffer, Room, SpecialDiscount, StandardPackage, StateStatus} from '../types';
+import {BaseState, ErrorResponse, PromoOffer, Room, SpecialDiscount, StandardPackage, StateStatus} from '../types';
 import {Booking} from '../types/Booking';
 import {PropertyDetails} from '../types/PropertyDetails';
+import {AxiosError} from 'axios';
 
 interface CheckoutState {
-    status: BaseState;
+    propertyStatus: BaseState;
+    bookingStatus: BaseState;
     formData: Record<string, string | boolean>;
     room: Room | null;
     promotionApplied: SpecialDiscount | PromoOffer | StandardPackage | null;
@@ -13,7 +15,11 @@ interface CheckoutState {
 }
 
 const initialState: CheckoutState = {
-    status: {
+    propertyStatus: {
+        status: StateStatus.IDLE,
+        error: null
+    },
+    bookingStatus: {
         status: StateStatus.IDLE,
         error: null
     },
@@ -28,19 +34,34 @@ interface BookingSubmitParams {
     bookingData: Booking;
 }
 
-export const submitBooking = createAsyncThunk(
+export const submitBooking = createAsyncThunk<void, BookingSubmitParams, { rejectValue: ErrorResponse }>(
     'checkout/submitBooking',
-    async (params: BookingSubmitParams) => {
-        const response = await api.submitBooking(params.tenantId, params.bookingData);
-        return response.data;
-    }
+    async (params: BookingSubmitParams, {rejectWithValue}) => {
+        try {
+            const response = await api.submitBooking(params.tenantId, params.bookingData);
+            return response.data;
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                return rejectWithValue(error.response?.data)
+            }
+        }
+    },
 );
 
-export const fetchPropertyDetails = createAsyncThunk(
+export const fetchPropertyDetails = createAsyncThunk<PropertyDetails, { tenantId: string, propertyId: number }, {
+    rejectValue: ErrorResponse | undefined
+}>(
     'checkout/fetchPropertyDetails',
-    async ({tenantId, propertyId}: { tenantId: string, propertyId: number }) => {
-        const response = await api.getPropertyDetails(tenantId, propertyId);
-        return response.data;
+    async ({tenantId, propertyId}, {rejectWithValue}) => {
+        try {
+            const response = await api.getPropertyDetails(tenantId, propertyId);
+            return response.data;
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                return rejectWithValue(error.response?.data);
+            }
+            return rejectWithValue(undefined)
+        }
     }
 );
 
@@ -48,10 +69,10 @@ export const checkoutSlice = createSlice({
     name: 'checkout',
     initialState,
     reducers: {
-        updateFormData: (state, action: PayloadAction<{name: string, value: string | boolean}>) => {
+        updateFormData: (state, action: PayloadAction<{ name: string, value: string | boolean }>) => {
             if (!action.payload) return;
             const {name, value} = action.payload;
-            const newFormData= state.formData;
+            const newFormData = state.formData;
             newFormData[name] = value;
             state.formData = newFormData;
         },
@@ -60,52 +81,60 @@ export const checkoutSlice = createSlice({
         },
         setRoom: (state, action: PayloadAction<Room | null>) => {
             state.room = action.payload;
+        },
+        clearFormData: (state) => {
+            state.formData = initialState.formData;
+            state.bookingStatus = initialState.bookingStatus;
+            state.propertyStatus = initialState.propertyStatus;
+        },
+        clearBookingStatus: (state) => {
+            state.bookingStatus = initialState.bookingStatus;
         }
     },
     extraReducers: (builder) => {
         builder
             .addCase(submitBooking.pending, (state) => {
-                state.status = {
+                state.bookingStatus = {
                     status: StateStatus.LOADING,
                     error: null
                 };
             })
             .addCase(submitBooking.fulfilled, (state) => {
-                state.status = {
+                state.bookingStatus = {
                     status: StateStatus.IDLE,
                     error: null
                 };
                 state.formData = {};
             })
-            .addCase(submitBooking.rejected, (state) => {
-                state.status = {
+            .addCase(submitBooking.rejected, (state, action) => {
+                state.bookingStatus = {
                     status: StateStatus.ERROR,
-                    error: 'Failed to submit booking'
+                    error: action.payload?.message || 'Failed to submit booking'
                 };
             })
             .addCase(fetchPropertyDetails.pending, (state) => {
-                state.status = {
+                state.propertyStatus = {
                     status: StateStatus.LOADING,
                     error: null
                 };
             })
-            .addCase(fetchPropertyDetails.fulfilled, (state, action: PayloadAction<PropertyDetails>) => {
-                state.status = {
+            .addCase(fetchPropertyDetails.fulfilled, (state, action) => {
+                state.propertyStatus = {
                     status: StateStatus.IDLE,
                     error: null
                 };
                 state.propertyDetails = action.payload;
             })
-            .addCase(fetchPropertyDetails.rejected, (state) => {
-                state.status = {
+            .addCase(fetchPropertyDetails.rejected, (state, action) => {
+                state.propertyStatus = {
                     status: StateStatus.ERROR,
-                    error: 'Failed to fetch property details'
+                    error: action.payload?.message || 'Failed to fetch property details'
                 };
                 state.propertyDetails = null;
             })
     },
 });
 
-export const {updateFormData, setPromotionApplied, setRoom} = checkoutSlice.actions;
+export const {updateFormData, setPromotionApplied, setRoom, clearFormData, clearBookingStatus} = checkoutSlice.actions;
 
 export default checkoutSlice.reducer; 

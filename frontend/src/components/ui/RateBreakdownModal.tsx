@@ -1,6 +1,8 @@
 import React from "react";
 import { Dialog, DialogContent } from "./Dialog";
 import { useAppSelector } from "../../redux/hooks";
+import { getDailyRates, toTitleCase } from "../../lib/utils";
+import { convertToLocaleCurrency } from "../../lib/utils";
 
 interface RateBreakdownModalProps {
     isOpen: boolean;
@@ -20,27 +22,40 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
     isOpen,
     onClose,
 }) => {
-    const { room } = useAppSelector((state) => state.checkout);
-    const { promotionApplied } = useAppSelector((state) => state.checkout);
+    const { room, propertyDetails, promotionApplied } = useAppSelector((state) => state.checkout);
+    const { selectedCurrency, multiplier } = useAppSelector((state) => state.currency);
 
-    const dailyRates =
-        room?.roomRates.map((rate) => {
-            const discount =
-                promotionApplied &&
-                "discountRate" in promotionApplied &&
-                (!("startDate" in promotionApplied) ||
-                    !("endDate" in promotionApplied) ||
-                    (new Date(rate.date) >=
-                        new Date(promotionApplied.startDate as string) &&
-                        new Date(rate.date) <=
-                            new Date(promotionApplied.endDate as string)))
-                    ? (promotionApplied.discountRate as number)
-                    : 0;
-            return {
-                date: rate.date,
-                rate: (rate.price * (100 - discount)) / 100,
-            };
-        }) || [];
+    if (!room || !propertyDetails) {
+        return null;
+    }
+
+    // Calculate daily rates using the utility function
+    const dailyRates = promotionApplied && "discount_percentage" in promotionApplied
+        ? getDailyRates(promotionApplied, room.roomRates)
+        : room.roomRates.map(rate => ({
+            date: rate.date,
+            minimumRate: rate.price,
+            discountedRate: rate.price
+        }));
+
+    // Calculate totals
+    const subtotal = dailyRates.reduce((acc, rate) => acc + rate.discountedRate, 0);
+    
+    // Calculate taxes and fees
+    const occupancyTaxRate = propertyDetails.surcharge || 0;
+    const resortFeeRate = propertyDetails.fees || 0;
+    const additionalFeesRate = 0; // No additional fees in PropertyDetails type
+
+    const occupancyTax = (subtotal * occupancyTaxRate) / 100;
+    const resortFee = (subtotal * resortFeeRate) / 100;
+    const additionalFees = (subtotal * additionalFeesRate) / 100;
+
+    const totalTaxesAndFees = occupancyTax + resortFee + additionalFees;
+    const totalAmount = subtotal + totalTaxesAndFees;
+
+    // Calculate payment breakdown (5% now, rest at resort)
+    const dueNow = totalAmount * 0.05;
+    const dueAtResort = totalAmount - dueNow;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -51,26 +66,39 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                     <div className="space-y-4">
                         <div>
                             <h3 className="font-medium mb-1">Room type</h3>
-                            <p>Executive Rooms</p>
+                            <p>{toTitleCase(room.roomTypeName)}</p>
                         </div>
 
                         <div>
                             <h3 className="font-medium mb-1">
                                 Nightly Rate (per room)
                             </h3>
-                            <p className="mb-2">Circus savings promotion</p>
+                            {promotionApplied && "title" in promotionApplied && (
+                                <p className="mb-2">{promotionApplied.title}</p>
+                            )}
                             {dailyRates.map((dayRate, index) => (
                                 <div
                                     key={index}
                                     className="flex justify-between py-1"
                                 >
                                     <span>{formatDate(dayRate.date)}</span>
-                                    <span>${dayRate.rate}</span>
+                                    <div className="text-right">
+                                        {dayRate.minimumRate !== dayRate.discountedRate && (
+                                            <span className="line-through text-gray-500 mr-2">
+                                                {convertToLocaleCurrency(selectedCurrency.symbol, dayRate.minimumRate, multiplier, false)}
+                                            </span>
+                                        )}
+                                        <span>
+                                            {convertToLocaleCurrency(selectedCurrency.symbol, dayRate.discountedRate, multiplier, false)}
+                                        </span>
+                                    </div>
                                 </div>
                             ))}
                             <div className="flex justify-between py-2 border-t mt-2">
-                                <span className="font-medium">Room Total</span>
-                                <span className="font-medium">$1024</span>
+                                <span className="font-medium">Room Subtotal</span>
+                                <span className="font-medium">
+                                    {convertToLocaleCurrency(selectedCurrency.symbol, subtotal, multiplier, false)}
+                                </span>
                             </div>
                         </div>
 
@@ -79,27 +107,53 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                                 Taxes and fees (per room)
                             </h3>
                             <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span>Resort fee</span>
-                                    <span>$132</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Occupancy tax</span>
-                                    <span>$132</span>
+                                {resortFeeRate > 0 && (
+                                    <div className="flex justify-between">
+                                        <span>Resort fee ({resortFeeRate}%)</span>
+                                        <span>{convertToLocaleCurrency(selectedCurrency.symbol, resortFee, multiplier, false)}</span>
+                                    </div>
+                                )}
+                                {occupancyTaxRate > 0 && (
+                                    <div className="flex justify-between">
+                                        <span>Occupancy tax ({occupancyTaxRate}%)</span>
+                                        <span>{convertToLocaleCurrency(selectedCurrency.symbol, occupancyTax, multiplier, false)}</span>
+                                    </div>
+                                )}
+                                {additionalFeesRate > 0 && (
+                                    <div className="flex justify-between">
+                                        <span>Additional fees ({additionalFeesRate}%)</span>
+                                        <span>{convertToLocaleCurrency(selectedCurrency.symbol, additionalFees, multiplier, false)}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between pt-2 border-t">
+                                    <span className="font-medium">Total Taxes & Fees</span>
+                                    <span className="font-medium">
+                                        {convertToLocaleCurrency(selectedCurrency.symbol, totalTaxesAndFees, multiplier, false)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="border-t pt-4 space-y-2">
                             <div className="flex justify-between">
-                                <span className="font-medium">Due now</span>
-                                <span className="font-medium">$400</span>
+                                <span className="font-medium">Due now (5%)</span>
+                                <span className="font-medium">
+                                    {convertToLocaleCurrency(selectedCurrency.symbol, dueNow, multiplier, false)}
+                                </span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="font-medium">
                                     Due at resort
                                 </span>
-                                <span className="font-medium">$1288</span>
+                                <span className="font-medium">
+                                    {convertToLocaleCurrency(selectedCurrency.symbol, dueAtResort, multiplier, false)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between pt-2 border-t">
+                                <span className="font-medium text-lg">Total</span>
+                                <span className="font-medium text-lg">
+                                    {convertToLocaleCurrency(selectedCurrency.symbol, totalAmount, multiplier, false)}
+                                </span>
                             </div>
                         </div>
                     </div>

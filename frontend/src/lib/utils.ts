@@ -62,7 +62,10 @@ export const convertToLocaleCurrency = (
     if (shorten) {
         return `${symbol}${formatPrice(totalPrice)}`;
     }
-    return `${symbol}${Math.round(totalPrice)}`;
+    if (multiplier > 50) {
+        return `${symbol}${totalPrice.toFixed(0)}`;
+    }
+    return `${symbol}${totalPrice.toFixed(2)}`;
 };
 
 export function formatPrice(price: number): string {
@@ -165,7 +168,7 @@ export const computeDiscountedPrice = (
     }
 };
 
-const getDailyRates = (
+export const getDailyRates = (
     discount: SpecialDiscount | PromoOffer,
     roomRates: Room["roomRates"]
 ): RoomRate[] => {
@@ -206,4 +209,36 @@ const getDailyRates = (
                 : rate.price,
         };
     });
+};
+
+/**
+ * Calculates the occupancy tax rate based on the country.
+ * @param country The country code (e.g., 'US', 'CA', 'GB', 'AU').
+ * @returns The occupancy tax rate percentage.
+ */
+export const getOccupancyTax = (country?: string): number => {
+    switch (country?.toUpperCase()) {
+        case 'US':
+            return 8.5; // Example: 8.5% for United States
+        case 'CA':
+            return 5.0; // Example: 5.0% for Canada
+        case 'GB':
+            return 20.0; // Example: 20.0% for United Kingdom
+        case 'AU':
+            return 10.0; // Example: 10.0% for Australia
+        default:
+            return 0; // Default to 0% for other countries
+    }
+};
+
+export const maskCardNumber = (cardNumber: string): string => {
+    if (!cardNumber || cardNumber.length < 4) {
+        return "XXXX"; // Return a default mask if card number is invalid or too short
+    }
+    const lastFourDigits = cardNumber.slice(-4);
+    const maskedPart = "X".repeat(cardNumber.length - 4);
+    const maskedNumber = maskedPart + lastFourDigits;
+
+    // Group the masked number into chunks of four
+    return maskedNumber.replace(/(\w{4})/g, '$1 ').trim();
 };

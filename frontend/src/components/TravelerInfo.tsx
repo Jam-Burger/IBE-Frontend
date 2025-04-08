@@ -124,7 +124,7 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
                   name={field.name}
                   id={field.name}
                   value={values[field.name]}
-                  className={`block w-full md:w-[346px] h-[48px] rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+                  className={`block p-3 w-full md:w-[346px] h-[48px] rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
                     errors[field.name] && touched[field.name] ? 'border-red-500' : ''
                   }`}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,65 +1,183 @@
-import React from 'react';
-import { HiChevronDown, HiChevronUp } from 'react-icons/hi';
+import { FC, useCallback, useEffect, useState } from "react";
+import { HiChevronDown, HiChevronUp } from "react-icons/hi";
 import { LuUserRound } from "react-icons/lu";
-import { Separator } from "./../components/ui/Separator";
-import OTPModal from './../components/ui/OTPModal';
+import { Separator } from "../components/ui";
+import OTPModal from "./../components/ui/OTPModal";
+import { useParams } from "react-router-dom";
+import { BookingDetails, PropertyDetails, Room } from "../types";
+import { api } from "../lib/api-client";
+import {
+    computeDiscountedPrice,
+    convertToLocaleCurrency,
+    maskCardNumber,
+    toTitleCase,
+} from "../lib/utils.ts";
+import { useAppSelector } from "../redux/hooks.ts";
+import toast from "react-hot-toast";
 
-const ConfirmationPage = () => {
-    const bookingData = {
-        "roomName": "Room 1: Executive Room",
-        "guests": "2 adults, 1 child",
-        "checkInDate": {
-          "day": 9,
-          "month": "May",
-          "year": 2022
-        },
-        "checkOutDate": {
-          "day": 16,
-          "month": "May",
-          "year": 2022
-        },
-        "diningCredit": 150,
-        "diningCreditDescription": "Spend $10 every night you stay and earn $150 om doining credit at the resort.",
-        "cancellationPolicy": "Copy explaining the cancellation policy, if applicable",
-        "totalPerNight": "$XXX/night total",
-        "roomImage": "https://plus.unsplash.com/premium_photo-1661962493427-910e3333cf5a?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8YmVhdXRpZnVsJTIwcm9vbXxlbnwwfHwwfHx8MA%3D%3D",
-        "nightlyRate": "$XXX.xx",
-        "subtotal": "$XXX.xx",
-        "taxes": "$XXX.xx",
-        "totalStay": "$XXX.xx"
-    }
+const ConfirmationPage: FC = () => {
+    const { tenantId, bookingId } = useParams<{
+        tenantId: string;
+        bookingId: string;
+    }>();
+    const [bookingData, setBookingData] = useState<BookingDetails | null>(null);
+    const [roomTypeData, setRoomTypeData] = useState<Room | null>(null);
+    const [propertyDetails, setPropertyDetails] =
+        useState<PropertyDetails | null>(null);
+    const { selectedCurrency, multiplier } = useAppSelector(
+        (state) => state.currency
+    );
+
+    const [isRoomSummaryOpen, setIsRoomSummaryOpen] = useState(true);
+    const [isGuestInfoOpen, setIsGuestInfoOpen] = useState(false);
+    const [isBillingAddressOpen, setIsBillingAddressOpen] = useState(false);
+    const [isPaymentInfoOpen, setIsPaymentInfoOpen] = useState(false);
+    const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
+    const [otpError, setOtpError] = useState<string | null>(null);
+
+    const fetchBookingData = useCallback(async () => {
+        if (tenantId && bookingId) {
+            try {
+                const response = await api.getBookingDetails(tenantId, bookingId);
+                setBookingData(response.data);
+            } catch (err) {
+                console.error("Failed to fetch booking details", err);
+            }
+        }
+    }, [tenantId, bookingId]);
+
+    const fetchPropertyData = useCallback(async () => {
+        if (tenantId && bookingData?.property_id) {
+            try {
+                const response = await api.getPropertyDetails(
+                    tenantId,
+                    bookingData.property_id
+                );
+                setPropertyDetails(response.data);
+            } catch (err) {
+                console.error("Failed to fetch property details", err);
+            }
+        }
+    }, [tenantId, bookingData?.property_id]);
+
+    const fetchRoomTypeData = useCallback(async () => {
+        if (tenantId && bookingData) {
+            try {
+                const response = await api.getRoomTypeDetails(
+                    tenantId,
+                    bookingData.property_id,
+                    bookingData.room_type_id,
+                    bookingData.check_in_date,
+                    bookingData.check_out_date
+                );
+                setRoomTypeData(response.data);
+            } catch (err) {
+                console.error("Failed to fetch room type details", err);
+            }
+        }
+    }, [tenantId, bookingData]);
+
+    useEffect(() => {
+        fetchBookingData();
+    }, [fetchBookingData]);
+
+    useEffect(() => {
+        fetchPropertyData();
+    }, [fetchPropertyData]);
+
+    useEffect(() => {
+        fetchRoomTypeData();
+    }, [fetchRoomTypeData]);
+
+    const handleCancelClick = async () => {
+        if (!tenantId || !bookingData?.guest_details?.travelerEmail) {
+            setOtpError("Cannot send OTP: Missing required information.");
+            toast.error("Missing email information");
+            return;
+        }
+
+        setIsSendingOtp(true);
+        setOtpError(null);
+
+        try {
+            await api.sendOtp(tenantId, bookingData.guest_details.travelerEmail);
+            setIsOTPModalOpen(true); // Open modal only on success
+            toast.success(`OTP sent to ${bookingData.guest_details.travelerEmail}`);
+        } catch (error) {
+            console.error("Failed to send OTP", error);
+            setOtpError("Failed to send OTP. Please try again.");
+            toast.error("Failed to send OTP. Please try again.");
+        } finally {
+            setIsSendingOtp(false);
+        }
+    };
+
+    if (!bookingData) return <div>Loading...</div>;
+    if (!propertyDetails || !roomTypeData) return <div>loading...</div>;
 
     const {
-        roomName,
-        guests,
-        checkInDate,
-        checkOutDate,
-        diningCredit,
-        diningCreditDescription,
-        cancellationPolicy,
-        totalPerNight,
-        roomImage,
-        nightlyRate,
-        subtotal,
-        taxes,
-        totalStay
+        check_in_date,
+        check_out_date,
+        adult_count,
+        child_count,
+        amount_due_at_resort,
+        transaction,
+        room_numbers,
+        special_offer,
+        guest_details,
+        booking_status,
     } = bookingData;
 
-    const [isRoomSummaryOpen, setIsRoomSummaryOpen] = React.useState(true);
-    const [isGuestInfoOpen, setIsGuestInfoOpen] = React.useState(false);
-    const [isBillingAddressOpen, setIsBillingAddressOpen] = React.useState(false);
-    const [isPaymentInfoOpen, setIsPaymentInfoOpen] = React.useState(false);
-    const [isOTPModalOpen, setIsOTPModalOpen] = React.useState(false);
+    const { roomRates } = roomTypeData;
+
+    const checkInDate = new Date(check_in_date);
+    const checkOutDate = new Date(check_out_date);
+    const durationInDays =
+        (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24);
+
+    const roomRateAverage =
+        roomRates.reduce((acc, rate) => acc + rate.price, 0) / roomRates.length;
+
+    const discountedAverageRate = bookingData.special_offer
+        ? computeDiscountedPrice(bookingData.special_offer, roomRates)
+        : roomRateAverage;
+
+    // Calculate taxes and fees
+    const occupancyTaxRate = 0; // TODO: here
+    const resortFeeRate = propertyDetails.surcharge;
+    const additionalFeesRate = propertyDetails.fees;
+    const totalTaxRate = occupancyTaxRate + resortFeeRate + additionalFeesRate;
+
+    const baseAmount = discountedAverageRate * durationInDays;
+    const totalTaxes = (baseAmount * totalTaxRate) / 100;
+    const totalAmount = baseAmount + totalTaxes;
+    const dueNow = bookingData.total_cost - amount_due_at_resort;
+
+    console.log(totalAmount, bookingData.total_cost, dueNow);
+
+    const roomName = `Room ${room_numbers.join(", ")}: ${toTitleCase(
+        roomTypeData.roomTypeName
+    )}`;
+    const guests = `${adult_count} Adults, ${child_count} Children`;
+    const cancellationPolicy =
+        "Copy explaining the cancellation policy, if applicable";
+    const roomImage =
+        "https://plus.unsplash.com/premium_photo-1661962493427-910e3333cf5a?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8YmVhdXRpZnVsJTIwcm9vbXxlbnwwfHwwfHx8MA%3D%3D";
+
+    const isCancelled = booking_status === "CANCELLED";
 
     return (
         <div className="mt-4 md:mt-6 lg:mt-8 mb-4 px-4 md:px-6 lg:px-0">
-            {/* Header: Print and Email buttons */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 w-full max-w-[69.625rem] mx-auto">
                 <h1 className="text-[#2F2F2F] font-lato font-bold text-lg md:text-xl mb-2 sm:mb-0">
-                    Upcoming reservation #XXXXXXXXX
+                    {isCancelled ? "Cancelled" : "Upcoming"} reservation #{bookingId}
                 </h1>
                 <div className="flex gap-4">
-                    <button onClick={() => print()} className="text-[#006EFF] font-lato text-sm md:text-base">
+                    <button
+                        onClick={() => print()}
+                        className="text-[#006EFF] font-lato text-sm md:text-base"
+                    >
                         Print
                     </button>
                     <button className="text-[#006EFF] font-lato text-sm md:text-base">
@@ -68,9 +186,25 @@ const ConfirmationPage = () => {
                 </div>
             </div>
 
-            {/* Printable Content */}
-            <div className="w-full max-w-[69.625rem] mx-auto shadow-md border border-[#C1C2C2] rounded-lg bg-white">
-                <div className="p-4 md:p-6">
+            <div className="w-full max-w-[69.625rem] mx-auto shadow-md border border-[#C1C2C2] rounded-lg bg-white relative">
+                {/* Cancelled Overlay */}
+                {isCancelled && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                        <div className="relative">
+                            {/* Red circle */}
+                            <div className="w-64 h-64 rounded-full bg-red-500/20 border-4 border-red-500"></div>
+                            
+                            {/* Diagonal CANCELLED text */}
+                            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                                <div className="transform rotate-[-30deg]">
+                                    <span className="text-red-600 text-5xl font-bold tracking-wider">CANCELLED</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="p-4 md:p-6 relative">
                     <div className="flex flex-col sm:flex-row justify-between items-start">
                         <div className="flex flex-col sm:flex-row items-start mb-2 sm:mb-0">
                             <h1 className="font-lato font-bold text-xl md:text-2xl leading-[140%]">
@@ -83,17 +217,28 @@ const ConfirmationPage = () => {
                                 </span>
                             </div>
                         </div>
-                        <button 
-                            onClick={() => setIsOTPModalOpen(true)}
-                            className="cursor-pointer text-[#006EFF] font-lato font-normal text-sm md:text-base leading-[100%] mt-2 sm:mt-0"
-                        >
-                            Cancel Room
-                        </button>
+                        {!isCancelled && (
+                            <button
+                                onClick={handleCancelClick}
+                                disabled={isSendingOtp}
+                                className="cursor-pointer text-[#006EFF] font-lato font-normal text-sm md:text-base leading-[100%] mt-2 sm:mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSendingOtp ? "Sending OTP..." : "Cancel Room"}
+                            </button>
+                        )}
                     </div>
+                    {otpError && <p className="text-red-500 text-sm mt-2">{otpError}</p>}
 
-                    <OTPModal 
+                    <OTPModal
                         isOpen={isOTPModalOpen}
                         onClose={() => setIsOTPModalOpen(false)}
+                        email={bookingData?.guest_details.travelerEmail || ""}
+                        tenantId={tenantId}
+                        bookingId={bookingId}
+                        onSuccess={() => {
+                            // Optionally refresh the booking data after cancellation
+                            fetchBookingData();
+                        }}
                     />
 
                     <div className="mt-4 md:mt-6 flex flex-col md:flex-row">
@@ -115,10 +260,13 @@ const ConfirmationPage = () => {
                                         Check in
                                     </div>
                                     <div className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
-                                        {checkInDate.day}
+                                        {checkInDate.getDate()}
                                     </div>
                                     <div className="text-[#2F2F2F] font-lato font-normal text-sm md:text-base leading-[140%]">
-                                        {checkInDate.month} {checkInDate.year}
+                                        {checkInDate.toLocaleString("default", {
+                                            month: "long",
+                                        })}{" "}
+                                        {checkInDate.getFullYear()}
                                     </div>
                                 </div>
                                 <div className="rounded-[5px] border-[1px] border-[#858685] p-3 md:p-4 w-[calc(50%-0.375rem)] sm:w-auto sm:min-w-[6.5625rem] text-center">
@@ -126,31 +274,48 @@ const ConfirmationPage = () => {
                                         Check Out
                                     </div>
                                     <div className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
-                                        {checkOutDate.day}
+                                        {checkOutDate.getDate()}
                                     </div>
                                     <div className="text-[#2F2F2F] font-lato font-normal text-sm md:text-base leading-[140%]">
-                                        {checkOutDate.month} {checkOutDate.year}
+                                        {checkOutDate.toLocaleString(
+                                            "default",
+                                            { month: "long" }
+                                        )}{" "}
+                                        {checkOutDate.getFullYear()}
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div className="mt-2 md:mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                                <div className="w-full sm:w-auto mb-3 sm:mb-0">
-                                    <h3 className="text-[#2F2F2F] font-lato font-bold text-lg md:text-xl leading-[130%]">
-                                        ${diningCredit} Dining Credit Package
-                                    </h3>
-                                    <p className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%] mt-1">
-                                        {diningCreditDescription}
-                                    </p>
 
-                                    <p className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%] mt-3 md:mt-5">
-                                        {cancellationPolicy}
+                            {special_offer && (
+                                <div className="mt-2 md:mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                                    <div className="w-full sm:w-auto mb-3 sm:mb-0">
+                                        <h3 className="text-[#2F2F2F] font-lato font-bold text-lg md:text-xl leading-[130%]">
+                                            {convertToLocaleCurrency(
+                                                selectedCurrency.symbol,
+                                                discountedAverageRate,
+                                                multiplier,
+                                                false
+                                            )}{" "}
+                                            {special_offer.title}
+                                        </h3>
+                                        <p className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%] mt-1">
+                                            {special_offer.description}
+                                        </p>
+
+                                        <p className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%] mt-3 md:mt-5">
+                                            {cancellationPolicy}
+                                        </p>
+                                    </div>
+                                    <p className="text-[#000000] font-lato font-normal text-lg md:text-xl leading-[140%]">
+                                        {convertToLocaleCurrency(
+                                            selectedCurrency.symbol,
+                                            discountedAverageRate,
+                                            multiplier,
+                                            false
+                                        )}
                                     </p>
                                 </div>
-                                <p className="text-[#000000] font-lato font-normal text-lg md:text-xl leading-[140%]">
-                                    {totalPerNight}
-                                </p>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -159,7 +324,6 @@ const ConfirmationPage = () => {
                     <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]" />
                 </div>
 
-                {/* Room Summary Section */}
                 <div className="px-4 md:px-6">
                     <button
                         className="w-full py-3 md:py-4 flex items-center"
@@ -182,7 +346,12 @@ const ConfirmationPage = () => {
                                     Nightly rate
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    {nightlyRate}
+                                    {convertToLocaleCurrency(
+                                        selectedCurrency.symbol,
+                                        discountedAverageRate,
+                                        multiplier,
+                                        false
+                                    )}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -190,7 +359,12 @@ const ConfirmationPage = () => {
                                     Subtotal
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    {subtotal}
+                                    {convertToLocaleCurrency(
+                                        selectedCurrency.symbol,
+                                        baseAmount,
+                                        multiplier,
+                                        false
+                                    )}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -198,7 +372,12 @@ const ConfirmationPage = () => {
                                     Taxes, Surcharges, Fees
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    {taxes}
+                                    {convertToLocaleCurrency(
+                                        selectedCurrency.symbol,
+                                        totalTaxes,
+                                        multiplier,
+                                        false
+                                    )}
                                 </span>
                             </div>
 
@@ -207,7 +386,12 @@ const ConfirmationPage = () => {
                                     Total for stay
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    {totalStay}
+                                    {convertToLocaleCurrency(
+                                        selectedCurrency.symbol,
+                                        totalAmount,
+                                        multiplier,
+                                        false
+                                    )}
                                 </span>
                             </div>
                         </div>
@@ -218,7 +402,6 @@ const ConfirmationPage = () => {
                     <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]" />
                 </div>
 
-                {/* Guest Information Section */}
                 <div className="px-4 md:px-6">
                     <button
                         className="w-full py-3 md:py-4 flex items-center"
@@ -240,7 +423,7 @@ const ConfirmationPage = () => {
                                     First Name
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    Jay
+                                    {guest_details.travelerFirstName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -248,7 +431,7 @@ const ConfirmationPage = () => {
                                     Last Name
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    Malaviya
+                                    {guest_details.travelerLastName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -256,7 +439,7 @@ const ConfirmationPage = () => {
                                     Phone
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                   8780622867
+                                    {guest_details.travelerPhone}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -264,7 +447,7 @@ const ConfirmationPage = () => {
                                     Email
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%] break-all">
-                                    jay.malaviya@example.com
+                                    {guest_details.travelerEmail}
                                 </span>
                             </div>
                         </div>
@@ -275,11 +458,12 @@ const ConfirmationPage = () => {
                     <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]" />
                 </div>
 
-                {/* Billing Address Section */}
                 <div className="px-4 md:px-6">
                     <button
                         className="w-full py-3 md:py-4 flex items-center"
-                        onClick={() => setIsBillingAddressOpen(!isBillingAddressOpen)}
+                        onClick={() =>
+                            setIsBillingAddressOpen(!isBillingAddressOpen)
+                        }
                     >
                         {isBillingAddressOpen ? (
                             <HiChevronUp size={20} className="w-5 h-5 mr-2" />
@@ -297,7 +481,7 @@ const ConfirmationPage = () => {
                                     First Name
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    Jay
+                                    {guest_details.billingFirstName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -305,7 +489,7 @@ const ConfirmationPage = () => {
                                     Last Name
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    Malaviya
+                                    {guest_details.billingLastName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -313,7 +497,7 @@ const ConfirmationPage = () => {
                                     Mailing Address 1
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    123 Main St
+                                    {guest_details.billingAddress1}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -321,7 +505,7 @@ const ConfirmationPage = () => {
                                     Mailing Address 2
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    Apt 4B
+                                    {guest_details.billingAddress2}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -329,7 +513,7 @@ const ConfirmationPage = () => {
                                     Country
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    United States
+                                    {guest_details.billingCountry}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -337,7 +521,7 @@ const ConfirmationPage = () => {
                                     City
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    New York
+                                    {guest_details.billingCity}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -345,7 +529,7 @@ const ConfirmationPage = () => {
                                     State
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    Bangalore
+                                    {guest_details.billingState}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -353,7 +537,7 @@ const ConfirmationPage = () => {
                                     ZIP
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    10001
+                                    {guest_details.billingZip}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -361,7 +545,7 @@ const ConfirmationPage = () => {
                                     Phone
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    +6392857722
+                                    {guest_details.billingPhone}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -369,7 +553,7 @@ const ConfirmationPage = () => {
                                     Email
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%] break-all">
-                                    jay.malaviya@example.com
+                                    {guest_details.billingEmail}
                                 </span>
                             </div>
                         </div>
@@ -380,7 +564,6 @@ const ConfirmationPage = () => {
                     <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]" />
                 </div>
 
-                {/* Payment Information Section */}
                 <div className="px-4 md:px-6">
                     <button
                         className="w-full py-3 md:py-4 flex items-center"
@@ -402,7 +585,7 @@ const ConfirmationPage = () => {
                                     Card Number
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    XXXX XXXX XXXX 1234
+                                    {maskCardNumber(transaction.cardNumber)}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
@@ -410,7 +593,7 @@ const ConfirmationPage = () => {
                                     Expiration
                                 </span>
                                 <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
-                                    MM/YY
+                                    04/26
                                 </span>
                             </div>
                         </div>

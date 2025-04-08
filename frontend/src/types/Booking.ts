@@ -1,7 +1,7 @@
-import {SerializableDateRange} from "./Filter";
+import { SerializableDateRange } from "./Filter";
 
 export interface Booking {
-    formData: Record<string, string>;
+    formData: Record<string, string | boolean>;
     propertyId: number;
     dateRange: SerializableDateRange | undefined;
     roomCount: number;
