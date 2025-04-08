@@ -72,13 +72,13 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
         return <div>No promotion applied</div>;
     }
 
-    const roomRate =
+    const roomAverageRate =
         room.roomRates.reduce((acc, rate) => acc + rate.price, 0) /
         room.roomRates.length;
-    const promoRate =
+    const promoAverageRate =
         "discount_percentage" in promotionApplied
             ? computeDiscountedPrice(promotionApplied, room.roomRates)
-            : roomRate;
+            : roomAverageRate;
 
     // Calculate taxes and fees
     const occupancyTaxRate = 0; // TODO: here
@@ -89,7 +89,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
     const totalTaxRate = occupancyTaxRate + resortFeeRate + additionalFeesRate;
 
     // Calculate base amount (before taxes)
-    const baseAmount = promoRate;
+    const baseAmount = promoAverageRate * room.roomRates.length;
 
     // Calculate total taxes and fees
     const totalTaxes = (baseAmount * totalTaxRate) / 100;
@@ -120,10 +120,10 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
     // Prepare room details
     const roomDetails: RoomDetails = {
         name: toTitleCase(room.roomTypeName),
-        rate: roomRate,
+        rate: roomAverageRate,
         count: filter.roomCount,
         promoName: promotionApplied.title,
-        promoRate: promoRate,
+        promoRate: promoAverageRate,
     };
 
     // Prepare booking details

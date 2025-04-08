@@ -216,4 +216,8 @@ export const api = {
             params: { email, otp },
         });
     },
+
+    sendBookingEmail: async (tenantId: string, bookingId: number) => {
+        return await apiClient.post(`${tenantId}/bookings/${bookingId}/send-mail`);
+    }
 };

@@ -9,4 +9,5 @@ export interface Booking {
     bedCount: number;
     roomTypeId: number;
     promotionId: string | null;
+    totalAmount: number
 }

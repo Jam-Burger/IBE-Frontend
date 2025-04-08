@@ -1,8 +1,17 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {api} from '../lib/api-client';
-import {BaseState, ErrorResponse, PromoOffer, Room, SpecialDiscount, StandardPackage, StateStatus} from '../types';
-import {Booking} from '../types/Booking';
-import {PropertyDetails} from '../types/PropertyDetails';
+import {
+    BaseState,
+    BookingDetails,
+    ErrorResponse,
+    PromoOffer,
+    Room,
+    SpecialDiscount,
+    StandardPackage,
+    StateStatus,
+    PropertyDetails,
+    Booking
+} from '../types';
 import {AxiosError} from 'axios';
 
 interface CheckoutState {
@@ -12,6 +21,7 @@ interface CheckoutState {
     room: Room | null;
     promotionApplied: SpecialDiscount | PromoOffer | StandardPackage | null;
     propertyDetails: PropertyDetails | null;
+    bookingId: number | null;
 }
 
 const initialState: CheckoutState = {
@@ -27,6 +37,7 @@ const initialState: CheckoutState = {
     room: null,
     promotionApplied: null,
     propertyDetails: null,
+    bookingId: null,
 };
 
 interface BookingSubmitParams {
@@ -34,7 +45,7 @@ interface BookingSubmitParams {
     bookingData: Booking;
 }
 
-export const submitBooking = createAsyncThunk<void, BookingSubmitParams, { rejectValue: ErrorResponse }>(
+export const submitBooking = createAsyncThunk<BookingDetails, BookingSubmitParams, { rejectValue: ErrorResponse }>(
     'checkout/submitBooking',
     async (params: BookingSubmitParams, {rejectWithValue}) => {
         try {
@@ -99,12 +110,12 @@ export const checkoutSlice = createSlice({
                     error: null
                 };
             })
-            .addCase(submitBooking.fulfilled, (state) => {
+            .addCase(submitBooking.fulfilled, (state, action) => {
                 state.bookingStatus = {
                     status: StateStatus.IDLE,
                     error: null
                 };
-                state.formData = {};
+                state.bookingId = action.payload.booking_id;
             })
             .addCase(submitBooking.rejected, (state, action) => {
                 state.bookingStatus = {

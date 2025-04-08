@@ -7,22 +7,30 @@ import PaymentInfo from "../components/PaymentInfo";
 import TripItinerary from "../components/TripItinerary";
 import {AppDispatch} from "../redux/store";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "../components/ui";
-import {useParams} from "react-router-dom";
-import {ConfigType, PromoOffer, SpecialDiscount, StandardPackage, StateStatus,} from "../types";
+import {useNavigate, useParams} from "react-router-dom";
+import {ConfigType, PromoOffer, SpecialDiscount, StandardPackage, StateStatus, Booking} from "../types";
 import {useAppSelector} from "../redux/hooks.ts";
 import {fetchConfig} from "../redux/configSlice.ts";
-import {clearBookingStatus, clearFormData, fetchPropertyDetails, submitBooking} from "../redux/checkoutSlice.ts";
-import {Booking} from "../types/Booking.ts";
+import {clearBookingStatus, clearFormData, fetchPropertyDetails, submitBooking,} from "../redux/checkoutSlice.ts";
 import toast from "react-hot-toast";
 import LoadingOverlay from "../components/ui/LoadingOverlay";
 import ErrorDialog from "../components/ui/ErrorDialog";
+import {computeDiscountedPrice} from "../lib/utils.ts";
 
 const CheckoutPage: React.FC = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
+    const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
     const {checkoutConfig} = useAppSelector((state) => state.config);
-    const {formData, bookingStatus, propertyStatus, room, promotionApplied} =
-        useAppSelector((state) => state.checkout);
+    const {
+        formData,
+        bookingStatus,
+        propertyStatus,
+        room,
+        promotionApplied,
+        propertyDetails,
+        bookingId
+    } = useAppSelector((state) => state.checkout);
     const {filter} = useAppSelector((state) => state.roomFilters);
     const [activeSection, setActiveSection] = useState<string>("traveler_info");
     const [isValid, setIsValid] = useState<Record<string, boolean>>({
@@ -48,7 +56,7 @@ const CheckoutPage: React.FC = () => {
         }
         dispatch(fetchConfig({tenantId, configType: ConfigType.CHECKOUT}));
     }, [dispatch, tenantId]);
-    
+
     useEffect(() => {
         if (!tenantId || !room?.propertyId) return;
         dispatch(
@@ -104,7 +112,7 @@ const CheckoutPage: React.FC = () => {
         });
 
         setIsValid((prev) => ({
-                ...prev,
+            ...prev,
             [currentSection]: isCurrentSectionValid,
         }));
     }, [formData, formErrors, activeSection, sections, getSectionFields]);
@@ -199,7 +207,12 @@ const CheckoutPage: React.FC = () => {
         );
     }
 
-    if (!sections || propertyStatus.status === StateStatus.LOADING || bookingStatus.status === StateStatus.LOADING) return <LoadingOverlay/>;
+    if (
+        !sections ||
+        propertyStatus.status === StateStatus.LOADING ||
+        bookingStatus.status === StateStatus.LOADING
+    )
+        return <LoadingOverlay/>;
     if (bookingStatus.status === StateStatus.ERROR) {
         return (
             <ErrorDialog
@@ -238,11 +251,39 @@ const CheckoutPage: React.FC = () => {
     };
 
     const handleSubmitBooking = () => {
-        if (!tenantId || !room?.roomTypeId) {
+        if (!tenantId || !room?.roomTypeId || !propertyDetails) {
             console.log("tenant id or room id missing");
             toast.error("Missing required information for booking");
             return;
         }
+
+        const roomAverageRate =
+            room.roomRates.reduce((acc, rate) => acc + rate.price, 0) /
+            room.roomRates.length;
+
+        let promoAverageRate = roomAverageRate;
+        if (promotionApplied) {
+            promoAverageRate =
+                "discount_percentage" in promotionApplied
+                    ? computeDiscountedPrice(promotionApplied, room.roomRates)
+                    : roomAverageRate;
+        }
+
+        const occupancyTaxRate = 0;
+        const resortFeeRate = propertyDetails.surcharge;
+        const additionalFeesRate = propertyDetails.fees;
+
+        const totalTaxRate =
+            occupancyTaxRate + resortFeeRate + additionalFeesRate;
+
+        // Calculate base amount (before taxes)
+        const baseAmount = promoAverageRate * room.roomRates.length;
+
+        // Calculate total taxes and fees
+        const totalTaxes = (baseAmount * totalTaxRate) / 100;
+
+        // Calculate total amount (including taxes)
+        const totalAmount = baseAmount + totalTaxes;
 
         const bookingData: Booking = {
             formData,
@@ -253,6 +294,7 @@ const CheckoutPage: React.FC = () => {
             roomTypeId: room.roomTypeId,
             bedCount: filter.bedCount,
             promotionId: getPromotionId(promotionApplied),
+            totalAmount: totalAmount
         };
 
         const loadingToast = toast.loading("Processing your booking...");
@@ -260,6 +302,7 @@ const CheckoutPage: React.FC = () => {
             .unwrap()
             .then(() => {
                 toast.success("Booking submitted successfully!");
+                if(bookingId !== null) navigate(`/${tenantId}/confirmation/${bookingId}`);
                 dispatch(clearFormData());
             })
             .catch(() => {
@@ -365,7 +408,7 @@ const CheckoutPage: React.FC = () => {
                                                                 // Update validation state
                                                                 setIsValid(
                                                                     (prev) => ({
-                    ...prev,
+                                                                        ...prev,
                                                                         traveler_info:
                                                                             true,
                                                                     })
@@ -394,7 +437,7 @@ const CheckoutPage: React.FC = () => {
                                                                                     .values[
                                                                                     field
                                                                                     ];
-        return (
+                                                                            return (
                                                                                 value ===
                                                                                 undefined ||
                                                                                 value ===
@@ -543,4 +586,4 @@ const CheckoutPage: React.FC = () => {
     );
 };
 
-export default CheckoutPage; 
+export default CheckoutPage;

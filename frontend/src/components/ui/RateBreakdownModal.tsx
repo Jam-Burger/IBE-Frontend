@@ -59,20 +59,19 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="!max-w-[409px] !h-[742px] p-6 overflow-y-auto">
+            <DialogContent className="!max-w-[409px] !max-h-[742px] rounded-none p-8 overflow-y-auto">
                 <div className="relative">
                     <h2 className="text-2xl font-bold mb-4">Rate Breakdown</h2>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         <div>
                             <h3 className="font-medium mb-1">Room type</h3>
-                            <p>{toTitleCase(room.roomTypeName)}</p>
-                        </div>
-
-                        <div>
                             <h3 className="font-medium mb-1">
                                 Nightly Rate (per room)
                             </h3>
+                        </div>
+
+                        <div>
                             {promotionApplied && "title" in promotionApplied && (
                                 <p className="mb-2">{promotionApplied.title}</p>
                             )}
@@ -94,7 +93,7 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                                     </div>
                                 </div>
                             ))}
-                            <div className="flex justify-between py-2 border-t mt-2">
+                            <div className="flex justify-between py-2 mt-2">
                                 <span className="font-medium">Room Subtotal</span>
                                 <span className="font-medium">
                                     {convertToLocaleCurrency(selectedCurrency.symbol, subtotal, multiplier, false)}
@@ -106,7 +105,7 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                             <h3 className="font-medium mb-2">
                                 Taxes and fees (per room)
                             </h3>
-                            <div className="space-y-2">
+                            <div className="space-y-2 my-2">
                                 {resortFeeRate > 0 && (
                                     <div className="flex justify-between">
                                         <span>Resort fee ({resortFeeRate}%)</span>
@@ -125,12 +124,6 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                                         <span>{convertToLocaleCurrency(selectedCurrency.symbol, additionalFees, multiplier, false)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between pt-2 border-t">
-                                    <span className="font-medium">Total Taxes & Fees</span>
-                                    <span className="font-medium">
-                                        {convertToLocaleCurrency(selectedCurrency.symbol, totalTaxesAndFees, multiplier, false)}
-                                    </span>
-                                </div>
                             </div>
                         </div>
 
@@ -147,12 +140,6 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                                 </span>
                                 <span className="font-medium">
                                     {convertToLocaleCurrency(selectedCurrency.symbol, dueAtResort, multiplier, false)}
-                                </span>
-                            </div>
-                            <div className="flex justify-between pt-2 border-t">
-                                <span className="font-medium text-lg">Total</span>
-                                <span className="font-medium text-lg">
-                                    {convertToLocaleCurrency(selectedCurrency.symbol, totalAmount, multiplier, false)}
                                 </span>
                             </div>
                         </div>

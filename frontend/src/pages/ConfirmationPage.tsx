@@ -1,22 +1,17 @@
-import { FC, useCallback, useEffect, useState } from "react";
-import { HiChevronDown, HiChevronUp } from "react-icons/hi";
-import { LuUserRound } from "react-icons/lu";
-import { Separator } from "../components/ui";
+import {FC, useCallback, useEffect, useState} from "react";
+import {HiChevronDown, HiChevronUp} from "react-icons/hi";
+import {LuUserRound} from "react-icons/lu";
+import {Separator} from "../components/ui";
 import OTPModal from "./../components/ui/OTPModal";
-import { useParams } from "react-router-dom";
-import { BookingDetails, PropertyDetails, Room } from "../types";
-import { api } from "../lib/api-client";
-import {
-    computeDiscountedPrice,
-    convertToLocaleCurrency,
-    maskCardNumber,
-    toTitleCase,
-} from "../lib/utils.ts";
-import { useAppSelector } from "../redux/hooks.ts";
+import {useParams} from "react-router-dom";
+import {BookingDetails, PropertyDetails, Room} from "../types";
+import {api} from "../lib/api-client";
+import {computeDiscountedPrice, convertToLocaleCurrency, maskCardNumber, toTitleCase,} from "../lib/utils.ts";
+import {useAppSelector} from "../redux/hooks.ts";
 import toast from "react-hot-toast";
 
 const ConfirmationPage: FC = () => {
-    const { tenantId, bookingId } = useParams<{
+    const {tenantId, bookingId} = useParams<{
         tenantId: string;
         bookingId: string;
     }>();
@@ -24,7 +19,7 @@ const ConfirmationPage: FC = () => {
     const [roomTypeData, setRoomTypeData] = useState<Room | null>(null);
     const [propertyDetails, setPropertyDetails] =
         useState<PropertyDetails | null>(null);
-    const { selectedCurrency, multiplier } = useAppSelector(
+    const {selectedCurrency, multiplier} = useAppSelector(
         (state) => state.currency
     );
 
@@ -129,7 +124,7 @@ const ConfirmationPage: FC = () => {
         booking_status,
     } = bookingData;
 
-    const { roomRates } = roomTypeData;
+    const {roomRates} = roomTypeData;
 
     const checkInDate = new Date(check_in_date);
     const checkOutDate = new Date(check_out_date);
@@ -167,9 +162,22 @@ const ConfirmationPage: FC = () => {
 
     const isCancelled = booking_status === "CANCELLED";
 
+    const handleEmailClick = async () => {
+        if (!tenantId || !bookingData) {
+            return;
+        }
+
+        try {
+            await api.sendBookingEmail(tenantId, bookingData.booking_id);
+            toast.success(`Email sent to ${bookingData.guest_details.travelerEmail}`);
+        } catch (error) {
+            toast.error("Failed to send email. Please try again. " + error);
+        }
+    }
     return (
         <div className="mt-4 md:mt-6 lg:mt-8 mb-4 px-4 md:px-6 lg:px-0">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 w-full max-w-[69.625rem] mx-auto">
+            <div
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 w-full max-w-[69.625rem] mx-auto">
                 <h1 className="text-[#2F2F2F] font-lato font-bold text-lg md:text-xl mb-2 sm:mb-0">
                     {isCancelled ? "Cancelled" : "Upcoming"} reservation #{bookingId}
                 </h1>
@@ -180,20 +188,22 @@ const ConfirmationPage: FC = () => {
                     >
                         Print
                     </button>
-                    <button className="text-[#006EFF] font-lato text-sm md:text-base">
+                    <button className="text-[#006EFF] font-lato text-sm md:text-base"
+                            onClick={handleEmailClick}>
                         Email
                     </button>
                 </div>
             </div>
 
-            <div className="w-full max-w-[69.625rem] mx-auto shadow-md border border-[#C1C2C2] rounded-lg bg-white relative">
+            <div
+                className="w-full max-w-[69.625rem] mx-auto shadow-md border border-[#C1C2C2] rounded-lg bg-white relative">
                 {/* Cancelled Overlay */}
                 {isCancelled && (
                     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                         <div className="relative">
                             {/* Red circle */}
                             <div className="w-64 h-64 rounded-full bg-red-500/20 border-4 border-red-500"></div>
-                            
+
                             {/* Diagonal CANCELLED text */}
                             <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
                                 <div className="transform rotate-[-30deg]">
@@ -211,7 +221,7 @@ const ConfirmationPage: FC = () => {
                                 {roomName}
                             </h1>
                             <div className="flex items-center text-[#5D5D5D] mt-1 sm:ml-3 sm:mt-2">
-                                <LuUserRound className="w-4 h-4 mr-1" />
+                                <LuUserRound className="w-4 h-4 mr-1"/>
                                 <span className="font-lato text-sm leading-[140%]">
                                     {guests}
                                 </span>
@@ -242,7 +252,8 @@ const ConfirmationPage: FC = () => {
                     />
 
                     <div className="mt-4 md:mt-6 flex flex-col md:flex-row">
-                        <div className="w-full md:w-[20.5rem] h-[12rem] md:h-[14rem] overflow-hidden rounded-sm md:mr-6 border border-gray-200 mb-4 md:mb-0">
+                        <div
+                            className="w-full md:w-[20.5rem] h-[12rem] md:h-[14rem] overflow-hidden rounded-sm md:mr-6 border border-gray-200 mb-4 md:mb-0">
                             <img
                                 src={roomImage}
                                 alt={roomName}
@@ -255,31 +266,39 @@ const ConfirmationPage: FC = () => {
 
                         <div className="flex-1">
                             <div className="flex flex-wrap gap-3 md:gap-6 mb-4">
-                                <div className="rounded-[5px] border-[1px] border-[#858685] p-3 md:p-4 w-[calc(50%-0.375rem)] sm:w-auto sm:min-w-[6.5625rem] text-center">
-                                    <div className="text-[#858685] font-lato font-normal text-xs md:text-sm leading-[140%]">
+                                <div
+                                    className="rounded-[5px] border-[1px] border-[#858685] p-3 md:p-4 w-[calc(50%-0.375rem)] sm:w-auto sm:min-w-[6.5625rem] text-center">
+                                    <div
+                                        className="text-[#858685] font-lato font-normal text-xs md:text-sm leading-[140%]">
                                         Check in
                                     </div>
-                                    <div className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
+                                    <div
+                                        className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
                                         {checkInDate.getDate()}
                                     </div>
-                                    <div className="text-[#2F2F2F] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    <div
+                                        className="text-[#2F2F2F] font-lato font-normal text-sm md:text-base leading-[140%]">
                                         {checkInDate.toLocaleString("default", {
                                             month: "long",
                                         })}{" "}
                                         {checkInDate.getFullYear()}
                                     </div>
                                 </div>
-                                <div className="rounded-[5px] border-[1px] border-[#858685] p-3 md:p-4 w-[calc(50%-0.375rem)] sm:w-auto sm:min-w-[6.5625rem] text-center">
-                                    <div className="text-[#858685] font-lato font-normal text-xs md:text-sm leading-[140%]">
+                                <div
+                                    className="rounded-[5px] border-[1px] border-[#858685] p-3 md:p-4 w-[calc(50%-0.375rem)] sm:w-auto sm:min-w-[6.5625rem] text-center">
+                                    <div
+                                        className="text-[#858685] font-lato font-normal text-xs md:text-sm leading-[140%]">
                                         Check Out
                                     </div>
-                                    <div className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
+                                    <div
+                                        className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
                                         {checkOutDate.getDate()}
                                     </div>
-                                    <div className="text-[#2F2F2F] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    <div
+                                        className="text-[#2F2F2F] font-lato font-normal text-sm md:text-base leading-[140%]">
                                         {checkOutDate.toLocaleString(
                                             "default",
-                                            { month: "long" }
+                                            {month: "long"}
                                         )}{" "}
                                         {checkOutDate.getFullYear()}
                                     </div>
@@ -287,7 +306,8 @@ const ConfirmationPage: FC = () => {
                             </div>
 
                             {special_offer && (
-                                <div className="mt-2 md:mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                                <div
+                                    className="mt-2 md:mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                     <div className="w-full sm:w-auto mb-3 sm:mb-0">
                                         <h3 className="text-[#2F2F2F] font-lato font-bold text-lg md:text-xl leading-[130%]">
                                             {convertToLocaleCurrency(
@@ -321,7 +341,7 @@ const ConfirmationPage: FC = () => {
                 </div>
 
                 <div className="flex justify-center">
-                    <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]" />
+                    <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]"/>
                 </div>
 
                 <div className="px-4 md:px-6">
@@ -330,9 +350,9 @@ const ConfirmationPage: FC = () => {
                         onClick={() => setIsRoomSummaryOpen(!isRoomSummaryOpen)}
                     >
                         {isRoomSummaryOpen ? (
-                            <HiChevronUp size={20} className="w-5 h-5 mr-2" />
+                            <HiChevronUp size={20} className="w-5 h-5 mr-2"/>
                         ) : (
-                            <HiChevronDown size={20} className="w-5 h-5 mr-2" />
+                            <HiChevronDown size={20} className="w-5 h-5 mr-2"/>
                         )}
                         <span className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
                             Room total summary
@@ -342,10 +362,12 @@ const ConfirmationPage: FC = () => {
                     {isRoomSummaryOpen && (
                         <div className="ml-7 md:ml-8">
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Nightly rate
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         discountedAverageRate,
@@ -355,10 +377,12 @@ const ConfirmationPage: FC = () => {
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Subtotal
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         baseAmount,
@@ -368,10 +392,12 @@ const ConfirmationPage: FC = () => {
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Taxes, Surcharges, Fees
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         totalTaxes,
@@ -382,10 +408,12 @@ const ConfirmationPage: FC = () => {
                             </div>
 
                             <div className="flex justify-between py-2 md:py-3">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Total for stay
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         totalAmount,
@@ -399,7 +427,7 @@ const ConfirmationPage: FC = () => {
                 </div>
 
                 <div className="flex justify-center">
-                    <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]" />
+                    <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]"/>
                 </div>
 
                 <div className="px-4 md:px-6">
@@ -408,9 +436,9 @@ const ConfirmationPage: FC = () => {
                         onClick={() => setIsGuestInfoOpen(!isGuestInfoOpen)}
                     >
                         {isGuestInfoOpen ? (
-                            <HiChevronUp size={20} className="w-5 h-5 mr-2" />
+                            <HiChevronUp size={20} className="w-5 h-5 mr-2"/>
                         ) : (
-                            <HiChevronDown size={20} className="w-5 h-5 mr-2" />
+                            <HiChevronDown size={20} className="w-5 h-5 mr-2"/>
                         )}
                         <span className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
                             Guest Information
@@ -419,34 +447,42 @@ const ConfirmationPage: FC = () => {
                     {isGuestInfoOpen && (
                         <div className="ml-7 md:ml-8">
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     First Name
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.travelerFirstName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Last Name
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.travelerLastName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Phone
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.travelerPhone}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Email
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%] break-all">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%] break-all">
                                     {guest_details.travelerEmail}
                                 </span>
                             </div>
@@ -455,7 +491,7 @@ const ConfirmationPage: FC = () => {
                 </div>
 
                 <div className="flex justify-center">
-                    <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]" />
+                    <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]"/>
                 </div>
 
                 <div className="px-4 md:px-6">
@@ -466,9 +502,9 @@ const ConfirmationPage: FC = () => {
                         }
                     >
                         {isBillingAddressOpen ? (
-                            <HiChevronUp size={20} className="w-5 h-5 mr-2" />
+                            <HiChevronUp size={20} className="w-5 h-5 mr-2"/>
                         ) : (
-                            <HiChevronDown size={20} className="w-5 h-5 mr-2" />
+                            <HiChevronDown size={20} className="w-5 h-5 mr-2"/>
                         )}
                         <span className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
                             Billing Address
@@ -477,82 +513,102 @@ const ConfirmationPage: FC = () => {
                     {isBillingAddressOpen && (
                         <div className="ml-7 md:ml-8">
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     First Name
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingFirstName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Last Name
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingLastName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Mailing Address 1
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingAddress1}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Mailing Address 2
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingAddress2}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Country
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingCountry}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     City
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingCity}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     State
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingState}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     ZIP
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingZip}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Phone
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {guest_details.billingPhone}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Email
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%] break-all">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%] break-all">
                                     {guest_details.billingEmail}
                                 </span>
                             </div>
@@ -561,7 +617,7 @@ const ConfirmationPage: FC = () => {
                 </div>
 
                 <div className="flex justify-center">
-                    <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]" />
+                    <Separator className="w-[95%] h-[0.0625rem] bg-[#C1C2C2]"/>
                 </div>
 
                 <div className="px-4 md:px-6">
@@ -570,9 +626,9 @@ const ConfirmationPage: FC = () => {
                         onClick={() => setIsPaymentInfoOpen(!isPaymentInfoOpen)}
                     >
                         {isPaymentInfoOpen ? (
-                            <HiChevronUp size={20} className="w-5 h-5 mr-2" />
+                            <HiChevronUp size={20} className="w-5 h-5 mr-2"/>
                         ) : (
-                            <HiChevronDown size={20} className="w-5 h-5 mr-2" />
+                            <HiChevronDown size={20} className="w-5 h-5 mr-2"/>
                         )}
                         <span className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
                             Payment Information
@@ -581,18 +637,22 @@ const ConfirmationPage: FC = () => {
                     {isPaymentInfoOpen && (
                         <div className="ml-7 md:ml-8 mb-2">
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Card Number
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     {maskCardNumber(transaction.cardNumber)}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
-                                <span className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                <span
+                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
                                     Expiration
                                 </span>
-                                <span className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                <span
+                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
                                     04/26
                                 </span>
                             </div>
