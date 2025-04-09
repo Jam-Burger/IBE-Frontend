@@ -10,6 +10,8 @@ import { Booking } from "../types/Booking";
 import { formatDateToYYYYMMDD } from "./utils";
 import { PropertyDetails } from "../types";
 
+
+
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     headers: {
@@ -219,5 +221,20 @@ export const api = {
 
     sendBookingEmail: async (tenantId: string, bookingId: number) => {
         return await apiClient.post(`${tenantId}/bookings/${bookingId}/send-mail`);
-    }
+    },
+
+    submitReview: async (
+        tenantId: string,
+        bookingId: string,
+        data: { rating: number; comment: string }
+    ) => {
+        
+        const response = await apiClient.post(
+            `${tenantId}/reviews/${bookingId}`,
+            data
+        );
+        console.log("response", response);
+        return response.data;
+    },
+      
 };

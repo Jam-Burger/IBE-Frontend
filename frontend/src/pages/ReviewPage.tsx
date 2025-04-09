@@ -1,27 +1,49 @@
 import React, { useState } from 'react';
 import { FaStar } from 'react-icons/fa';
 import { Separator } from '../components/ui';
+import { useParams } from 'react-router-dom';
+import {toast}from 'react-hot-toast'
+import {api} from  "../lib/api-client"
 
-interface ReviewPageProps {
-  propertyName?: string;
-  bookingId?: string;
-}
-
-const ReviewPage: React.FC<ReviewPageProps> = ({ 
-  propertyName = "Hotel California", 
-  bookingId = "BK123456789" 
-}) => {
+const ReviewPage: React.FC = () => {
+  const {  tenantId,bookingId } = useParams<{ tenantId: string; bookingId: string }>();
+ 
+  
+  const propertyName = "Hotel California"
   const [rating, setRating] = useState<number>(0);
   const [hover, setHover] = useState<number>(0);
   const [review, setReview] = useState<string>('');
   const [submitted, setSubmitted] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ rating, review, bookingId });
-    // Here you would typically send the data to your backend
-    setSubmitted(true);
+  
+    if (!bookingId ) {
+      console.error("Missing booking ID");
+      return;
+    }
+    if(!tenantId){
+      console.error("Missing tenant ID");
+      return;
+    }
+
+    try {
+
+      await api.submitReview(tenantId, bookingId, {
+        rating,
+        comment: review,
+    });
+  
+    
+      console.log("Review submitted successfully!");
+      toast.success("Review submitted successfully!")
+      setSubmitted(true);
+    } catch (error) {
+      toast.error("Failed to submit Review");
+      console.error("Error submitting review:", error);
+    }
   };
+  
 
   if (submitted) {
     return (
@@ -49,7 +71,7 @@ const ReviewPage: React.FC<ReviewPageProps> = ({
       <div className="max-w-3xl mx-auto">
         <h1 className="text-xl md:text-2xl font-semibold text-[#1C1C57] mb-2">Review Your Stay</h1>
         <p className="text-[#5D5D5D] mb-6">
-          Share your experience at {propertyName} (Booking ID: {bookingId})
+          Share your experience at {propertyName} (Booking ID: {bookingId || "Unknown"})
         </p>
 
         <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
