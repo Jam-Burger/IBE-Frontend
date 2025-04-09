@@ -20,6 +20,7 @@ import {PulseLoader} from "react-spinners";
 import {FaWheelchair} from "react-icons/fa";
 import {useNavigate, useParams} from 'react-router-dom';
 import {updateFilter} from "../../redux/filterSlice.ts";
+import {setCurrentStep} from "../../redux/stepperSlice.ts";
 
 interface Property {
     propertyId: number;
@@ -99,11 +100,8 @@ const CardWithForm = () => {
     };
 
     const handleSearch = () => {
-        navigate(`/${tenantId}/rooms-list`, {
-            state: {
-                stepId: 0,
-            },
-        });
+        navigate(`/${tenantId}/rooms-list`);
+        dispatch(setCurrentStep(0));
     };
 
     if (loading || configLoading) {

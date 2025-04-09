@@ -2,21 +2,23 @@ import React from 'react';
 import {ErrorMessage, Field, Form, Formik} from 'formik';
 import * as Yup from 'yup';
 import {CheckoutField} from '../types';
-import {useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from '../redux/store';
 import {updateFormData} from '../redux/checkoutSlice';
+import TermsAndConditionsPopup from './TermsAndConditionsPopup';
 import {Button} from "./ui";
+import {useAppDispatch, useAppSelector} from "../redux/hooks.ts";
 
 interface PaymentInfoProps {
     setActiveSection: (section: number) => void;
     fields: CheckoutField[];
+    isSendingOtp: boolean;
     onSubmit: () => void;
     totalDue: string;
 }
 
-const PaymentInfo: React.FC<PaymentInfoProps> = ({setActiveSection, fields, onSubmit, totalDue}) => {
-    const dispatch = useDispatch<AppDispatch>();
-    const formValues = useSelector((state: RootState) => state.checkout.formData);
+const PaymentInfo: React.FC<PaymentInfoProps> = ({setActiveSection, fields, isSendingOtp, onSubmit, totalDue}) => {
+    const dispatch = useAppDispatch();
+    const {formData: formValues} = useAppSelector(state => state.checkout);
+    const [isTermsPopupOpen, setIsTermsPopupOpen] = React.useState(false);
 
     // Find specific fields by name
     const cardNumberField = fields.find(field => field.name === 'cardNumber');
@@ -227,7 +229,14 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({setActiveSection, fields, onSu
                                         }}
                                     />
                                     <label htmlFor="agreedToTerms" className="text-sm">
-                                        {agreedToTermsField.label}
+                                        {agreedToTermsField.label.split("Terms and Policies")[0]}
+                                    </label>
+                                    <span className="text-primary underline cursor-pointer mx-1"
+                                          onClick={() => setIsTermsPopupOpen(true)}>
+                                            Terms and Policies
+                                        </span>
+                                    <label htmlFor="agreedToTerms" className="text-sm">
+                                        {agreedToTermsField.label.split("Terms and Policies")[1]}
                                         {agreedToTermsField.required && <span className="text-red-500 ml-1">*</span>}
                                     </label>
                                     {errors.agreedToTerms && touched.agreedToTerms && (
@@ -250,13 +259,17 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({setActiveSection, fields, onSu
                             >
                                 Edit Billing Info
                             </button>
-                            <Button type="submit">
-                                SUBMIT PAYMENT
+                            <Button type="submit" disabled={isSendingOtp}>
+                                {isSendingOtp ? "SENDING OTP..." : "SUBMIT PAYMENT"}
                             </Button>
                         </div>
                     </Form>
                 )}
             </Formik>
+            <TermsAndConditionsPopup
+                isOpen={isTermsPopupOpen}
+                onClose={() => setIsTermsPopupOpen(false)}
+            />
         </div>
     );
 };

@@ -544,18 +544,18 @@ export function DatePickerWithRange({
                             {date?.from && date?.to && (
                                 <div className="text-sm text-gray-700 mt-2">
                                     Total price: {(() => {
-                                        let total = 0;
-                                        let currentDate = new Date(date.from);
-                                        while (currentDate < date.to) {
-                                            const dayStr = format(currentDate, "yyyy-MM-dd");
-                                            const rate = formattedRoomRates[dayStr];
-                                            if (rate) {
-                                                total += rate.discountedRate;
-                                            }
-                                            currentDate = addDays(currentDate, 1);
+                                    let total = 0;
+                                    let currentDate = new Date(date.from);
+                                    while (currentDate < date.to) {
+                                        const dayStr = format(currentDate, "yyyy-MM-dd");
+                                        const rate = formattedRoomRates[dayStr];
+                                        if (rate) {
+                                            total += rate.discountedRate;
                                         }
-                                        return convertToLocaleCurrency(selectedCurrency.symbol, total, multiplier);
-                                    })()}
+                                        currentDate = addDays(currentDate, 1);
+                                    }
+                                    return convertToLocaleCurrency(selectedCurrency.symbol, total, multiplier);
+                                })()}
                                 </div>
                             )}
                         </div>

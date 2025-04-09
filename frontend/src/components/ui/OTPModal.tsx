@@ -2,41 +2,44 @@ import React, {useState} from 'react';
 import {MdOutlineClose} from "react-icons/md";
 import {api} from "../../lib/api-client";
 import toast from "react-hot-toast";
+import {useParams} from "react-router-dom";
+import {AxiosError} from "axios";
 
 interface OTPModalProps {
     isOpen: boolean;
     onClose: () => void;
     email: string;
-    tenantId?: string;
-    bookingId?: string;
-    onSuccess?: () => void;
+    purpose: 'cancellation' | 'booking';
+    onSuccess: (otp: string) => void;
 }
 
 const OTPModal: React.FC<OTPModalProps> = ({
                                                isOpen,
                                                onClose,
                                                email,
-                                               tenantId,
-                                               bookingId,
+                                               purpose,
                                                onSuccess
                                            }) => {
     const [otp, setOtp] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
-    const [isCancelling, setIsCancelling] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const {tenantId} = useParams<{
+        tenantId: string;
+    }>();
 
     const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setOtp(e.target.value);
         if (error) setError(null);
     };
 
-    const handleVerifyAndCancel = async () => {
+    const handleVerifyAndDoStuff = async () => {
         if (!otp) {
             setError('Please enter the OTP');
             return;
         }
 
-        if (!tenantId || !bookingId) {
+        if (!tenantId) {
             setError('Missing booking information');
             toast.error('Cannot proceed: Missing booking information');
             return;
@@ -50,26 +53,21 @@ const OTPModal: React.FC<OTPModalProps> = ({
             await api.verifyOtp(tenantId, email, otp);
             toast.success('OTP verified successfully');
 
-            // Step 2: Cancel booking
-            setIsCancelling(true);
-            await api.cancelBooking(tenantId, bookingId);
-
             // Success
-            toast.success('Booking cancelled successfully');
-            if (onSuccess) onSuccess();
+            if (onSuccess) onSuccess(otp);
             onClose();
-        } catch (error: any) {
-            console.error('Error during verification or cancellation:', error);
-            if (!isCancelling) {
-                setError('Invalid or expired OTP. Please try again.');
-                toast.error('Invalid or expired OTP');
+        } catch (e: unknown) {
+            const error = e as AxiosError<{ message: string }>;
+            console.error('Error during verification:', error.response?.data?.message);
+            if (purpose === 'cancellation') {
+                setError("Failed to cancel booking. Please try again later.");
+                toast.error(error.response?.data?.message ?? 'Cancellation failed');
             } else {
-                setError('Failed to cancel booking. Please try again later.');
-                toast.error('Booking cancellation failed');
+                setError("Failed to book property. Please try again later.");
+                toast.error(error.response?.data?.message ?? 'Booking failed');
             }
         } finally {
             setIsVerifying(false);
-            setIsCancelling(false);
         }
     };
 
@@ -80,7 +78,7 @@ const OTPModal: React.FC<OTPModalProps> = ({
             <div className="w-[29.875rem] max-w-[90vw] h-auto bg-white relative rounded-md p-[2rem]">
                 <button
                     onClick={onClose}
-                    disabled={isVerifying || isCancelling}
+                    disabled={isVerifying}
                     className="w-[1.5rem] h-[1.5rem] absolute right-4 top-4 text-gray-500 hover:text-gray-700 disabled:opacity-50 cursor-pointer"
                 >
                     <MdOutlineClose/>
@@ -101,7 +99,7 @@ const OTPModal: React.FC<OTPModalProps> = ({
                         placeholder="Enter OTP"
                         value={otp}
                         onChange={handleOtpChange}
-                        disabled={isVerifying || isCancelling}
+                        disabled={isVerifying}
                         maxLength={6}
                     />
 
@@ -112,21 +110,17 @@ const OTPModal: React.FC<OTPModalProps> = ({
                     <div className="flex justify-between items-center mt-6">
                         <button
                             onClick={onClose}
-                            disabled={isVerifying || isCancelling}
+                            disabled={isVerifying}
                             className="text-primary text-sm disabled:opacity-50 cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
-                            onClick={handleVerifyAndCancel}
-                            disabled={isVerifying || isCancelling}
+                            onClick={handleVerifyAndDoStuff}
+                            disabled={isVerifying}
                             className="w-auto px-4 h-[2.5rem] bg-primary text-white rounded-[0.25rem] text-sm disabled:opacity-50 flex items-center justify-center min-w-[7.3125rem] cursor-pointer"
                         >
-                            {isVerifying
-                                ? 'Verifying...'
-                                : isCancelling
-                                    ? 'Cancelling...'
-                                    : 'CONFIRM OTP'}
+                            {isVerifying ? 'Verifying...' : 'CONFIRM OTP'}
                         </button>
                     </div>
                 </div>

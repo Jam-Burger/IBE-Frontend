@@ -140,7 +140,7 @@ const TripItinerary: React.FC = () => {
 
     return (
         <div
-            className={cn("bg-[#F5F5F5] p-6 mx-auto mb-3", currentStep === 2 ? "w-[400px] h-[500px]" : "w-[330px] h-[494px]")}>
+            className={cn("bg-gray-100 p-6 mx-auto mb-3", currentStep === 2 ? "w-[400px] h-[500px]" : "w-[330px] h-[494px]")}>
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-[#333]">
                     Your Trip Itinerary
@@ -272,7 +272,7 @@ const TripItinerary: React.FC = () => {
                     className="w-[193px] h-[44px] border-[3px] cursor-pointer"
                     onClick={handleContinue}
                 >
-                    {currentStep === 2 ? "CONTINUE SHOPPING" : "CHECKOUT"}
+                    {currentStep === 2 ? "CONTINUE BOOKING" : "CHECKOUT"}
                 </Button>
             </div>
 

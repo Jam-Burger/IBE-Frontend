@@ -27,8 +27,8 @@ describe('OTPModal', () => {
                     isOpen={true}
                     onClose={vi.fn()}
                     email="test@example.com"
-                    tenantId="test-tenant"
-                    bookingId="123"
+                    onSuccess={() => {
+                    }}
                 />
             </BrowserRouter>
         );
@@ -45,8 +45,8 @@ describe('OTPModal', () => {
                     isOpen={false}
                     onClose={vi.fn()}
                     email="test@example.com"
-                    tenantId="test-tenant"
-                    bookingId="123"
+                    onSuccess={() => {
+                    }}
                 />
             </BrowserRouter>
         );
@@ -63,8 +63,8 @@ describe('OTPModal', () => {
                     isOpen={true}
                     onClose={onCloseMock}
                     email="test@example.com"
-                    tenantId="test-tenant"
-                    bookingId="123"
+                    onSuccess={() => {
+                    }}
                 />
             </BrowserRouter>
         );
@@ -83,8 +83,8 @@ describe('OTPModal', () => {
                     isOpen={true}
                     onClose={vi.fn()}
                     email="test@example.com"
-                    tenantId="test-tenant"
-                    bookingId="123"
+                    onSuccess={() => {
+                    }}
                 />
             </BrowserRouter>
         );

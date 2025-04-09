@@ -21,7 +21,6 @@ interface CheckoutState {
     room: Room | null;
     promotionApplied: SpecialDiscount | PromoOffer | StandardPackage | null;
     propertyDetails: PropertyDetails | null;
-    bookingId: number | null;
 }
 
 const initialState: CheckoutState = {
@@ -37,19 +36,19 @@ const initialState: CheckoutState = {
     room: null,
     promotionApplied: null,
     propertyDetails: null,
-    bookingId: null,
 };
 
 interface BookingSubmitParams {
     tenantId: string;
     bookingData: Booking;
+    otp: string;
 }
 
 export const submitBooking = createAsyncThunk<BookingDetails, BookingSubmitParams, { rejectValue: ErrorResponse }>(
     'checkout/submitBooking',
     async (params: BookingSubmitParams, {rejectWithValue}) => {
         try {
-            const response = await api.submitBooking(params.tenantId, params.bookingData);
+            const response = await api.submitBooking(params.tenantId, params.bookingData, params.otp);
             return response.data;
         } catch (error) {
             if (error instanceof AxiosError) {
@@ -110,12 +109,11 @@ export const checkoutSlice = createSlice({
                     error: null
                 };
             })
-            .addCase(submitBooking.fulfilled, (state, action) => {
+            .addCase(submitBooking.fulfilled, (state) => {
                 state.bookingStatus = {
                     status: StateStatus.IDLE,
                     error: null
                 };
-                state.bookingId = action.payload.booking_id;
             })
             .addCase(submitBooking.rejected, (state, action) => {
                 state.bookingStatus = {

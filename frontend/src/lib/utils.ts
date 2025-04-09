@@ -113,6 +113,12 @@ export const formatDateToYYYYMMDD = (date: Date): string => {
     return `${year}-${month}-${day}`;
 };
 
+export const formatDateToMMYY = (month: number, year: number): string => {
+    const monthStr = month.toString().padStart(2, "0");
+    const yearStr = year.toString().slice(-2);
+    return `${monthStr}/${yearStr}`;
+}
+
 export const computeDiscountedPrice = (
     discount: SpecialDiscount | PromoOffer,
     roomRates: Room["roomRates"]

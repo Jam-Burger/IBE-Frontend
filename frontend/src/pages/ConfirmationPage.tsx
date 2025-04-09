@@ -6,9 +6,16 @@ import OTPModal from "./../components/ui/OTPModal";
 import {useParams} from "react-router-dom";
 import {BookingDetails, PropertyDetails, Room} from "../types";
 import {api} from "../lib/api-client";
-import {computeDiscountedPrice, convertToLocaleCurrency, maskCardNumber, toTitleCase,} from "../lib/utils.ts";
+import {
+    computeDiscountedPrice,
+    convertToLocaleCurrency,
+    formatDateToMMYY,
+    maskCardNumber,
+    toTitleCase,
+} from "../lib/utils.ts";
 import {useAppSelector} from "../redux/hooks.ts";
 import toast from "react-hot-toast";
+import LoadingOverlay from "../components/ui/LoadingOverlay.tsx";
 
 const ConfirmationPage: FC = () => {
     const {tenantId, bookingId} = useParams<{
@@ -108,15 +115,14 @@ const ConfirmationPage: FC = () => {
         }
     };
 
-    if (!bookingData) return <div>Loading...</div>;
-    if (!propertyDetails || !roomTypeData) return <div>loading...</div>;
+    if (!bookingData || !propertyDetails || !roomTypeData) return <LoadingOverlay
+        message="Loading Booking Details..."/>;
 
     const {
         check_in_date,
         check_out_date,
         adult_count,
         child_count,
-        amount_due_at_resort,
         transaction,
         room_numbers,
         special_offer,
@@ -139,7 +145,7 @@ const ConfirmationPage: FC = () => {
         : roomRateAverage;
 
     // Calculate taxes and fees
-    const occupancyTaxRate = 0; // TODO: here
+    const occupancyTaxRate = 0;
     const resortFeeRate = propertyDetails.surcharge;
     const additionalFeesRate = propertyDetails.fees;
     const totalTaxRate = occupancyTaxRate + resortFeeRate + additionalFeesRate;
@@ -147,9 +153,6 @@ const ConfirmationPage: FC = () => {
     const baseAmount = discountedAverageRate * durationInDays;
     const totalTaxes = (baseAmount * totalTaxRate) / 100;
     const totalAmount = baseAmount + totalTaxes;
-    const dueNow = bookingData.total_cost - amount_due_at_resort;
-
-    console.log(totalAmount, bookingData.total_cost, dueNow);
 
     const roomName = `Room ${room_numbers.join(", ")}: ${toTitleCase(
         roomTypeData.roomTypeName
@@ -178,6 +181,24 @@ const ConfirmationPage: FC = () => {
             toast.error("Failed to send email. Please try again. " + error);
         }
     }
+
+    const handleCancelBooking = async (otp: string) => {
+        if (!tenantId || !bookingId) {
+            setOtpError("Cannot cancel booking: Missing required information.");
+            toast.error("Missing booking information");
+            return;
+        }
+
+        try {
+            await api.cancelBooking(tenantId, bookingId, otp);
+            toast.success("Booking cancelled successfully");
+            fetchBookingData();
+        } catch (error) {
+            console.error("Failed to cancel booking", error);
+            setOtpError("Failed to cancel booking. Please try again.");
+            toast.error("Failed to cancel booking. Please try again.");
+        }
+    }
     return (
         <div className="mt-4 md:mt-6 lg:mt-8 mb-4 px-4 md:px-6 lg:px-0">
             <div
@@ -200,7 +221,7 @@ const ConfirmationPage: FC = () => {
             </div>
 
             <div
-                className="w-full max-w-[69.625rem] mx-auto shadow-md border border-[#C1C2C2] rounded-lg bg-white relative">
+                className="w-full max-w-[69.625rem] mx-auto shadow-md border border-[#C1C2C2] rounded-lg bg-white relative px-4">
                 {/* Cancelled Overlay */}
                 {isCancelled && (
                     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
@@ -218,7 +239,7 @@ const ConfirmationPage: FC = () => {
                     </div>
                 )}
 
-                <div className="p-4 md:p-6 relative">
+                <div className="px-2 py-6 relative">
                     <div className="flex flex-col sm:flex-row justify-between items-start">
                         <div className="flex flex-col sm:flex-row items-start mb-2 sm:mb-0">
                             <h1 className="font-bold text-xl md:text-2xl leading-[140%]">
@@ -246,13 +267,9 @@ const ConfirmationPage: FC = () => {
                     <OTPModal
                         isOpen={isOTPModalOpen}
                         onClose={() => setIsOTPModalOpen(false)}
-                        email={bookingData?.guest_details.travelerEmail || ""}
-                        tenantId={tenantId}
-                        bookingId={bookingId}
-                        onSuccess={() => {
-                            // Optionally refresh the booking data after cancellation
-                            fetchBookingData();
-                        }}
+                        email={bookingData.guest_details.travelerEmail}
+                        purpose="cancellation"
+                        onSuccess={handleCancelBooking}
                     />
 
                     <div className="mt-4 md:mt-6 flex flex-col md:flex-row">
@@ -657,7 +674,7 @@ const ConfirmationPage: FC = () => {
                                 </span>
                                 <span
                                     className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
-                                    04/26
+                                    {formatDateToMMYY(transaction.expMonth, transaction.expYear)}
                                 </span>
                             </div>
                         </div>

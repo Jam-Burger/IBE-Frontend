@@ -217,7 +217,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
     };
 
     return (
-        <div className="max-w-[680px] py-4">
+        <div className="min-w-[680px] py-4">
             <Formik<BillingFormValues>
                 initialValues={initialValues}
                 validationSchema={validationSchema}

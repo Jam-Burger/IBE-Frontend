@@ -1,8 +1,6 @@
 import axios from "axios";
-import {ApiResponse, ConfigType, PaginationParams, PaginationResponse, PropertyDetails, Room,} from "../types";
-import {Booking} from "../types/Booking";
+import {ApiResponse, Booking, ConfigType, PaginationParams, PaginationResponse, PropertyDetails, Room,} from "../types";
 import {formatDateToYYYYMMDD} from "./utils";
-
 
 
 const apiClient = axios.create({
@@ -123,7 +121,7 @@ export const api = {
     },
 
     getCountries: async () => {
-        return apiClient.get("https://api.countrystatecity.in/v1/countries", {
+        return axios.get("https://api.countrystatecity.in/v1/countries", {
             headers: {
                 "X-CSCAPI-KEY": COUNTRY_API_KEY,
             },
@@ -131,7 +129,7 @@ export const api = {
     },
 
     getStates: async (countryCode: string) => {
-        return apiClient.get(
+        return axios.get(
             `https://api.countrystatecity.in/v1/countries/${countryCode}/states`,
             {
                 headers: {
@@ -142,7 +140,7 @@ export const api = {
     },
 
     getCities: async (countryCode: string, stateCode: string) => {
-        return apiClient.get(
+        return axios.get(
             `https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`,
             {
                 headers: {
@@ -181,10 +179,12 @@ export const api = {
         return response.data;
     },
 
-    submitBooking: async (tenantId: string, bookingData: Booking) => {
-        const response = await apiClient.post(
-            `${tenantId}/bookings`,
-            bookingData
+    submitBooking: async (tenantId: string, bookingData: Booking, otp: string) => {
+        const response = await apiClient.post(`${tenantId}/bookings`,
+            bookingData,
+            {
+                params: {otp},
+            }
         );
         return response.data;
     },
@@ -196,8 +196,13 @@ export const api = {
         return response.data;
     },
 
-    cancelBooking: async (tenantId: string, bookingId: string) => {
-        return await apiClient.put(`${tenantId}/bookings/${bookingId}/cancel`)
+    cancelBooking: async (tenantId: string, bookingId: string, otp: string) => {
+        return await apiClient.put(`${tenantId}/bookings/${bookingId}/cancel`,
+            null,
+            {
+                params: {otp},
+            }
+        );
     },
 
     sendOtp: async (tenantId: string, email: string) => {
@@ -207,13 +212,26 @@ export const api = {
     },
 
     verifyOtp: async (tenantId: string, email: string, otp: string) => {
-        return await apiClient.post(`${tenantId}/otp/verify`, null, {
+        const response = await apiClient.post(`${tenantId}/otp/verify`, null, {
             params: {email, otp},
         });
+        return response.data;
     },
 
     sendBookingEmail: async (tenantId: string, bookingId: number) => {
-        return await apiClient.post(`${tenantId}/bookings/${bookingId}/send-mail`);
+        return await apiClient.post(`${tenantId}/bookings/${bookingId}/send-pdf`);
+    },
+
+    getTermsAndPolicy: async (policyUrl: string) => {
+        const response = await axios.get(
+            policyUrl,
+            {
+                headers: {
+                    "Content-Type": "application/html",
+                },
+            }
+        );
+        return response.data;
     },
 
     submitReview: async (
@@ -221,7 +239,7 @@ export const api = {
         bookingId: string,
         data: { rating: number; comment: string }
     ) => {
-        
+
         const response = await apiClient.post(
             `${tenantId}/reviews/${bookingId}`,
             data
@@ -229,5 +247,5 @@ export const api = {
         console.log("response", response);
         return response.data;
     },
-      
+
 };

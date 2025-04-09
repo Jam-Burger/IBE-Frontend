@@ -19,6 +19,8 @@ export interface Transaction {
     transactionId: string;
     amount: number;
     cardNumber: string;
+    expMonth: number;
+    expYear: number;
     status: TransactionStatus;
     timestamp: string;
 }

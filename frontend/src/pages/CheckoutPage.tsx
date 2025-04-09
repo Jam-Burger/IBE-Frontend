@@ -9,13 +9,16 @@ import {useNavigate, useParams} from "react-router-dom";
 import {Booking, ConfigType, PromoOffer, SpecialDiscount, StandardPackage, StateStatus,} from "../types";
 import {useAppDispatch, useAppSelector} from "../redux/hooks.ts";
 import {fetchConfig} from "../redux/configSlice.ts";
-import {clearBookingStatus, clearFormData, fetchPropertyDetails, submitBooking,} from "../redux/checkoutSlice.ts";
+import {clearBookingStatus, fetchPropertyDetails, submitBooking,} from "../redux/checkoutSlice.ts";
 import toast from "react-hot-toast";
 import LoadingOverlay from "../components/ui/LoadingOverlay";
 import ErrorDialog from "../components/ui/ErrorDialog";
 import {computeDiscountedPrice, convertToLocaleCurrency,} from "../lib/utils.ts";
 import HelpSection from "../components/HelpSection.tsx";
 import Stepper from "../components/Stepper.tsx";
+import OTPModal from "../components/ui/OTPModal.tsx";
+import {api} from "../lib/api-client.ts";
+import {AxiosError} from "axios";
 
 const CheckoutPage: React.FC = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
@@ -29,12 +32,13 @@ const CheckoutPage: React.FC = () => {
         room,
         promotionApplied,
         propertyDetails,
-        bookingId,
     } = useAppSelector((state) => state.checkout);
     const {selectedCurrency, multiplier} = useAppSelector(
         (state) => state.currency
     );
     const {filter} = useAppSelector((state) => state.roomFilters);
+    const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [activeSection, setActiveSection] = useState<string>("traveler_info");
     const [isValid, setIsValid] = useState<Record<string, boolean>>({
         traveler_info: false,
@@ -74,11 +78,9 @@ const CheckoutPage: React.FC = () => {
             const section = sections.find((s) => s.id === sectionId);
             if (!section) return [];
 
-            const requiredFields = section.fields
+            return section.fields
                 .filter((field) => field.enabled && field.required)
                 .map((field) => field.name);
-
-            return requiredFields;
         },
         [sections]
     );
@@ -160,9 +162,7 @@ const CheckoutPage: React.FC = () => {
             return value !== undefined && value !== null;
         });
 
-        const isSectionValid = !hasErrors && allFieldsFilled;
-
-        return isSectionValid;
+        return !hasErrors && allFieldsFilled;
     };
 
     const handleSectionChange = (sectionId: string) => {
@@ -243,7 +243,26 @@ const CheckoutPage: React.FC = () => {
         }
     };
 
-    const handleSubmitBooking = () => {
+    const handleSubmit = async () => {
+        if (!tenantId || !formData.travelerEmail) {
+            toast.error("Missing required information for booking");
+            return;
+        }
+        const email = formData.travelerEmail as string;
+        try {
+            setIsSendingOtp(true);
+            await api.sendOtp(tenantId, email);
+            setIsOTPModalOpen(true);
+            toast.success(`OTP sent to ${email}`);
+        } catch (error) {
+            console.error("Failed to send OTP", error);
+            toast.error("Failed to send OTP. Please try again.");
+        } finally {
+            setIsSendingOtp(false);
+        }
+    }
+
+    const handleSubmitBooking = async (otp: string) => {
         if (!tenantId || !room?.roomTypeId || !propertyDetails) {
             toast.error("Missing required information for booking");
             return;
@@ -262,19 +281,21 @@ const CheckoutPage: React.FC = () => {
         };
 
         const loadingToast = toast.loading("Processing your booking...");
-        dispatch(submitBooking({tenantId, bookingData}))
-            .unwrap()
-            .then(() => {
-                toast.success("Booking submitted successfully!");
-                if (bookingId !== null)
-                    navigate(`/${tenantId}/confirmation/${bookingId}`);
-                dispatch(clearFormData());
-            })
-            .catch(() => {
-            })
-            .finally(() => {
-                toast.dismiss(loadingToast);
-            });
+        try {
+            const data = await dispatch(submitBooking({tenantId, bookingData, otp})).unwrap();
+            toast.success("Booking submitted successfully!");
+            const bookingId = data.booking_id as number;
+            console.log("bookingId", bookingId);
+            if (!bookingId) return;
+            navigate(`/${tenantId}/confirmation/${bookingId}`);
+            // dispatch(clearFormData());
+        } catch (e: unknown) {
+            const error = e as AxiosError<{ message: string }>;
+            console.error("Error during booking submission:", error.response?.data?.message);
+            toast.error(error.response?.data?.message || "Booking failed");
+        } finally {
+            toast.dismiss(loadingToast);
+        }
     };
 
     // Create a combined initial values object for all form fields
@@ -314,7 +335,7 @@ const CheckoutPage: React.FC = () => {
 
                         <Formik
                             initialValues={initialValues}
-                            onSubmit={handleSubmitBooking}
+                            onSubmit={handleSubmit}
                             enableReinitialize
                         >
                             {(formikProps) => {
@@ -468,8 +489,9 @@ const CheckoutPage: React.FC = () => {
                                                         fields={
                                                             paymentInfoSection.fields
                                                         }
-                                                        onSubmit={
-                                                            handleSubmitBooking
+                                                        onSubmit={handleSubmit}
+                                                        isSendingOtp={
+                                                            isSendingOtp
                                                         }
                                                         totalDue={convertToLocaleCurrency(
                                                             selectedCurrency.symbol,
@@ -488,6 +510,16 @@ const CheckoutPage: React.FC = () => {
                         </Formik>
                     </div>
                 </div>
+
+                <OTPModal
+                    isOpen={isOTPModalOpen}
+                    onClose={() => setIsOTPModalOpen(false)}
+                    email={formData.travelerEmail as string}
+                    purpose="booking"
+                    onSuccess={(otp: string) => {
+                        handleSubmitBooking(otp)
+                    }}
+                />
 
                 <div className="w-full lg:w-auto lg:mt-0 flex flex-col justify-center lg:justify-start px-4 sm:px-0">
                     <TripItinerary/>
