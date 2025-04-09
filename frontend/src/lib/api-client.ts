@@ -1,14 +1,7 @@
 import axios from "axios";
-import {
-    ApiResponse,
-    ConfigType,
-    PaginationParams,
-    PaginationResponse,
-    Room,
-} from "../types";
-import { Booking } from "../types/Booking";
-import { formatDateToYYYYMMDD } from "./utils";
-import { PropertyDetails } from "../types";
+import {ApiResponse, ConfigType, PaginationParams, PaginationResponse, PropertyDetails, Room,} from "../types";
+import {Booking} from "../types/Booking";
+import {formatDateToYYYYMMDD} from "./utils";
 
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -47,7 +40,7 @@ export const api = {
     },
 
     getRoomRates: async (params: RoomRateParams & { tenantId: string }) => {
-        const { propertyId, startDate, endDate, tenantId } = params;
+        const {propertyId, startDate, endDate, tenantId} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-rates/daily-minimum`,
             {
@@ -63,10 +56,10 @@ export const api = {
     getSpecialDiscounts: async (
         params: SpecialDiscountParams & { tenantId: string }
     ) => {
-        const { propertyId, startDate, endDate, tenantId } = params;
+        const {propertyId, startDate, endDate, tenantId} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts`,
-            { params: { start_date: startDate, end_date: endDate } }
+            {params: {start_date: startDate, end_date: endDate}}
         );
         return response.data;
     },
@@ -84,7 +77,7 @@ export const api = {
         };
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-types/filter`,
-            { params }
+            {params}
         );
         return response.data;
     },
@@ -113,7 +106,7 @@ export const api = {
         endDate: string;
         promoCode: string;
     }) => {
-        const { tenantId, propertyId, startDate, endDate, promoCode } = params;
+        const {tenantId, propertyId, startDate, endDate, promoCode} = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts/promo-offer`,
             {
@@ -207,13 +200,13 @@ export const api = {
 
     sendOtp: async (tenantId: string, email: string) => {
         return await apiClient.post(`${tenantId}/otp/send`, null, {
-            params: { email },
+            params: {email},
         });
     },
 
     verifyOtp: async (tenantId: string, email: string, otp: string) => {
         return await apiClient.post(`${tenantId}/otp/verify`, null, {
-            params: { email, otp },
+            params: {email, otp},
         });
     },
 

@@ -99,7 +99,11 @@ const CardWithForm = () => {
     };
 
     const handleSearch = () => {
-        navigate(`/${tenantId}/rooms-list`);
+        navigate(`/${tenantId}/rooms-list`, {
+            state: {
+                stepId: 0,
+            },
+        });
     };
 
     if (loading || configLoading) {

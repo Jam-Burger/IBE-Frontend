@@ -5,6 +5,7 @@ import roomRatesReducer from "./roomRatesSlice";
 import languageReducer from "./languageSlice";
 import filterReducer from "./filterSlice";
 import checkoutReducer from "./checkoutSlice";
+import stepperReducer from "./stepperSlice";
 import storage from "redux-persist/lib/storage";
 import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE} from 'redux-persist';
 
@@ -15,12 +16,13 @@ const rootReducer = combineReducers({
     roomRates: roomRatesReducer,
     roomFilters: filterReducer,
     checkout: checkoutReducer,
+    stepper: stepperReducer
 });
 
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ["language", "currency", "config", "roomFilters", "checkout"]
+    whitelist: ["language", "currency", "config", "roomFilters", "checkout", "stepper"]
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

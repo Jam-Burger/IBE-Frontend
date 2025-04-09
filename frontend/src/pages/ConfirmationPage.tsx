@@ -154,7 +154,11 @@ const ConfirmationPage: FC = () => {
     const roomName = `Room ${room_numbers.join(", ")}: ${toTitleCase(
         roomTypeData.roomTypeName
     )}`;
-    const guests = `${adult_count} Adults, ${child_count} Children`;
+    const guests = [
+        adult_count > 0 ? `${adult_count} Adult${adult_count !== 1 ? 's' : ''}` : null,
+        child_count > 0 ? `${child_count} Child${child_count !== 1 ? 'ren' : ''}` : null
+    ].filter(Boolean).join(", ");
+
     const cancellationPolicy =
         "Copy explaining the cancellation policy, if applicable";
     const roomImage =
@@ -177,18 +181,18 @@ const ConfirmationPage: FC = () => {
     return (
         <div className="mt-4 md:mt-6 lg:mt-8 mb-4 px-4 md:px-6 lg:px-0">
             <div
-                className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 w-full max-w-[69.625rem] mx-auto">
-                <h1 className="text-[#2F2F2F] font-lato font-bold text-lg md:text-xl mb-2 sm:mb-0">
-                    {isCancelled ? "Cancelled" : "Upcoming"} reservation #{bookingId}
+                className="flex justify-between items-start sm:items-center mb-4 w-full max-w-[69.625rem] mx-auto">
+                <h1 className="text-[#2F2F2F] font-bold text-lg md:text-xl mb-2 sm:mb-0">
+                    {isCancelled ? "Cancelled" : "Upcoming"} Reservation #{bookingId}
                 </h1>
-                <div className="flex gap-4">
+                <div className="flex gap-1">
                     <button
                         onClick={() => print()}
-                        className="text-[#006EFF] font-lato text-sm md:text-base"
+                        className="text-primary text-sm md:text-base cursor-pointer px-3 py-1 hover:bg-gray-100"
                     >
                         Print
                     </button>
-                    <button className="text-[#006EFF] font-lato text-sm md:text-base"
+                    <button className="text-primary text-sm md:text-base cursor-pointer px-3 py-1 hover:bg-gray-100"
                             onClick={handleEmailClick}>
                         Email
                     </button>
@@ -217,12 +221,12 @@ const ConfirmationPage: FC = () => {
                 <div className="p-4 md:p-6 relative">
                     <div className="flex flex-col sm:flex-row justify-between items-start">
                         <div className="flex flex-col sm:flex-row items-start mb-2 sm:mb-0">
-                            <h1 className="font-lato font-bold text-xl md:text-2xl leading-[140%]">
+                            <h1 className="font-bold text-xl md:text-2xl leading-[140%]">
                                 {roomName}
                             </h1>
                             <div className="flex items-center text-[#5D5D5D] mt-1 sm:ml-3 sm:mt-2">
                                 <LuUserRound className="w-4 h-4 mr-1"/>
-                                <span className="font-lato text-sm leading-[140%]">
+                                <span className="text-sm leading-[140%]">
                                     {guests}
                                 </span>
                             </div>
@@ -231,7 +235,7 @@ const ConfirmationPage: FC = () => {
                             <button
                                 onClick={handleCancelClick}
                                 disabled={isSendingOtp}
-                                className="cursor-pointer text-[#006EFF] font-lato font-normal text-sm md:text-base leading-[100%] mt-2 sm:mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="cursor-pointer text-primary text-sm md:text-base leading-[100%] rounded-sm px-3 py-2 sm:mt-0 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                             >
                                 {isSendingOtp ? "Sending OTP..." : "Cancel Room"}
                             </button>
@@ -269,15 +273,15 @@ const ConfirmationPage: FC = () => {
                                 <div
                                     className="rounded-[5px] border-[1px] border-[#858685] p-3 md:p-4 w-[calc(50%-0.375rem)] sm:w-auto sm:min-w-[6.5625rem] text-center">
                                     <div
-                                        className="text-[#858685] font-lato font-normal text-xs md:text-sm leading-[140%]">
+                                        className="text-[#858685] text-xs md:text-sm leading-[140%]">
                                         Check in
                                     </div>
                                     <div
-                                        className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
+                                        className="text-[#2F2F2F] font-bold text-sm md:text-base leading-[150%]">
                                         {checkInDate.getDate()}
                                     </div>
                                     <div
-                                        className="text-[#2F2F2F] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                        className="text-[#2F2F2F] text-sm md:text-base leading-[140%]">
                                         {checkInDate.toLocaleString("default", {
                                             month: "long",
                                         })}{" "}
@@ -287,15 +291,15 @@ const ConfirmationPage: FC = () => {
                                 <div
                                     className="rounded-[5px] border-[1px] border-[#858685] p-3 md:p-4 w-[calc(50%-0.375rem)] sm:w-auto sm:min-w-[6.5625rem] text-center">
                                     <div
-                                        className="text-[#858685] font-lato font-normal text-xs md:text-sm leading-[140%]">
+                                        className="text-[#858685] text-xs md:text-sm leading-[140%]">
                                         Check Out
                                     </div>
                                     <div
-                                        className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
+                                        className="text-[#2F2F2F] font-bold text-sm md:text-base leading-[150%]">
                                         {checkOutDate.getDate()}
                                     </div>
                                     <div
-                                        className="text-[#2F2F2F] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                        className="text-[#2F2F2F] text-sm md:text-base leading-[140%]">
                                         {checkOutDate.toLocaleString(
                                             "default",
                                             {month: "long"}
@@ -309,7 +313,7 @@ const ConfirmationPage: FC = () => {
                                 <div
                                     className="mt-2 md:mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                     <div className="w-full sm:w-auto mb-3 sm:mb-0">
-                                        <h3 className="text-[#2F2F2F] font-lato font-bold text-lg md:text-xl leading-[130%]">
+                                        <h3 className="text-[#2F2F2F] font-bold text-lg md:text-xl leading-[130%]">
                                             {convertToLocaleCurrency(
                                                 selectedCurrency.symbol,
                                                 discountedAverageRate,
@@ -318,15 +322,15 @@ const ConfirmationPage: FC = () => {
                                             )}{" "}
                                             {special_offer.title}
                                         </h3>
-                                        <p className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%] mt-1">
+                                        <p className="text-[#5D5D5D] text-sm md:text-base leading-[140%] mt-1">
                                             {special_offer.description}
                                         </p>
 
-                                        <p className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%] mt-3 md:mt-5">
+                                        <p className="text-[#5D5D5D] text-sm md:text-base leading-[140%] mt-3 md:mt-5">
                                             {cancellationPolicy}
                                         </p>
                                     </div>
-                                    <p className="text-[#000000] font-lato font-normal text-lg md:text-xl leading-[140%]">
+                                    <p className="text-[#000000] text-lg md:text-xl leading-[140%]">
                                         {convertToLocaleCurrency(
                                             selectedCurrency.symbol,
                                             discountedAverageRate,
@@ -354,7 +358,7 @@ const ConfirmationPage: FC = () => {
                         ) : (
                             <HiChevronDown size={20} className="w-5 h-5 mr-2"/>
                         )}
-                        <span className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
+                        <span className="text-[#2F2F2F] font-bold text-sm md:text-base leading-[150%]">
                             Room total summary
                         </span>
                     </button>
@@ -363,11 +367,11 @@ const ConfirmationPage: FC = () => {
                         <div className="ml-7 md:ml-8">
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Nightly rate
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         discountedAverageRate,
@@ -378,11 +382,11 @@ const ConfirmationPage: FC = () => {
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Subtotal
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         baseAmount,
@@ -393,11 +397,11 @@ const ConfirmationPage: FC = () => {
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Taxes, Surcharges, Fees
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         totalTaxes,
@@ -409,11 +413,11 @@ const ConfirmationPage: FC = () => {
 
                             <div className="flex justify-between py-2 md:py-3">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Total for stay
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         totalAmount,
@@ -440,7 +444,7 @@ const ConfirmationPage: FC = () => {
                         ) : (
                             <HiChevronDown size={20} className="w-5 h-5 mr-2"/>
                         )}
-                        <span className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
+                        <span className="text-[#2F2F2F] font-bold text-sm md:text-base leading-[150%]">
                             Guest Information
                         </span>
                     </button>
@@ -448,41 +452,41 @@ const ConfirmationPage: FC = () => {
                         <div className="ml-7 md:ml-8">
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     First Name
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.travelerFirstName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Last Name
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.travelerLastName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Phone
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.travelerPhone}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Email
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%] break-all">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%] break-all">
                                     {guest_details.travelerEmail}
                                 </span>
                             </div>
@@ -506,7 +510,7 @@ const ConfirmationPage: FC = () => {
                         ) : (
                             <HiChevronDown size={20} className="w-5 h-5 mr-2"/>
                         )}
-                        <span className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
+                        <span className="text-[#2F2F2F] font-bold text-sm md:text-base leading-[150%]">
                             Billing Address
                         </span>
                     </button>
@@ -514,101 +518,101 @@ const ConfirmationPage: FC = () => {
                         <div className="ml-7 md:ml-8">
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     First Name
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingFirstName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Last Name
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingLastName}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Mailing Address 1
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingAddress1}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Mailing Address 2
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingAddress2}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Country
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingCountry}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     City
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingCity}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     State
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingState}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     ZIP
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingZip}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Phone
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {guest_details.billingPhone}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Email
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%] break-all">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%] break-all">
                                     {guest_details.billingEmail}
                                 </span>
                             </div>
@@ -630,7 +634,7 @@ const ConfirmationPage: FC = () => {
                         ) : (
                             <HiChevronDown size={20} className="w-5 h-5 mr-2"/>
                         )}
-                        <span className="text-[#2F2F2F] font-lato font-bold text-sm md:text-base leading-[150%]">
+                        <span className="text-[#2F2F2F] font-bold text-sm md:text-base leading-[150%]">
                             Payment Information
                         </span>
                     </button>
@@ -638,21 +642,21 @@ const ConfirmationPage: FC = () => {
                         <div className="ml-7 md:ml-8 mb-2">
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Card Number
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     {maskCardNumber(transaction.cardNumber)}
                                 </span>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span
-                                    className="text-[#5D5D5D] font-lato font-normal text-sm md:text-base leading-[140%]">
+                                    className="text-[#5D5D5D] text-sm md:text-base leading-[140%]">
                                     Expiration
                                 </span>
                                 <span
-                                    className="text-[#2F2F2F] font-lato font-normal text-base md:text-xl leading-[140%]">
+                                    className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
                                     04/26
                                 </span>
                             </div>

@@ -1,7 +1,7 @@
 import React from "react";
-import { Dialog, DialogContent } from "./Dialog";
-import { PromoOffer, SpecialDiscount, StandardPackage } from "../../types";
-import { toTitleCase } from "../../lib/utils";
+import {Dialog, DialogContent} from "./Dialog";
+import {PromoOffer, SpecialDiscount, StandardPackage} from "../../types";
+import {toTitleCase} from "../../lib/utils";
 
 interface PromoModalProps {
     isOpen: boolean;
@@ -10,7 +10,7 @@ interface PromoModalProps {
     discountedPrice: string;
 }
 
-const PromoModal: React.FC<PromoModalProps> = ({ isOpen, onClose, offer, discountedPrice }) => {
+const PromoModal: React.FC<PromoModalProps> = ({isOpen, onClose, offer, discountedPrice}) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[400px] p-6">

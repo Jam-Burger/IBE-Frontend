@@ -1,8 +1,7 @@
 import React from "react";
-import { Dialog, DialogContent } from "./Dialog";
-import { useAppSelector } from "../../redux/hooks";
-import { getDailyRates, toTitleCase } from "../../lib/utils";
-import { convertToLocaleCurrency } from "../../lib/utils";
+import {Dialog, DialogContent} from "./Dialog";
+import {useAppSelector} from "../../redux/hooks";
+import {convertToLocaleCurrency, getDailyRates} from "../../lib/utils";
 
 interface RateBreakdownModalProps {
     isOpen: boolean;
@@ -19,11 +18,11 @@ const formatDate = (date: string) => {
 };
 
 const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
-    isOpen,
-    onClose,
-}) => {
-    const { room, propertyDetails, promotionApplied } = useAppSelector((state) => state.checkout);
-    const { selectedCurrency, multiplier } = useAppSelector((state) => state.currency);
+                                                                   isOpen,
+                                                                   onClose,
+                                                               }) => {
+    const {room, propertyDetails, promotionApplied} = useAppSelector((state) => state.checkout);
+    const {selectedCurrency, multiplier} = useAppSelector((state) => state.currency);
 
     if (!room || !propertyDetails) {
         return null;
@@ -40,7 +39,7 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
 
     // Calculate totals
     const subtotal = dailyRates.reduce((acc, rate) => acc + rate.discountedRate, 0);
-    
+
     // Calculate taxes and fees
     const occupancyTaxRate = propertyDetails.surcharge || 0;
     const resortFeeRate = propertyDetails.fees || 0;

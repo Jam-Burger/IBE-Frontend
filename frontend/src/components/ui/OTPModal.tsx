@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { MdOutlineClose } from "react-icons/md";
-import { api } from "../../lib/api-client";
+import React, {useState} from 'react';
+import {MdOutlineClose} from "react-icons/md";
+import {api} from "../../lib/api-client";
 import toast from "react-hot-toast";
 
 interface OTPModalProps {
@@ -13,13 +13,13 @@ interface OTPModalProps {
 }
 
 const OTPModal: React.FC<OTPModalProps> = ({
-    isOpen, 
-    onClose, 
-    email,
-    tenantId,
-    bookingId,
-    onSuccess
-}) => {
+                                               isOpen,
+                                               onClose,
+                                               email,
+                                               tenantId,
+                                               bookingId,
+                                               onSuccess
+                                           }) => {
     const [otp, setOtp] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
@@ -49,11 +49,11 @@ const OTPModal: React.FC<OTPModalProps> = ({
             // Step 1: Verify OTP
             await api.verifyOtp(tenantId, email, otp);
             toast.success('OTP verified successfully');
-            
+
             // Step 2: Cancel booking
             setIsCancelling(true);
             await api.cancelBooking(tenantId, bookingId);
-            
+
             // Success
             toast.success('Booking cancelled successfully');
             if (onSuccess) onSuccess();
@@ -81,16 +81,16 @@ const OTPModal: React.FC<OTPModalProps> = ({
                 <button
                     onClick={onClose}
                     disabled={isVerifying || isCancelling}
-                    className="w-[1.5rem] h-[1.5rem] absolute right-4 top-4 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                    className="w-[1.5rem] h-[1.5rem] absolute right-4 top-4 text-gray-500 hover:text-gray-700 disabled:opacity-50 cursor-pointer"
                 >
                     <MdOutlineClose/>
                 </button>
 
                 <div>
-                    <h2 className="w-full text-[#000000] font-lato font-bold text-[24px] leading-[140%] tracking-normal">
+                    <h2 className="w-full text-[#000000] font-bold text-[24px] leading-[140%] tracking-normal">
                         Enter OTP for cancelling the room booking
                     </h2>
-                    
+
                     <p className="text-gray-600 mt-2 text-sm">
                         An OTP has been sent to <strong>{email}</strong>. Please enter it below to confirm cancellation.
                     </p>
@@ -113,19 +113,19 @@ const OTPModal: React.FC<OTPModalProps> = ({
                         <button
                             onClick={onClose}
                             disabled={isVerifying || isCancelling}
-                            className="text-primary font-lato text-sm disabled:opacity-50"
+                            className="text-primary text-sm disabled:opacity-50 cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleVerifyAndCancel}
                             disabled={isVerifying || isCancelling}
-                            className="w-auto px-4 h-[2.5rem] bg-primary text-white rounded-[0.25rem] font-lato text-sm disabled:opacity-50 flex items-center justify-center min-w-[7.3125rem]"
+                            className="w-auto px-4 h-[2.5rem] bg-primary text-white rounded-[0.25rem] text-sm disabled:opacity-50 flex items-center justify-center min-w-[7.3125rem] cursor-pointer"
                         >
-                            {isVerifying 
-                                ? 'Verifying...' 
-                                : isCancelling 
-                                    ? 'Cancelling...' 
+                            {isVerifying
+                                ? 'Verifying...'
+                                : isCancelling
+                                    ? 'Cancelling...'
                                     : 'CONFIRM OTP'}
                         </button>
                     </div>

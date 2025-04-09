@@ -1,22 +1,34 @@
-import React from 'react';
-import {cn} from "../lib/utils";
+import React from "react";
+import {useAppDispatch, useAppSelector} from "../redux/hooks";
+import {useNavigate, useParams} from "react-router-dom";
 import {FaCheck} from "react-icons/fa";
+import {cn} from "../lib/utils";
+import {setCurrentStep} from "../redux/stepperSlice.ts";
 
-export interface StepperProps {
-    steps: Array<{
-        id: number;
-        label: string;
-        completed: boolean;
-    }>;
-    currentStep: number;
-    onStepClick?: (step: number) => void;
-}
+const Stepper: React.FC = () => {
+    const {roomsListConfig} = useAppSelector((state) => state.config);
+    const {tenantId} = useParams<{ tenantId: string }>();
+    const currentStep = useAppSelector((state) => state.stepper.currentStep);
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
-const Stepper: React.FC<StepperProps> = ({
-                                             steps,
-                                             currentStep,
-                                             onStepClick
-                                         }) => {
+    if (!roomsListConfig || !roomsListConfig.configData.steps.enabled)
+        return null;
+
+    const stepsConfig = roomsListConfig.configData.steps;
+    const steps = stepsConfig.labels.map((label, index) => ({
+        id: index,
+        label,
+        completed: false,
+    }));
+
+    const handleStepClick = (stepId: number) => {
+        if (tenantId && stepId < currentStep) {
+            dispatch(setCurrentStep(stepId));
+            navigate(`/${tenantId}/rooms-list`);
+        }
+    };
+
     return (
         <div className="h-[92px] flex-shrink-0 bg-[#E4E4E4] flex items-center justify-center mb-8">
             <div className="flex items-center justify-center h-[92px] flex-shrink-0">
@@ -24,17 +36,13 @@ const Stepper: React.FC<StepperProps> = ({
                     <div className="flex items-center justify-between relative">
                         <div
                             className={`absolute top-[14px] h-[2px] left-[32px] right-[50%] z-[1] ${
-                                currentStep > 0
-                                    ? "bg-primary"
-                                    : "bg-gray-300"
+                                currentStep > 0 ? "bg-primary" : "bg-gray-300"
                             }`}
                         ></div>
 
                         <div
                             className={`absolute top-[14px] h-[2px] left-[50%] right-[32px] z-[1] ${
-                                currentStep > 1
-                                    ? "bg-primary"
-                                    : "bg-gray-300"
+                                currentStep > 1 ? "bg-primary" : "bg-gray-300"
                             }`}
                         ></div>
 
@@ -42,21 +50,20 @@ const Stepper: React.FC<StepperProps> = ({
                             <div
                                 key={index}
                                 className="flex flex-col items-center z-10"
-                                onClick={() => onStepClick && onStepClick(step.id)}
+                                onClick={() => handleStepClick(step.id)}
                             >
                                 <div
                                     className={cn(
                                         "w-8 h-8 flex items-center justify-center rounded-full text-white font-bold text-sm cursor-pointer",
                                         index === currentStep
-                                            ? "bg-[#D0182B]"
+                                            ? "bg-destructive"
                                             : step.completed ||
                                             index < currentStep
-                                                ? "bg-[#26266D]"
+                                                ? "bg-primary"
                                                 : "bg-gray-300"
                                     )}
                                 >
-                                    {step.completed ||
-                                    index <= currentStep ? (
+                                    {step.completed || index <= currentStep ? (
                                         <FaCheck size={16}/>
                                     ) : (
                                         ""
@@ -82,4 +89,4 @@ const Stepper: React.FC<StepperProps> = ({
     );
 };
 
-export default Stepper; 
+export default Stepper;

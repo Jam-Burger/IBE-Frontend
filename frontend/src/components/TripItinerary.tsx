@@ -1,15 +1,14 @@
-import React, { useState } from "react";
-import { Button } from "./ui";
-import { CiCircleInfo } from "react-icons/ci";
+import React, {useState} from "react";
+import {Button} from "./ui";
+import {CiCircleInfo} from "react-icons/ci";
 import PromoModal from "./ui/PromoModal";
 import RateBreakdownModal from "./ui/RateBreakdownModal";
-import { useAppSelector } from "../redux/hooks";
-import {
-    computeDiscountedPrice,
-    convertToLocaleCurrency,
-    generateSummeryText,
-    toTitleCase,
-} from "../lib/utils";
+import {useAppSelector} from "../redux/hooks";
+import {cn, computeDiscountedPrice, convertToLocaleCurrency, generateSummeryText, toTitleCase,} from "../lib/utils";
+import {setCurrentStep} from "../redux/stepperSlice.ts";
+import {useNavigate, useParams} from "react-router-dom";
+import {useAppDispatch} from "../redux/hooks.ts";
+import {setPromotionApplied, setRoom} from "../redux/checkoutSlice.ts";
 
 interface RoomDetails {
     name: string;
@@ -30,25 +29,19 @@ interface BookingDetails {
     dueAtResort: number;
 }
 
-interface TripItineraryProps {
-    currency?: string;
-    onRemove?: () => void;
-    onContinueShopping?: () => void;
-}
-
-const TripItinerary: React.FC<TripItineraryProps> = ({
-    onRemove,
-    onContinueShopping,
-}) => {
+const TripItinerary: React.FC = () => {
     // Get data from Redux slices
-    const { room, promotionApplied, propertyDetails } = useAppSelector(
+    const {room, promotionApplied, propertyDetails} = useAppSelector(
         (state) => state.checkout
     );
-    const { filter } = useAppSelector((state) => state.roomFilters);
-
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const {tenantId} = useParams<{ tenantId: string }>();
+    const {filter} = useAppSelector((state) => state.roomFilters);
+    const {currentStep} = useAppSelector((state) => state.stepper);
     const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
     const [isRateBreakdownOpen, setIsRateBreakdownOpen] = useState(false);
-    const { selectedCurrency, multiplier } = useAppSelector(
+    const {selectedCurrency, multiplier} = useAppSelector(
         (state) => state.currency
     );
 
@@ -97,25 +90,9 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
     // Calculate total amount (including taxes)
     const totalAmount = baseAmount + totalTaxes;
 
-    // Check if promotion is for 100% upfront payment
-    const isFullPaymentPromo =
-        promotionApplied &&
-        "discount_percentage" in promotionApplied &&
-        promotionApplied.discount_percentage === 10;
-
     // Calculate due now and due at resort
-    let dueNow = 0;
-    let dueAtResort = 0;
-
-    if (isFullPaymentPromo) {
-        // For 100% upfront payment promotion with 10% discount
-        dueNow = totalAmount;
-        dueAtResort = 0;
-    } else {
-        // Standard payment structure: 5% upfront, 95% at resort
-        dueNow = (totalAmount * 5) / 100;
-        dueAtResort = totalAmount - dueNow;
-    }
+    const dueNow = (totalAmount * 5) / 100;
+    const dueAtResort = totalAmount - dueNow;
 
     // Prepare room details
     const roomDetails: RoomDetails = {
@@ -142,8 +119,28 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
         dueAtResort: dueAtResort,
     };
 
+    const handleRemove = () => {
+        if (!tenantId) return;
+        dispatch(setCurrentStep(0));
+        dispatch(setRoom(null));
+        dispatch(setPromotionApplied(null));
+        navigate(`/${tenantId}/rooms-list`);
+    };
+
+    const handleContinue = () => {
+        if (!tenantId) return;
+        if (currentStep === 1) {
+            dispatch(setCurrentStep(2));
+            navigate(`/${tenantId}/checkout`);
+        } else if (currentStep === 2) {
+            dispatch(setCurrentStep(1));
+            navigate(`/${tenantId}/rooms-list`);
+        }
+    };
+
     return (
-        <div className="bg-[#F5F5F5] p-6 w-[400px] h-[500px]">
+        <div
+            className={cn("bg-[#F5F5F5] p-6 mx-auto mb-3", currentStep === 2 ? "w-[400px] h-[500px]" : "w-[330px] h-[494px]")}>
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-[#333]">
                     Your Trip Itinerary
@@ -151,7 +148,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
                 <Button
                     variant="link"
                     className="text-blue-500 p-0 h-auto"
-                    onClick={onRemove}
+                    onClick={handleRemove}
                 >
                     Remove
                 </Button>
@@ -164,7 +161,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
                 <p className="text-sm text-gray-600 mb-1">
                     {formatDate(bookingDetails.checkInDate)} -{" "}
                     {formatDate(bookingDetails.checkOutDate)},{" "}
-                    {bookingDetails.checkOutDate.getFullYear()} | {" "}
+                    {bookingDetails.checkOutDate.getFullYear()} |{" "}
                     {generateSummeryText(bookingDetails.guests)}
                 </p>
                 <p className="text-sm text-gray-600 mb-1">{roomDetails.name}</p>
@@ -197,7 +194,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
                             onClick={() => setIsPromoModalOpen(true)}
                             className="ml-1 text-gray-500 hover:text-gray-700 focus:outline-none cursor-pointer"
                         >
-                            <CiCircleInfo className="w-4 h-4" />
+                            <CiCircleInfo className="w-4 h-4"/>
                         </button>
                     </div>
                 )}
@@ -225,7 +222,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
                             onClick={() => setIsRateBreakdownOpen(true)}
                             className="ml-1 text-gray-500 hover:text-gray-700 focus:outline-none cursor-pointer"
                         >
-                            <CiCircleInfo className="w-4 h-4" />
+                            <CiCircleInfo className="w-4 h-4"/>
                         </button>
                     </div>
                     <span className="text-sm font-medium">
@@ -271,10 +268,11 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
 
             <div className="flex justify-center mt-6">
                 <Button
-                    className="w-[193px] h-[44px] border-[3px] border-primary text-primary bg-gray hover:bg-blue-50"
-                    onClick={onContinueShopping}
+                    variant="outline"
+                    className="w-[193px] h-[44px] border-[3px] cursor-pointer"
+                    onClick={handleContinue}
                 >
-                    CONTINUE SHOPPING
+                    {currentStep === 2 ? "CONTINUE SHOPPING" : "CHECKOUT"}
                 </Button>
             </div>
 

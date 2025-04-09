@@ -1,4 +1,4 @@
-import { SerializableDateRange } from "./Filter";
+import {SerializableDateRange} from "./Filter";
 
 export interface Booking {
     formData: Record<string, string | boolean>;

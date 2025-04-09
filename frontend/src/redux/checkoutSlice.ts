@@ -2,15 +2,15 @@ import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {api} from '../lib/api-client';
 import {
     BaseState,
+    Booking,
     BookingDetails,
     ErrorResponse,
     PromoOffer,
+    PropertyDetails,
     Room,
     SpecialDiscount,
     StandardPackage,
-    StateStatus,
-    PropertyDetails,
-    Booking
+    StateStatus
 } from '../types';
 import {AxiosError} from 'axios';
 
@@ -87,7 +87,7 @@ export const checkoutSlice = createSlice({
             newFormData[name] = value;
             state.formData = newFormData;
         },
-        setPromotionApplied: (state, action: PayloadAction<SpecialDiscount | PromoOffer | StandardPackage>) => {
+        setPromotionApplied: (state, action: PayloadAction<SpecialDiscount | PromoOffer | StandardPackage | null>) => {
             state.promotionApplied = action.payload;
         },
         setRoom: (state, action: PayloadAction<Room | null>) => {

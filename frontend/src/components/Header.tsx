@@ -154,15 +154,15 @@ const Header: React.FC = () => {
                                         LOGOUT
                                     </Button>
                                 ) : (
-                                <Button
-                                    className="w-full bg-primary hover:bg-blue-800 text-white uppercase font-medium text-sm rounded"
-                                    onClick={() => {
+                                    <Button
+                                        className="w-full bg-primary hover:bg-blue-800 text-white uppercase font-medium text-sm rounded"
+                                        onClick={() => {
                                             handleLogin();
-                                        setMobileMenuOpen(false);
-                                    }}
-                                >
-                                    LOGIN
-                                </Button>
+                                            setMobileMenuOpen(false);
+                                        }}
+                                    >
+                                        LOGIN
+                                    </Button>
                                 )}
                             </div>
 
@@ -180,24 +180,24 @@ const Header: React.FC = () => {
                                     <div className="space-y-1 pl-7">
                                         {globalConfig.configData.languages.map(
                                             (lang) => (
-                                            <Button
-                                                key={lang.code}
-                                                variant="ghost"
+                                                <Button
+                                                    key={lang.code}
+                                                    variant="ghost"
                                                     className={`w-full justify-start py-1 h-auto ${
                                                         selectedLanguage.code ===
                                                         lang.code
                                                             ? "bg-gray-100 font-medium text-primary"
                                                             : "text-gray-700"
                                                     }`}
-                                                onClick={() => {
-                                                    selectLanguage(lang);
+                                                    onClick={() => {
+                                                        selectLanguage(lang);
                                                         setMobileMenuOpen(
                                                             false
                                                         );
-                                                }}
-                                            >
-                                                {lang.name}
-                                            </Button>
+                                                    }}
+                                                >
+                                                    {lang.name}
+                                                </Button>
                                             )
                                         )}
                                     </div>
@@ -217,24 +217,24 @@ const Header: React.FC = () => {
                                     <div className="space-y-1 pl-7">
                                         {globalConfig.configData.currencies.map(
                                             (curr) => (
-                                            <Button
-                                                key={curr.code}
-                                                variant="ghost"
+                                                <Button
+                                                    key={curr.code}
+                                                    variant="ghost"
                                                     className={`w-full justify-start py-1 h-auto ${
                                                         selectedCurrency.code ===
                                                         curr.code
                                                             ? "bg-gray-100 font-medium text-primary"
                                                             : "text-gray-700"
                                                     }`}
-                                                onClick={() => {
-                                                    selectCurrency(curr);
+                                                    onClick={() => {
+                                                        selectCurrency(curr);
                                                         setMobileMenuOpen(
                                                             false
                                                         );
-                                                }}
-                                            >
-                                                {curr.code} ({curr.symbol})
-                                            </Button>
+                                                    }}
+                                                >
+                                                    {curr.code} ({curr.symbol})
+                                                </Button>
                                             )
                                         )}
                                     </div>
@@ -272,19 +272,19 @@ const Header: React.FC = () => {
                                             key={lang.code}
                                             className="px-4 py-2"
                                         >
-                                    <button
-                                        className="w-full text-left hover:bg-gray-100 cursor-pointer text-primary focus:outline-none"
+                                            <button
+                                                className="w-full text-left hover:bg-gray-100 cursor-pointer text-primary focus:outline-none"
                                                 onClick={() =>
                                                     selectLanguage(lang)
                                                 }
                                             >
-                                        {lang.name}
-                                    </button>
-                                </div>
+                                                {lang.name}
+                                            </button>
+                                        </div>
                                     )
                                 )}
-                        </div>
-                    )}
+                            </div>
+                        )}
                 </div>
                 <div className="relative">
                     <button
@@ -307,19 +307,19 @@ const Header: React.FC = () => {
                                             key={curr.code}
                                             className="px-4 py-2"
                                         >
-                                    <button
-                                        className="w-full text-left hover:bg-gray-100 cursor-pointer text-primary focus:outline-none"
+                                            <button
+                                                className="w-full text-left hover:bg-gray-100 cursor-pointer text-primary focus:outline-none"
                                                 onClick={() =>
                                                     selectCurrency(curr)
                                                 }
                                             >
-                                        {curr.code} ({curr.symbol})
-                                    </button>
-                                </div>
+                                                {curr.code} ({curr.symbol})
+                                            </button>
+                                        </div>
                                     )
                                 )}
-                        </div>
-                    )}
+                            </div>
+                        )}
                 </div>
 
                 {isAuthenticated ? (
@@ -330,12 +330,12 @@ const Header: React.FC = () => {
                         LOGOUT
                     </Button>
                 ) : (
-                <Button
+                    <Button
                         className="min-w-[85px] h-[35px] text-sm flex items-center"
                         onClick={handleLogin}
                     >
-                    LOGIN
-                </Button>
+                        LOGIN
+                    </Button>
                 )}
             </div>
         </header>

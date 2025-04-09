@@ -1,4 +1,4 @@
-import { SpecialDiscount } from "./Package";
+import {SpecialDiscount} from "./Package";
 
 // Enum for booking status
 export enum BookingStatus {

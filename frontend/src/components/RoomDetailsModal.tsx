@@ -1,41 +1,32 @@
 import PackageCard from "./PackageCard.tsx";
-import { GoPerson } from "react-icons/go";
-import { MdOutlineBed } from "react-icons/md";
-import { FaRegCircleCheck } from "react-icons/fa6";
+import {GoPerson} from "react-icons/go";
+import {MdOutlineBed} from "react-icons/md";
+import {FaRegCircleCheck} from "react-icons/fa6";
 import ImageCarousel from "./ui/ImageCarousel";
-import {
-    PackageData,
-    PromoOffer,
-    Room,
-    SpecialDiscount,
-    StandardPackage,
-} from "../types";
-import { useEffect, useState } from "react";
-import { api } from "../lib/api-client";
-import { useNavigate, useParams } from "react-router-dom";
-import { useAppSelector } from "../redux/hooks.ts";
+import {PackageData, PromoOffer, Room, SpecialDiscount, StandardPackage,} from "../types";
+import {useEffect, useState} from "react";
+import {api} from "../lib/api-client";
+import {useNavigate, useParams} from "react-router-dom";
+import {useAppSelector} from "../redux/hooks.ts";
 import toast from "react-hot-toast";
-import { formatDateToYYYYMMDD, toTitleCase, computeDiscountedPrice } from "../lib/utils.ts";
-import { setPromotionApplied, setRoom } from "../redux/checkoutSlice";
-import { useAppDispatch } from "../redux/hooks";
+import {computeDiscountedPrice, formatDateToYYYYMMDD, toTitleCase} from "../lib/utils.ts";
+import {setPromotionApplied, setRoom} from "../redux/checkoutSlice";
+import {useAppDispatch} from "../redux/hooks";
+import {setCurrentStep} from "../redux/stepperSlice.ts";
 
 interface RoomDetailsModalProps {
     room: Room;
-    onClose?: () => void;
-    onSelectRoom?: () => void;
 }
 
 
 const RoomDetailsModal = ({
-    room,
-    onClose,
-    onSelectRoom,
-}: RoomDetailsModalProps) => {
+                              room,
+                          }: RoomDetailsModalProps) => {
     const [specialDiscounts, setSpecialDiscounts] = useState<SpecialDiscount[]>(
         []
     );
     const [isLoading, setIsLoading] = useState(false);
-    const { tenantId } = useParams<{ tenantId: string }>();
+    const {tenantId} = useParams<{ tenantId: string }>();
 
     const [promoCode, setPromoCode] = useState("");
     const [promoOffer, setPromoOffer] = useState<PromoOffer | null>(null);
@@ -184,16 +175,9 @@ const RoomDetailsModal = ({
         packageData: SpecialDiscount | PromoOffer | StandardPackage
     ) => {
         navigate(`/${tenantId}/checkout`);
+        dispatch(setCurrentStep(2));
         dispatch(setPromotionApplied(packageData));
         dispatch(setRoom(room));
-
-        if (onSelectRoom) {
-            onSelectRoom();
-        }
-
-        if (onClose) {
-            onClose();
-        }
     };
 
     const guestText = `1-${room.maxCapacity} Guests`;
@@ -202,8 +186,8 @@ const RoomDetailsModal = ({
         room.singleBed > 0 && room.doubleBed > 0
             ? `${room.singleBed} Single & ${room.doubleBed} Double`
             : room.singleBed > 0
-            ? `${room.singleBed} Single Bed${room.singleBed > 1 ? "s" : ""}`
-            : `${room.doubleBed} Double Bed${room.doubleBed > 1 ? "s" : ""}`;
+                ? `${room.singleBed} Single Bed${room.singleBed > 1 ? "s" : ""}`
+                : `${room.doubleBed} Double Bed${room.doubleBed > 1 ? "s" : ""}`;
 
     // Format room size
     const roomSize = `${room.areaInSquareFeet} sqft`;
@@ -239,12 +223,12 @@ const RoomDetailsModal = ({
                     <div className="w-full lg:w-auto mb-6 lg:mb-0">
                         <div className="flex flex-wrap gap-3 text-gray-600 text-sm md:text-base">
                             <span className="flex items-center gap-2">
-                                <GoPerson />
+                                <GoPerson/>
                                 {guestText}
                             </span>
                             {showBedTypes && (
                                 <span className="flex items-center gap-2">
-                                    <MdOutlineBed />
+                                    <MdOutlineBed/>
                                     {bedText}
                                 </span>
                             )}
@@ -270,7 +254,7 @@ const RoomDetailsModal = ({
                                         key={index}
                                         className="flex justify-start items-center gap-2 font-normal text-sm md:text-base text-[#2F2F2F]"
                                     >
-                                        <FaRegCircleCheck className="text-primary flex-shrink-0" />{" "}
+                                        <FaRegCircleCheck className="text-primary flex-shrink-0"/>{" "}
                                         {amenity}
                                     </span>
                                 ))}

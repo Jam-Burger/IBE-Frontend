@@ -1,7 +1,7 @@
 import {FaCheck, FaChevronDown, FaFilter} from "react-icons/fa";
 import {useEffect, useState} from "react";
 import {FilterRow, RoomCard, RoomFilters, Stepper} from "../components";
-import {ConfigType, PaginationResponse, Room, SortOption, StateStatus} from "../types";
+import {ConfigType, PaginationResponse, Room, SortOption, StateStatus,} from "../types";
 import {api} from "../lib/api-client";
 import {useParams, useSearchParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "../redux/hooks.ts";
@@ -29,13 +29,15 @@ import {
 } from "../components/ui";
 import {syncWithUrl, updateFilter} from "../redux/filterSlice.ts";
 import {filterToSearchParams, searchParamsToFilter,} from "../lib/url-params.ts";
+import TripItinerary from "../components/TripItinerary.tsx";
+import {cn} from "../lib/utils.ts";
 
 const ITEMS_PER_PAGE = 3;
 
 const RoomsListPage = () => {
-    const [currentStep, setCurrentStep] = useState(0);
     const {tenantId} = useParams<{ tenantId: string }>();
     const dispatch = useAppDispatch();
+    const {currentStep} = useAppSelector((state) => state.stepper);
     const {roomsListConfig, status} = useAppSelector((state) => state.config);
     const [searchParams, setSearchParams] = useSearchParams();
     const filter = useAppSelector((state) => state.roomFilters.filter);
@@ -51,13 +53,15 @@ const RoomsListPage = () => {
         pageSize: ITEMS_PER_PAGE,
         totalPages: 0,
         hasNext: false,
-        hasPrevious: false
+        hasPrevious: false,
     });
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (roomsListConfig) {
-            dispatch(syncWithUrl(searchParamsToFilter(searchParams, roomsListConfig)));
+            dispatch(
+                syncWithUrl(searchParamsToFilter(searchParams, roomsListConfig))
+            );
         }
     }, [dispatch, searchParams, roomsListConfig]);
 
@@ -79,14 +83,14 @@ const RoomsListPage = () => {
 
     useEffect(() => {
         const fetchRooms = async () => {
-            if (tenantId) {
+            if (tenantId && searchParams.has("propertyId")) {
                 try {
                     const response = await api.getRooms(
                         tenantId,
                         Object.fromEntries(searchParams.entries()),
                         {
                             page: roomsData.currentPage,
-                            pageSize: ITEMS_PER_PAGE
+                            pageSize: ITEMS_PER_PAGE,
                         }
                     );
                     setRoomsData(response.data);
@@ -111,21 +115,6 @@ const RoomsListPage = () => {
             </div>
         );
     }
-    const stepsConfig = roomsListConfig.configData.steps;
-    const configuredSteps = stepsConfig.labels.map((label, index) => ({
-        id: index,
-        label,
-        completed: currentStep > index,
-    }));
-
-    // const stepsEnabled = stepsConfig.enabled !== false;
-    // const stepLabels = stepsConfig.labels;
-
-    // const handleStepClick = (step: number) => {
-    //     if (step < currentStep) {
-    //         setCurrentStep(step);
-    //     }
-    // };
 
     if (loading) {
         return (
@@ -150,16 +139,11 @@ const RoomsListPage = () => {
         dispatch(updateFilter({sortBy: sortOption}));
     };
 
-    const handleRoomSelection = () => {
-        setCurrentStep(0);
-    };
-
-    const handlePackageSelection = () => {
-        setCurrentStep(2);
-    };
-
     const handlePageChange = (page: number) => {
-        setRoomsData((prev: PaginationResponse<Room>) => ({...prev, currentPage: page}));
+        setRoomsData((prev: PaginationResponse<Room>) => ({
+            ...prev,
+            currentPage: page,
+        }));
     };
 
     return (
@@ -168,17 +152,8 @@ const RoomsListPage = () => {
                 className="w-full bg-[#858685] h-48 flex-shrink-0"
                 style={bannerStyle}
             />
-            {stepsConfig.enabled !== false && (
-                <Stepper
-                    steps={configuredSteps}
-                    currentStep={currentStep}
-                    onStepClick={(step) => {
-                        if (step < currentStep) {
-                            setCurrentStep(step);
-                        }
-                    }}
-                />
-            )}
+
+            <Stepper/>
 
             {searchForm && (
                 <FilterRow
@@ -193,7 +168,7 @@ const RoomsListPage = () => {
 
             {/* Scrollable content area with sticky filter */}
             <div className="container mx-auto flex-grow overflow-hidden">
-                <div className="flex flex-col mt-6 lg:flex-row h-full px-6 lg:px-0">
+                <div className="flex flex-col md:flex-row mt-6 h-full px-6 lg:px-0 gap-4">
                     {/* Desktop filter sidebar - hidden on mobile */}
                     <div className="hidden lg:block lg:w-[293px] lg:sticky lg:top-0 self-start h-fit flex-shrink-0">
                         <RoomFilters/>
@@ -210,9 +185,14 @@ const RoomsListPage = () => {
                                     <FaFilter className="h-5 w-5 text-white"/>
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-[80vw] sm:w-[350px] p-0">
+                            <SheetContent
+                                side="right"
+                                className="w-[80vw] sm:w-[350px] p-0"
+                            >
                                 <SheetHeader className="p-4">
-                                    <SheetTitle className="text-primary">Filters</SheetTitle>
+                                    <SheetTitle className="text-primary">
+                                        Filters
+                                    </SheetTitle>
                                 </SheetHeader>
                                 <div className="px-4">
                                     <RoomFilters/>
@@ -222,13 +202,20 @@ const RoomsListPage = () => {
                     </div>
 
                     {/* Scrollable room results */}
-                    <div className="flex-1 lg:ml-16 overflow-y-auto pb-6 pr-4">
+                    <div className="flex-1 overflow-y-auto pb-6 pr-4">
                         <div
                             className="flex justify-between items-center mb-4 lg:sticky lg:top-0 bg-white lg:z-10 py-3">
                             <h2 className="text-xl font-bold">Room Results</h2>
                             <div className="flex items-center text-sm font-[600]">
                                 <span className="mr-6 border-r border-gray-300 pr-6">
-                                    {`Showing ${(roomsData.currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(roomsData.currentPage * ITEMS_PER_PAGE, roomsData.total)} of ${roomsData.total} results`}
+                                    {`Showing ${
+                                        (roomsData.currentPage - 1) *
+                                        ITEMS_PER_PAGE +
+                                        1
+                                    }-${Math.min(
+                                        roomsData.currentPage * ITEMS_PER_PAGE,
+                                        roomsData.total
+                                    )} of ${roomsData.total} results`}
                                 </span>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger className="flex items-center">
@@ -277,35 +264,53 @@ const RoomsListPage = () => {
                         </div>
 
                         <div
-                            className="grid w-fit justify-self-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8 px-2 justify-center items-start">
+                            className={cn("grid w-fit justify-self-center gap-4 pb-8 px-2 justify-center items-start",
+                                currentStep === 1 ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")
+                            }>
                             {roomsData.items.length > 0 ? (
                                 roomsData.items.map((room: Room) => {
                                     // Find the room with minimum average price
-                                    const minPriceRoom = roomsData.items.reduce((min, current) =>
-                                        current.roomRates.reduce((minRate, currentRate) =>
-                                                currentRate.price < minRate.price ? currentRate : minRate,
-                                            current.roomRates[0]
-                                        ).price < min.roomRates.reduce((minRate, currentRate) =>
-                                                currentRate.price < minRate.price ? currentRate : minRate,
-                                            min.roomRates[0]
-                                        ).price ? current : min
+                                    const minPriceRoom = roomsData.items.reduce(
+                                        (min, current) =>
+                                            current.roomRates.reduce(
+                                                (minRate, currentRate) =>
+                                                    currentRate.price <
+                                                    minRate.price
+                                                        ? currentRate
+                                                        : minRate,
+                                                current.roomRates[0]
+                                            ).price <
+                                            min.roomRates.reduce(
+                                                (minRate, currentRate) =>
+                                                    currentRate.price <
+                                                    minRate.price
+                                                        ? currentRate
+                                                        : minRate,
+                                                min.roomRates[0]
+                                            ).price
+                                                ? current
+                                                : min
                                     );
 
                                     // Add special deal only to the room with minimum price
                                     const roomWithDeal = {
                                         ...room,
-                                        specialDeal: room.roomTypeId === minPriceRoom.roomTypeId ? {
-                                            discount: 10,
-                                            minNights: 3
-                                        } : undefined
+                                        specialDeal:
+                                            room.roomTypeId ===
+                                            minPriceRoom.roomTypeId
+                                                ? {
+                                                    discount: 10,
+                                                    minNights: 3,
+                                                }
+                                                : undefined,
                                     };
 
-                                    return <RoomCard
-                                        key={roomWithDeal.roomTypeId}
-                                        room={roomWithDeal}
-                                        onSelectRoom={handleRoomSelection}
-                                        onSelectPackage={handlePackageSelection}
-                                    />
+                                    return (
+                                        <RoomCard
+                                            key={roomWithDeal.roomTypeId}
+                                            room={roomWithDeal}
+                                        />
+                                    );
                                 })
                             ) : (
                                 <div className="col-span-3 text-center py-8">
@@ -321,16 +326,33 @@ const RoomsListPage = () => {
                                     <PaginationContent>
                                         <PaginationItem>
                                             <PaginationPrevious
-                                                onClick={() => handlePageChange(roomsData.currentPage - 1)}
-                                                className={!roomsData.hasPrevious ? "pointer-events-none opacity-50" : ""}
+                                                onClick={() =>
+                                                    handlePageChange(
+                                                        roomsData.currentPage -
+                                                        1
+                                                    )
+                                                }
+                                                className={
+                                                    !roomsData.hasPrevious
+                                                        ? "pointer-events-none opacity-50"
+                                                        : ""
+                                                }
                                             />
                                         </PaginationItem>
 
-                                        {Array.from({length: roomsData.totalPages}, (_, i) => i + 1).map((page) => (
+                                        {Array.from(
+                                            {length: roomsData.totalPages},
+                                            (_, i) => i + 1
+                                        ).map((page) => (
                                             <PaginationItem key={page}>
                                                 <PaginationLink
-                                                    onClick={() => handlePageChange(page)}
-                                                    isActive={page === roomsData.currentPage}
+                                                    onClick={() =>
+                                                        handlePageChange(page)
+                                                    }
+                                                    isActive={
+                                                        page ===
+                                                        roomsData.currentPage
+                                                    }
                                                 >
                                                     {page}
                                                 </PaginationLink>
@@ -339,8 +361,17 @@ const RoomsListPage = () => {
 
                                         <PaginationItem>
                                             <PaginationNext
-                                                onClick={() => handlePageChange(roomsData.currentPage + 1)}
-                                                className={!roomsData.hasNext ? "pointer-events-none opacity-50" : ""}
+                                                onClick={() =>
+                                                    handlePageChange(
+                                                        roomsData.currentPage +
+                                                        1
+                                                    )
+                                                }
+                                                className={
+                                                    !roomsData.hasNext
+                                                        ? "pointer-events-none opacity-50"
+                                                        : ""
+                                                }
                                             />
                                         </PaginationItem>
                                     </PaginationContent>
@@ -348,10 +379,13 @@ const RoomsListPage = () => {
                             </div>
                         )}
                     </div>
+
+                    {currentStep === 1 && (
+                        <TripItinerary/>
+                    )}
+
                 </div>
             </div>
-
-
         </div>
     );
 };

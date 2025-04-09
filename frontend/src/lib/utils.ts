@@ -1,14 +1,8 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { DateRange } from "react-day-picker";
-import {
-    SerializableDateRange,
-    Room,
-    SpecialDiscount,
-    PromoOffer,
-    RoomRate,
-} from "../types";
-import { parseISO, isWithinInterval } from "date-fns";
+import {type ClassValue, clsx} from "clsx";
+import {twMerge} from "tailwind-merge";
+import {DateRange} from "react-day-picker";
+import {PromoOffer, Room, RoomRate, SerializableDateRange, SpecialDiscount,} from "../types";
+import {isWithinInterval, parseISO} from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -18,15 +12,15 @@ export function generateSummeryText(
     guestCounts: Record<string, number>
 ): string {
     const guestTypeMap: Record<string, { singular: string; plural: string }> = {
-        Adults: { singular: "Adult", plural: "Adults" },
-        Children: { singular: "Child", plural: "Children" },
+        Adults: {singular: "Adult", plural: "Adults"},
+        Children: {singular: "Child", plural: "Children"},
         "Senior Citizens": {
             singular: "Senior Citizen",
             plural: "Senior Citizens",
         },
-        Teens: { singular: "Teen", plural: "Teens" },
-        Kids: { singular: "Kid", plural: "Kids" },
-        Infants: { singular: "Infant", plural: "Infants" },
+        Teens: {singular: "Teen", plural: "Teens"},
+        Kids: {singular: "Kid", plural: "Kids"},
+        Infants: {singular: "Infant", plural: "Infants"},
     };
 
     return Object.entries(guestCounts)
