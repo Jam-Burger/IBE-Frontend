@@ -27,6 +27,7 @@ describe('OTPModal', () => {
                     isOpen={true}
                     onClose={vi.fn()}
                     email="test@example.com"
+                    purpose="booking"
                     onSuccess={() => {
                     }}
                 />
@@ -45,6 +46,7 @@ describe('OTPModal', () => {
                     isOpen={false}
                     onClose={vi.fn()}
                     email="test@example.com"
+                    purpose="booking"
                     onSuccess={() => {
                     }}
                 />
@@ -63,6 +65,7 @@ describe('OTPModal', () => {
                     isOpen={true}
                     onClose={onCloseMock}
                     email="test@example.com"
+                    purpose="booking"
                     onSuccess={() => {
                     }}
                 />
@@ -83,6 +86,7 @@ describe('OTPModal', () => {
                     isOpen={true}
                     onClose={vi.fn()}
                     email="test@example.com"
+                    purpose="booking"
                     onSuccess={() => {
                     }}
                 />

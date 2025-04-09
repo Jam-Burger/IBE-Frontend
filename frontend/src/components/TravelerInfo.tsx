@@ -97,7 +97,7 @@ const TravelerInfo: React.FC<TravelerInfoProps> = ({
                     }
                 }}
             >
-                {({errors, touched, handleSubmit, setFieldValue, values, isValid, dirty}) => {
+                {({errors, touched, handleSubmit, setFieldValue, values}) => {
                     // Group fields by their position
                     const firstNameField = fields.find(f => f.name === 'travelerFirstName');
                     const lastNameField = fields.find(f => f.name === 'travelerLastName');
