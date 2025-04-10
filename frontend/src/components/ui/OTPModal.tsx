@@ -86,7 +86,8 @@ const OTPModal: React.FC<OTPModalProps> = ({
 
                 <div>
                     <h2 className="w-full text-[#000000] font-bold text-[24px] leading-[140%] tracking-normal">
-                        Enter OTP for cancelling the room booking
+                        {purpose === "cancellation" ? "Enter OTP for cancelling the room booking" :
+                            "Enter OTP for booking the room"}
                     </h2>
 
                     <p className="text-gray-600 mt-2 text-sm">
