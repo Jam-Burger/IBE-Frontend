@@ -90,7 +90,10 @@ const OTPModal: React.FC<OTPModalProps> = ({
                     </h2>
 
                     <p className="text-gray-600 mt-2 text-sm">
-                        An OTP has been sent to <strong>{email}</strong>. Please enter it below to confirm cancellation.
+                        An OTP has been sent
+                        to <strong>{email}</strong>. {purpose === "cancellation" ?
+                        "Please enter it below to confirm cancellation."
+                        : " Please enter it below to confirm booking."}
                     </p>
 
                     <input
