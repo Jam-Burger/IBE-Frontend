@@ -1,24 +1,28 @@
 import {combineReducers, configureStore} from '@reduxjs/toolkit';
-import currencyReducer, {fetchExchangeRates} from "./currencySlice";
+import currencyReducer from "./currencySlice";
 import configReducer from "./configSlice";
 import roomRatesReducer from "./roomRatesSlice";
 import languageReducer from "./languageSlice";
 import filterReducer from "./filterSlice";
+import checkoutReducer from "./checkoutSlice";
+import stepperReducer from "./stepperSlice";
+import storage from "redux-persist/lib/storage";
 import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE} from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
 
 const rootReducer = combineReducers({
     config: configReducer,
     language: languageReducer,
     currency: currencyReducer,
     roomRates: roomRatesReducer,
-    roomFilters: filterReducer
+    roomFilters: filterReducer,
+    checkout: checkoutReducer,
+    stepper: stepperReducer
 });
 
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['language', 'currency', 'config', "roomFilters"]
+    whitelist: ["language", "currency", "config", "roomFilters", "checkout", "stepper"]
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -33,12 +37,7 @@ const store = configureStore({
         }),
 });
 
-export const persistor = persistStore(store, {}, () => {
-    const state = store.getState();
-    if (state.currency.selectedCurrency?.code !== 'USD') {
-        store.dispatch(fetchExchangeRates());
-    }
-});
+export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

@@ -1,8 +1,11 @@
 export const Routes = {
     ROOT: "/",
     HOME: "/:tenantId",
-    LOGIN: "/:tenantId/login",
-    DEMO: "/:tenantId/demo",
     ROOMS_LIST: "/:tenantId/rooms-list",
+    AUTH_CALLBACK: "/auth/callback",
+    AUTH_LOGOUT: "/auth/logout",
+    CHECKOUT: "/:tenantId/checkout",
+    CONFIRMATION: "/:tenantId/confirmation/:bookingId",
+    REVIEW: "/:tenantId/review/:bookingId",
     NOT_FOUND: "*",
 } as const;

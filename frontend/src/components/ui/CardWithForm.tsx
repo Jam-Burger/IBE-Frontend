@@ -20,6 +20,7 @@ import {PulseLoader} from "react-spinners";
 import {FaWheelchair} from "react-icons/fa";
 import {useNavigate, useParams} from 'react-router-dom';
 import {updateFilter} from "../../redux/filterSlice.ts";
+import {setCurrentStep} from "../../redux/stepperSlice.ts";
 
 interface Property {
     propertyId: number;
@@ -63,7 +64,7 @@ const CardWithForm = () => {
                 return;
             }
             const propertiesData = await api.getProperties(tenantId);
-            setProperties(propertiesData);
+            setProperties(propertiesData.data);
         } catch (err) {
             console.error("Error fetching properties:", err);
         } finally {
@@ -100,6 +101,7 @@ const CardWithForm = () => {
 
     const handleSearch = () => {
         navigate(`/${tenantId}/rooms-list`);
+        dispatch(setCurrentStep(0));
     };
 
     if (loading || configLoading) {

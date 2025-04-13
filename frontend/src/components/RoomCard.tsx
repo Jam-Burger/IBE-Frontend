@@ -17,27 +17,16 @@ interface RoomCardProps {
             minNights: number;
         };
     };
-    onSelectRoom?: () => void;
-    onSelectPackage?: () => void;
 }
 
-const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
+const RoomCard = ({room}: RoomCardProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const {selectedCurrency, multiplier} = useAppSelector(
         (state) => state.currency
     );
-    const handleRoomSelect = () => {
-        if (onSelectRoom) {
-            onSelectRoom();
-        }
-        setIsModalOpen(true);
-    };
 
-    const handlePackageSelect = () => {
-        if (onSelectPackage) {
-            onSelectPackage();
-        }
-        setIsModalOpen(false);
+    const handleRoomSelect = () => {
+        setIsModalOpen(true);
     };
 
     return (
@@ -134,7 +123,7 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                         <span className="text-xl font-bold">
                             {convertToLocaleCurrency(
                                 selectedCurrency.symbol,
-                                room.averagePrice,
+                                room.roomRates.reduce((acc, rate) => acc + rate.price, 0) / room.roomRates.length,
                                 multiplier,
                                 false
                             )}
@@ -154,7 +143,6 @@ const RoomCard = ({room, onSelectRoom, onSelectPackage}: RoomCardProps) => {
                     room={room}
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    onSelectRoom={handlePackageSelect}
                 />
             )}
         </div>

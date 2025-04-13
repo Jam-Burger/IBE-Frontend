@@ -3,38 +3,28 @@ import {GoPerson} from "react-icons/go";
 import {MdOutlineBed} from "react-icons/md";
 import {FaRegCircleCheck} from "react-icons/fa6";
 import ImageCarousel from "./ui/ImageCarousel";
-import {Room} from "../types";
+import {PackageData, PromoOffer, Room, SpecialDiscount, StandardPackage,} from "../types";
 import {useEffect, useState} from "react";
 import {api} from "../lib/api-client";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useAppSelector} from "../redux/hooks.ts";
-import toast from 'react-hot-toast';
-import {toTitleCase} from "../lib/utils.ts";
+import toast from "react-hot-toast";
+import {computeDiscountedPrice, formatDateToYYYYMMDD, toTitleCase} from "../lib/utils.ts";
+import {setPromotionApplied, setRoom} from "../redux/checkoutSlice";
+import {useAppDispatch} from "../redux/hooks";
+import {setCurrentStep} from "../redux/stepperSlice.ts";
 
 interface RoomDetailsModalProps {
     room: Room;
-    onClose?: () => void;
-    onSelectRoom?: () => void;
 }
 
-interface SpecialDiscount {
-    title: string;
-    description: string;
-    property_id: number;
-    start_date: string;
-    end_date: string;
-    discount_percentage: number;
-}
 
-interface PromoOffer {
-    title: string;
-    description: string;
-    discount_percentage: number;
-    promo_code: string;
-}
-
-const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) => {
-    const [specialDiscounts, setSpecialDiscounts] = useState<SpecialDiscount[]>([]);
+const RoomDetailsModal = ({
+                              room,
+                          }: RoomDetailsModalProps) => {
+    const [specialDiscounts, setSpecialDiscounts] = useState<SpecialDiscount[]>(
+        []
+    );
     const [isLoading, setIsLoading] = useState(false);
     const {tenantId} = useParams<{ tenantId: string }>();
 
@@ -44,12 +34,34 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
     const [promoError, setPromoError] = useState("");
     const [appliedPromoCode, setAppliedPromoCode] = useState("");
 
-    const dateRange = useAppSelector(state => state.roomFilters.filter.dateRange);
+    const dateRange = useAppSelector(
+        (state) => state.roomFilters.filter.dateRange
+    );
+    const roomsListConfig = useAppSelector(
+        (state) => state.config.roomsListConfig
+    );
 
-    const standardPackage = {
+    // Check if various features are enabled based on existing config
+    const showAmenities =
+        roomsListConfig?.configData.filters.filterGroups.amenities.enabled;
+    const amenitiesLabel =
+        roomsListConfig?.configData.filters.filterGroups.amenities.label;
+    const showRoomSize =
+        roomsListConfig?.configData.filters.filterGroups.roomSize.enabled;
+    const showBedTypes =
+        roomsListConfig?.configData.filters.filterGroups.bedTypes.enabled;
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+
+    const standardPackage: StandardPackage = {
         title: "Standard Rate",
-        description: "Our standard room rate with all basic amenities included.",
-        price: room.averagePrice,
+        description:
+            "Our standard room rate with all basic amenities included.",
+        price:
+            room.roomRates.reduce(
+                (sum: number, rate: any) => sum + rate.price,
+                0
+            ) / room.roomRates.length,
     };
 
     useEffect(() => {
@@ -62,25 +74,32 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                 let formattedStartDate, formattedEndDate;
 
                 if (dateRange && dateRange.from && dateRange.to) {
-                    // Date strings are already in ISO format, just take the date part
-                    formattedStartDate = dateRange.from.split('T')[0];
-                    formattedEndDate = dateRange.to.split('T')[0];
+                    formattedStartDate = dateRange.from;
+                    formattedEndDate = dateRange.to;
                 } else {
                     // Fallback to default dates if no selection
                     const today = new Date();
-                    const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-                    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5);
+                    const startDate = new Date(
+                        today.getFullYear(),
+                        today.getMonth(),
+                        today.getDate() + 1
+                    );
+                    const endDate = new Date(
+                        today.getFullYear(),
+                        today.getMonth(),
+                        today.getDate() + 5
+                    );
 
-                    formattedStartDate = startDate.toISOString().split('T')[0];
-                    formattedEndDate = endDate.toISOString().split('T')[0];
+                    formattedStartDate = formatDateToYYYYMMDD(startDate);
+                    formattedEndDate = formatDateToYYYYMMDD(endDate);
                 }
 
                 // Use the API client's getSpecialDiscounts method
                 const response = await api.getSpecialDiscounts({
-                    tenantId: tenantId || '',
+                    tenantId: tenantId || "",
                     propertyId: room.propertyId,
                     startDate: formattedStartDate,
-                    endDate: formattedEndDate
+                    endDate: formattedEndDate,
                 });
 
                 if (response?.data) {
@@ -114,39 +133,29 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
         setPromoError("");
 
         try {
-            // Get date range for API call
-            let formattedStartDate, formattedEndDate;
-
-            if (dateRange && dateRange.from && dateRange.to) {
-                formattedStartDate = dateRange.from.split('T')[0];
-                formattedEndDate = dateRange.to.split('T')[0];
-            } else {
-                // Fallback to default dates if no selection
-                const today = new Date();
-                const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-                const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5);
-
-                formattedStartDate = startDate.toISOString().split('T')[0];
-                formattedEndDate = endDate.toISOString().split('T')[0];
+            if (!dateRange?.from || !dateRange?.to) {
+                toast.error("Please select a date range");
+                setPromoError("Please select a date range");
+                return;
             }
 
             // Use the API client instead of fetch
             const response = await api.getPromoOffer({
                 tenantId: tenantId,
                 propertyId: room.propertyId,
-                startDate: formattedStartDate,
-                endDate: formattedEndDate,
-                promoCode: promoCode
+                startDate: dateRange?.from,
+                endDate: dateRange?.to,
+                promoCode: promoCode,
             });
 
             if (response?.data) {
                 setPromoOffer(response.data);
                 setPromoError("");
-                // Store the applied promo code in the separate state
                 setAppliedPromoCode(promoCode);
-                // Clear the input field
                 setPromoCode("");
-                toast.success(`Promo code "${promoCode}" applied successfully!`);
+                toast.success(
+                    `Promo code "${promoCode}" applied successfully!`
+                );
             } else {
                 setPromoError("Invalid promo code");
                 setPromoOffer(null);
@@ -162,51 +171,26 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
         }
     };
 
-    const handleSelectPackage = (packageTitle: string) => {
-        if (packageTitle) {
-            // Handle package selection logic here
-        }
-
-        if (onSelectRoom) {
-            onSelectRoom();
-        }
-
-        if (onClose) {
-            onClose();
-        }
+    const handleSelectPackage = (
+        packageData: SpecialDiscount | PromoOffer | StandardPackage
+    ) => {
+        navigate(`/${tenantId}/checkout`);
+        dispatch(setCurrentStep(2));
+        dispatch(setPromotionApplied(packageData));
+        dispatch(setRoom(room));
     };
 
     const guestText = `1-${room.maxCapacity} Guests`;
 
-    const bedText = room.singleBed > 0 && room.doubleBed > 0
-        ? `${room.singleBed} Single & ${room.doubleBed} Double`
-        : room.singleBed > 0
-            ? `${room.singleBed} Single Bed${room.singleBed > 1 ? 's' : ''}`
-            : `${room.doubleBed} Double Bed${room.doubleBed > 1 ? 's' : ''}`;
+    const bedText =
+        room.singleBed > 0 && room.doubleBed > 0
+            ? `${room.singleBed} Single & ${room.doubleBed} Double`
+            : room.singleBed > 0
+                ? `${room.singleBed} Single Bed${room.singleBed > 1 ? "s" : ""}`
+                : `${room.doubleBed} Double Bed${room.doubleBed > 1 ? "s" : ""}`;
 
     // Format room size
     const roomSize = `${room.areaInSquareFeet} sqft`;
-
-    const getDiscountedPackages = () => {
-        return specialDiscounts.map(discount => ({
-            title: discount.title,
-            description: discount.description,
-            price: Math.round(standardPackage.price * (1 - discount.discount_percentage / 100))
-        }));
-    };
-
-    const getPromoPackage = () => {
-        if (!promoOffer) return null;
-
-        return {
-            title: promoOffer.title,
-            description: promoOffer.description,
-            price: Math.round(standardPackage.price * (1 - promoOffer.discount_percentage / 100))
-        };
-    };
-
-    const promoPackage = getPromoPackage();
-    const discountedPackages = getDiscountedPackages();
 
     // Add a function to remove the promo offer with toast notification
     const removePromoOffer = () => {
@@ -238,9 +222,17 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                 <div className="flex flex-col lg:flex-row justify-between items-start text-sm">
                     <div className="w-full lg:w-auto mb-6 lg:mb-0">
                         <div className="flex flex-wrap gap-3 text-gray-600 text-sm md:text-base">
-                            <span className="flex items-center gap-2"><GoPerson/>{guestText}</span>
-                            <span className="flex items-center gap-2"><MdOutlineBed/>{bedText}</span>
-                            <span>{roomSize}</span>
+                            <span className="flex items-center gap-2">
+                                <GoPerson/>
+                                {guestText}
+                            </span>
+                            {showBedTypes && (
+                                <span className="flex items-center gap-2">
+                                    <MdOutlineBed/>
+                                    {bedText}
+                                </span>
+                            )}
+                            {showRoomSize && <span>{roomSize}</span>}
                         </div>
 
                         {/* Description */}
@@ -250,37 +242,54 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                     </div>
 
                     {/* Amenities section */}
-                    <div className="w-full lg:w-auto mt-4 lg:mt-0">
-                        <h2 className="text-base md:text-lg font-medium text-black mb-2">
-                            Amenities
-                        </h2>
+                    {showAmenities && (
+                        <div className="w-full lg:w-auto mt-4 lg:mt-0">
+                            <h2 className="text-base md:text-lg font-medium text-black mb-2">
+                                {amenitiesLabel}
+                            </h2>
 
-                        <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                            {room.amenities.map((amenity, index) => (
-                                <span key={index}
-                                      className="flex justify-start items-center gap-2 font-normal text-sm md:text-base text-[#2F2F2F]">
-                                    <FaRegCircleCheck className="text-primary flex-shrink-0"/> {amenity}
-                                </span>
-                            ))}
+                            <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                {room.amenities.map((amenity, index) => (
+                                    <span
+                                        key={index}
+                                        className="flex justify-start items-center gap-2 font-normal text-sm md:text-base text-[#2F2F2F]"
+                                    >
+                                        <FaRegCircleCheck className="text-primary flex-shrink-0"/>{" "}
+                                        {amenity}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Pricing & Packages */}
                 <div className="mt-6 md:mt-8">
-                    <h2 className="text-lg md:text-xl font-bold">Standard Rate</h2>
+                    <h2 className="text-lg md:text-xl font-bold">
+                        Standard Rate
+                    </h2>
                     <PackageCard
                         packageData={standardPackage}
-                        onSelectPackage={() => handleSelectPackage(standardPackage.title)}
+                        onSelectPackage={() =>
+                            handleSelectPackage(standardPackage)
+                        }
                     />
 
                     {/* Promo Package if available */}
-                    {promoPackage && (
+                    {promoOffer && (
                         <>
-                            <h2 className="text-lg md:text-xl font-bold mt-6">Promo Offer</h2>
+                            <h2 className="text-lg md:text-xl font-bold mt-6">
+                                Promo Offer
+                            </h2>
                             <PackageCard
-                                packageData={promoPackage}
-                                onSelectPackage={() => handleSelectPackage(promoPackage.title)}
+                                packageData={{
+                                    title: promoOffer.title,
+                                    description: promoOffer.description,
+                                    price: computeDiscountedPrice(promoOffer, room.roomRates),
+                                }}
+                                onSelectPackage={() =>
+                                    handleSelectPackage(promoOffer)
+                                }
                                 onRemove={removePromoOffer}
                                 promoCode={appliedPromoCode}
                             />
@@ -288,34 +297,52 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                     )}
 
                     {/* Regular Deals & Packages */}
-                    {discountedPackages.length > 0 && (
+                    {specialDiscounts.length > 0 && (
                         <>
-                            <h2 className="text-lg md:text-xl font-bold mt-6">Deals & Packages</h2>
+                            <h2 className="text-lg md:text-xl font-bold mt-6">
+                                Deals & Packages
+                            </h2>
                             {isLoading ? (
-                                <p className="text-gray-500 mt-2">Loading available deals...</p>
+                                <p className="text-gray-500 mt-2">
+                                    Loading available deals...
+                                </p>
                             ) : (
-                                discountedPackages.map((pkg, index) => (
-                                    <PackageCard
-                                        key={index}
-                                        packageData={{
-                                            title: pkg.title,
-                                            description: pkg.description,
-                                            price: pkg.price
-                                        }}
-                                        onSelectPackage={() => handleSelectPackage(pkg.title)}
-                                    />
-                                ))
+                                specialDiscounts.map((pkg, index) => {
+                                    const packageData: PackageData = {
+                                        title: pkg.title,
+                                        description: pkg.description,
+                                        price: computeDiscountedPrice(
+                                            pkg,
+                                            room.roomRates
+                                        ),
+                                    };
+                                    return (
+                                        <PackageCard
+                                            key={index}
+                                            packageData={packageData}
+                                            onSelectPackage={() =>
+                                                handleSelectPackage(pkg)
+                                            }
+                                        />
+                                    );
+                                })
                             )}
                         </>
                     )}
 
                     {/* Promo Code Input */}
                     <div className="mt-6">
-                        <label className="text-gray-700 text-sm block mb-2">Enter a promo code</label>
+                        <label className="text-gray-700 text-sm block mb-2">
+                            Enter a promo code
+                        </label>
                         <div className="flex flex-row gap-2 justify-self-start">
                             <input
                                 type="text"
-                                className={`border ${promoError ? 'border-red-500' : 'border-gray-400'} p-2 rounded text-sm w-[200px]`}
+                                className={`border ${
+                                    promoError
+                                        ? "border-red-500"
+                                        : "border-gray-400"
+                                } p-2 rounded text-sm w-[200px]`}
                                 value={promoCode}
                                 onChange={(e) => setPromoCode(e.target.value)}
                                 placeholder="Enter promo code"
@@ -324,7 +351,9 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                             <button
                                 className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm h-[48px] disabled:opacity-50 disabled:cursor-not-allowed w-[65px]"
                                 onClick={validatePromoCode}
-                                disabled={isValidatingPromo || promoOffer !== null}
+                                disabled={
+                                    isValidatingPromo || promoOffer !== null
+                                }
                             >
                                 <span>
                                     {isValidatingPromo ? "..." : "APPLY"}
@@ -332,7 +361,9 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
                             </button>
                         </div>
                         {promoError && (
-                            <p className="text-red-500 text-xs mt-1">{promoError}</p>
+                            <p className="text-red-500 text-xs mt-1">
+                                {promoError}
+                            </p>
                         )}
                     </div>
                 </div>
@@ -342,4 +373,3 @@ const RoomDetailsModal = ({room, onClose, onSelectRoom}: RoomDetailsModalProps) 
 };
 
 export default RoomDetailsModal;
-

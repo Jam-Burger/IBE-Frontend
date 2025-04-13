@@ -10,7 +10,10 @@ export interface Room {
     numberOfReviews: number;
     landmark: string;
     description: string;
-    averagePrice: number;
+    roomRates: {
+        date: string;
+        price: number;
+    }[];
     amenities: string[];
     images: string[];
 }

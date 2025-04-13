@@ -1,17 +1,25 @@
-import {createHashRouter, Navigate} from "react-router-dom";
+import {createBrowserRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
-import {HomePage, LoginPage, NotFoundPage, RoomsListPage} from "../pages";
+import {CheckoutPage, HomePage, NotFoundPage, RoomsListPage} from "../pages";
 import {Routes} from "./routes";
+import {AuthCallback} from "../components/auth/AuthCallback";
+import ConfirmationPage from "../pages/ConfirmationPage";
+import ReviewPage from "../pages/ReviewPage";
 
 const DEFAULT_TENANT_ID = import.meta.env.VITE_TENANT_ID;
-export const Router = createHashRouter([
+
+export const Router = createBrowserRouter([
     {
         path: Routes.ROOT,
         element: <Navigate to={`/${DEFAULT_TENANT_ID}`} replace/>
     },
     {
-        path: Routes.LOGIN,
-        element: <LoginPage/>,
+        path: Routes.AUTH_CALLBACK,
+        element: <AuthCallback/>,
+    },
+    {
+        path: Routes.AUTH_LOGOUT,
+        element: <Navigate to="/" replace/>,
     },
     {
         path: Routes.HOME,
@@ -25,6 +33,27 @@ export const Router = createHashRouter([
         element: <AppLayout/>,
         children: [
             {index: true, element: <RoomsListPage/>},
+        ],
+    },
+    {
+        path: Routes.CHECKOUT,
+        element: <AppLayout/>,
+        children: [
+            {index: true, element: <CheckoutPage/>},
+        ],
+    },
+    {
+        path: Routes.CONFIRMATION,
+        element: <AppLayout/>,
+        children: [
+            {index: true, element: <ConfirmationPage/>},
+        ],
+    },
+    {
+        path: Routes.REVIEW,
+        element: <AppLayout/>,
+        children: [
+            {index: true, element: <ReviewPage/>},
         ],
     },
     {
