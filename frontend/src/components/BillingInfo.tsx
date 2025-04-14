@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ErrorMessage, Field, Form, Formik} from 'formik';
 import * as Yup from 'yup';
 import {CheckoutField} from '../types';
@@ -7,6 +7,7 @@ import {AppDispatch, RootState} from '../redux/store';
 import {updateFormData} from '../redux/checkoutSlice';
 import {api} from '../lib/api-client';
 import {Button} from "./ui";
+import {useAuth} from "react-oidc-context";
 
 interface BillingInfoProps {
     onNext: (section: number) => void;
@@ -43,6 +44,7 @@ interface City {
 
 const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fields}) => {
     const dispatch = useDispatch<AppDispatch>();
+    const auth = useAuth();
     const formValues = useSelector((state: RootState) => state.checkout.formData);
 
     // State for countries and states
@@ -203,18 +205,20 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
     });
 
     // Create initial values from Redux store or defaults
-    const initialValues: BillingFormValues = {
-        billingFirstName: formValues.billingFirstName?.toString() || '',
-        billingLastName: formValues.billingLastName?.toString() || '',
-        billingAddress1: formValues.billingAddress1?.toString() || '',
-        billingAddress2: formValues.billingAddress2?.toString() || '',
-        billingCountry: formValues.billingCountry?.toString() || '',
-        billingState: formValues.billingState?.toString() || '',
-        billingZip: formValues.billingZip?.toString() || '',
-        billingPhone: formValues.billingPhone?.toString() || '',
-        billingEmail: formValues.billingEmail?.toString() || '',
-        billingCity: formValues.billingCity?.toString() || '',
-    };
+    const initialValues: BillingFormValues = useMemo(() => {
+        return {
+            billingFirstName: formValues.billingFirstName?.toString() || '',
+            billingLastName: formValues.billingLastName?.toString() || '',
+            billingAddress1: formValues.billingAddress1?.toString() || '',
+            billingAddress2: formValues.billingAddress2?.toString() || '',
+            billingCountry: formValues.billingCountry?.toString() || '',
+            billingState: formValues.billingState?.toString() || '',
+            billingZip: formValues.billingZip?.toString() || '',
+            billingPhone: formValues.billingPhone?.toString() || '',
+            billingEmail: formValues.billingEmail?.toString() || '',
+            billingCity: formValues.billingCity?.toString() || '',
+        }
+    }, [formValues]);
 
     return (
         <div className="min-w-[680px] py-4">
@@ -556,7 +560,8 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
                                         type={emailField.type}
                                         name="billingEmail"
                                         value={values.billingEmail}
-                                        className={`border border-[#CCCCCC] p-2 rounded w-full md:w-[340px] h-[48px] ${errors.billingEmail && touched.billingEmail ? 'border-red-500' : ''}`}
+                                        disabled={!!auth.user?.profile.email}
+                                        className={`border border-[#CCCCCC] disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed p-2 rounded w-full md:w-[340px] h-[48px] ${errors.billingEmail && touched.billingEmail ? 'border-red-500' : ''}`}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                             const value = e.target.value;
                                             setFieldValue('billingEmail', value);

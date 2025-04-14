@@ -1,17 +1,23 @@
 import React, {useEffect} from 'react';
 import {useAuth} from 'react-oidc-context';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
+import {PulseLoader} from "react-spinners";
+import {updateFormData} from "../../redux/checkoutSlice.ts";
+import {useDispatch} from "react-redux";
 
 export const AuthCallback: React.FC = () => {
     const auth = useAuth();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const params = useSearchParams();
 
     useEffect(() => {
         const handleCallback = async () => {
             try {
-                // The react-oidc-context library handles the callback automatically
-                // We just need to navigate once authentication is complete
                 if (!auth.isLoading && !auth.error) {
+                    if (auth.user?.profile.email) {
+                        dispatch(updateFormData({name: 'billingEmail', value: auth.user.profile.email}));
+                    }
                     navigate('/');
                 }
             } catch (error) {
@@ -21,15 +27,16 @@ export const AuthCallback: React.FC = () => {
         };
 
         handleCallback();
-    }, [auth, navigate]);
+    }, [auth, navigate, params]);
 
     if (auth.isLoading) {
-        return <div>Processing authentication...</div>;
+        return <PulseLoader
+            loading={auth.isLoading}
+            className="text-primary w-full h-full flex justify-center items-center"/>
     }
 
     if (auth.error) {
         return <div>Authentication error: {auth.error.message}</div>;
     }
-
     return <div>Redirecting...</div>;
 }; 

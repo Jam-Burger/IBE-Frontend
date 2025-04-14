@@ -9,7 +9,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import {Booking, ConfigType, PromoOffer, SpecialDiscount, StandardPackage, StateStatus,} from "../types";
 import {useAppDispatch, useAppSelector} from "../redux/hooks.ts";
 import {fetchConfig} from "../redux/configSlice.ts";
-import {clearBookingStatus, fetchPropertyDetails, submitBooking,} from "../redux/checkoutSlice.ts";
+import {clearBookingStatus, clearFormData, fetchPropertyDetails, submitBooking,} from "../redux/checkoutSlice.ts";
 import toast from "react-hot-toast";
 import LoadingOverlay from "../components/ui/LoadingOverlay";
 import ErrorDialog from "../components/ui/ErrorDialog";
@@ -19,9 +19,11 @@ import Stepper from "../components/Stepper.tsx";
 import OTPModal from "../components/ui/OTPModal.tsx";
 import {api} from "../lib/api-client.ts";
 import {AxiosError} from "axios";
+import {useAuth} from "react-oidc-context";
 
 const CheckoutPage: React.FC = () => {
     const {tenantId} = useParams<{ tenantId: string }>();
+    const auth = useAuth();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const {checkoutConfig} = useAppSelector((state) => state.config);
@@ -244,11 +246,17 @@ const CheckoutPage: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        if (!tenantId || !formData.travelerEmail) {
+        if (!tenantId || !formData.billingEmail) {
             toast.error("Missing required information for booking");
             return;
         }
-        const email = formData.travelerEmail as string;
+        const email = formData.billingEmail as string;
+
+        if(auth.user?.profile.email){
+            await handleSubmitBooking();
+            return;
+        }
+
         try {
             setIsSendingOtp(true);
             await api.sendOtp(tenantId, email);
@@ -262,7 +270,7 @@ const CheckoutPage: React.FC = () => {
         }
     }
 
-    const handleSubmitBooking = async (otp: string) => {
+    const handleSubmitBooking = async (otp: string | null = null) => {
         if (!tenantId || !room?.roomTypeId || !propertyDetails) {
             toast.error("Missing required information for booking");
             return;
@@ -282,13 +290,14 @@ const CheckoutPage: React.FC = () => {
 
         const loadingToast = toast.loading("Processing your booking...");
         try {
-            const data = await dispatch(submitBooking({tenantId, bookingData, otp})).unwrap();
+            const accessToken = auth.user?.access_token ?? null;
+            const data = await dispatch(submitBooking({tenantId, bookingData, otp, accessToken})).unwrap();
             toast.success("Booking submitted successfully!");
             const bookingId = data.booking_id as number;
             console.log("bookingId", bookingId);
             if (!bookingId) return;
             navigate(`/${tenantId}/confirmation/${bookingId}`);
-            // dispatch(clearFormData());
+            dispatch(clearFormData());
         } catch (e: unknown) {
             const error = e as AxiosError<{ message: string }>;
             console.error("Error during booking submission:", error.response?.data?.message);
@@ -514,7 +523,7 @@ const CheckoutPage: React.FC = () => {
                 <OTPModal
                     isOpen={isOTPModalOpen}
                     onClose={() => setIsOTPModalOpen(false)}
-                    email={formData.travelerEmail as string}
+                    email={formData.billingEmail as string}
                     purpose="booking"
                     onSuccess={(otp: string) => {
                         handleSubmitBooking(otp)

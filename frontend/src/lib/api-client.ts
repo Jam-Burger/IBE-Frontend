@@ -179,11 +179,11 @@ export const api = {
         return response.data;
     },
 
-    submitBooking: async (tenantId: string, bookingData: Booking, otp: string) => {
+    submitBooking: async (tenantId: string, bookingData: Booking, otp: string | null, accessToken: string | null) => {
         const response = await apiClient.post(`${tenantId}/bookings`,
             bookingData,
             {
-                params: {otp},
+                params: {otp, accessToken},
             }
         );
         return response.data;
@@ -196,11 +196,11 @@ export const api = {
         return response.data;
     },
 
-    cancelBooking: async (tenantId: string, bookingId: string, otp: string) => {
+    cancelBooking: async (tenantId: string, bookingId: string, otp: string | null, accessToken: string | null) => {
         return await apiClient.put(`${tenantId}/bookings/${bookingId}/cancel`,
             null,
             {
-                params: {otp},
+                params: {otp, accessToken},
             }
         );
     },
@@ -244,7 +244,6 @@ export const api = {
             `${tenantId}/reviews/${bookingId}`,
             data
         );
-        console.log("response", response);
         return response.data;
     },
 

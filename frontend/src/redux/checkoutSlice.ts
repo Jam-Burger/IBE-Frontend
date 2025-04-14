@@ -41,14 +41,15 @@ const initialState: CheckoutState = {
 interface BookingSubmitParams {
     tenantId: string;
     bookingData: Booking;
-    otp: string;
+    otp: string | null;
+    accessToken: string | null;
 }
 
 export const submitBooking = createAsyncThunk<BookingDetails, BookingSubmitParams, { rejectValue: ErrorResponse }>(
     'checkout/submitBooking',
     async (params: BookingSubmitParams, {rejectWithValue}) => {
         try {
-            const response = await api.submitBooking(params.tenantId, params.bookingData, params.otp);
+            const response = await api.submitBooking(params.tenantId, params.bookingData, params.otp, params.accessToken);
             return response.data;
         } catch (error) {
             if (error instanceof AxiosError) {

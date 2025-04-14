@@ -32,8 +32,8 @@ export interface GuestDetails {
     travelerEmail: string;
     billingFirstName?: string;
     billingLastName?: string;
-    billingEmail?: string;
-    billingPhone?: string;
+    billingEmail: string;
+    billingPhone: string;
     billingAddress1?: string;
     billingAddress2?: string;
     billingCity?: string;

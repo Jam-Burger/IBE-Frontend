@@ -42,7 +42,7 @@ const Header: React.FC = () => {
                 dispatch(fetchExchangeRates());
             }
         }
-    }, [dispatch, selectedCurrency]);
+    }, [dispatch, rates, selectedCurrency]);
 
     const toggleLanguageDropdown = () => {
         setLanguageDropdownOpen(!languageDropdownOpen);
@@ -71,7 +71,11 @@ const Header: React.FC = () => {
     };
 
     const handleLogin = () => {
-        auth.signinRedirect();
+        auth.signinRedirect({
+            extraQueryParams: {
+                path: "hello"
+            },
+        });
     };
 
     const handleLogout = () => {
