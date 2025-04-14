@@ -121,7 +121,7 @@ const ConfirmationPage: FC = () => {
             }
 
             try {
-                const accessToken = auth.user?.access_token ?? null;
+                const accessToken = auth.user?.id_token ?? null;
                 await api.cancelBooking(tenantId, bookingId, otp, accessToken);
                 toast.success("Booking cancelled successfully");
                 fetchBookingData();

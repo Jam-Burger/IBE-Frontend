@@ -290,7 +290,7 @@ const CheckoutPage: React.FC = () => {
 
         const loadingToast = toast.loading("Processing your booking...");
         try {
-            const accessToken = auth.user?.access_token ?? null;
+            const accessToken = auth.user?.id_token ?? null;
             const data = await dispatch(submitBooking({tenantId, bookingData, otp, accessToken})).unwrap();
             toast.success("Booking submitted successfully!");
             const bookingId = data.booking_id as number;
