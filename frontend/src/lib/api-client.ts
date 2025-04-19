@@ -13,6 +13,8 @@ const apiClient = axios.create({
 const CURRENCY_API_URL = import.meta.env.VITE_CURRENCY_API_URL;
 const LOCATION_API_URL = import.meta.env.VITE_LOCATION_API_URL;
 const COUNTRY_API_KEY = import.meta.env.VITE_COUNTRY_API_KEY;
+const TRANSLATION_API_URL = "https://translation.googleapis.com/language/translate/v2";
+const TRANSLATION_API_KEY = import.meta.env.VITE_GOOGLE_TRANSLATION_API_KEY;
 
 interface RoomRateParams {
     propertyId: number;
@@ -245,6 +247,31 @@ export const api = {
             data
         );
         return response.data;
+    },
+
+    translateTexts: async (texts: string[], targetLang: string) => {
+        try {
+            const response = await axios.post(
+                `${TRANSLATION_API_URL}?key=${TRANSLATION_API_KEY}`,
+                {
+                    q: texts,
+                    target: targetLang,
+                    format: "text",
+                },
+                {
+                    headers: { "Content-Type": "application/json" },
+                }
+            );
+            
+            if (response.status !== 200) {
+                throw new Error('Translation failed');
+            }
+            
+            return response.data.data.translations.map((t: any) => t.translatedText);
+        } catch (error) {
+            console.error('Translation error:', error);
+            return texts;
+        }
     },
 
 };

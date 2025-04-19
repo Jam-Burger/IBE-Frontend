@@ -51,8 +51,8 @@ const ConfirmationPage: FC = () => {
                     const response = await api.getBookingDetails(tenantId, bookingId);
                     setBookingData(response.data);
                 } catch (e) {
-                    const err= e as AxiosError<{message: string}>;
-                    const message= err.response?.data?.message ?? "Failed to fetch booking details";
+                    const err = e as AxiosError<{ message: string }>;
+                    const message = err.response?.data?.message ?? "Failed to fetch booking details";
                     setError(message);
                 } finally {
                     setLoading(false);
@@ -70,8 +70,8 @@ const ConfirmationPage: FC = () => {
                     );
                     setPropertyDetails(response.data);
                 } catch (e) {
-                    const err= e as AxiosError<{message: string}>;
-                    const message= err.response?.data?.message ?? "Failed to fetch property details";
+                    const err = e as AxiosError<{ message: string }>;
+                    const message = err.response?.data?.message ?? "Failed to fetch property details";
                     setError(message);
                 } finally {
                     setLoading(false);
@@ -92,8 +92,8 @@ const ConfirmationPage: FC = () => {
                     );
                     setRoomTypeData(response.data);
                 } catch (e) {
-                    const err= e as AxiosError<{message: string}>;
-                    const message= err.response?.data?.message ?? "Failed to fetch room type details";
+                    const err = e as AxiosError<{ message: string }>;
+                    const message = err.response?.data?.message ?? "Failed to fetch room type details";
                     setError(message);
                 } finally {
                     setLoading(false);

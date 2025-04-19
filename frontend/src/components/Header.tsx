@@ -10,6 +10,7 @@ import {FiMenu} from "react-icons/fi";
 import {fetchConfig} from "../redux/configSlice.ts";
 import {ConfigType} from "../types";
 import {useAuth} from "react-oidc-context";
+import {translatePage} from "../services/translationService";
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -43,6 +44,13 @@ const Header: React.FC = () => {
             }
         }
     }, [dispatch, rates, selectedCurrency]);
+
+    // Add effect to translate the page when language changes
+    useEffect(() => {
+        if (selectedLanguage && selectedLanguage.code) {
+            translatePage(selectedLanguage.code);
+        }
+    }, [selectedLanguage]);
 
     const toggleLanguageDropdown = () => {
         setLanguageDropdownOpen(!languageDropdownOpen);
@@ -174,7 +182,7 @@ const Header: React.FC = () => {
 
                             <div className="space-y-4">
                                 {/* Language selection */}
-                                <div>
+                                <div className="no-translate">
                                     <div className="flex items-center mb-2">
                                         <HiGlobeAlt className="w-5 h-5 text-primary mr-2"/>
                                         <h3 className="font-medium text-sm text-primary">
@@ -208,7 +216,7 @@ const Header: React.FC = () => {
                                 </div>
 
                                 {/* Currency selection */}
-                                <div>
+                                <div className="no-translate">
                                     <div className="flex items-center mb-2">
                                         <span
                                             className="w-4 h-4 text-primary mr-2 flex items-center justify-center font-medium text-base">
@@ -256,7 +264,7 @@ const Header: React.FC = () => {
                 >
                     MY BOOKINGS
                 </a>
-                <div className="relative">
+                <div className="relative no-translate">
                     <button
                         className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleLanguageDropdown}
@@ -290,7 +298,7 @@ const Header: React.FC = () => {
                             </div>
                         )}
                 </div>
-                <div className="relative">
+                <div className="relative no-translate">
                     <button
                         className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleCurrencyDropdown}
