@@ -14,6 +14,10 @@ const pendingElements = new Set<Element>();
 const translationCache = new Map<string, string>();
 // Debounce time in milliseconds
 const DEBOUNCE_TIME = 500;
+// Store original DOM state
+const originalDOMState = new Map<Node, string>();
+// Flag to track if we're in the initial English state
+let isInitialEnglishState = true;
 
 // Generate a unique ID for each translatable element
 function generateTranslationId(): string {
@@ -71,7 +75,10 @@ export function storeOriginalText(element: Element, text: string) {
         element.setAttribute('data-translation-id', translationId);
     }
 
-    originalTexts.set(translationId, text);
+    // Only store the original English text, don't overwrite it with translated text
+    if (isInitialEnglishState || !originalTexts.has(translationId)) {
+        originalTexts.set(translationId, text);
+    }
 }
 
 export function getOriginalText(element: Element): string | undefined {
@@ -169,8 +176,102 @@ function debouncedTranslatePendingElements() {
     }, DEBOUNCE_TIME);
 }
 
+// Function to store original DOM state
+function storeOriginalDOMState() {
+    // Clear previous state
+    originalDOMState.clear();
+
+    // Get all text nodes
+    const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        {
+            acceptNode: (node) => {
+                // Skip script and style tags
+                const parent = node.parentElement;
+                if (!parent ||
+                    parent.tagName === 'SCRIPT' ||
+                    parent.tagName === 'STYLE' ||
+                    parent.querySelector('svg') ||
+                    parent.classList.contains('no-translate') ||
+                    parent.closest('.no-translate')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+
+                // Only accept non-empty text nodes
+                const text = node.textContent?.trim();
+                return text ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+            }
+        }
+    );
+
+    let node: Node | null;
+    while (node = walker.nextNode()) {
+        const text = node.textContent?.trim();
+        if (text) {
+            // Store the exact text content without trimming
+            originalDOMState.set(node, node.textContent || '');
+        }
+    }
+}
+
+// Function to restore original texts
+function restoreOriginalTexts(): void {
+    // First pass: restore all stored original texts
+    originalDOMState.forEach((originalText, node) => {
+        if (node.textContent !== originalText) {
+            node.textContent = originalText;
+        }
+    });
+
+    // Second pass: handle any dynamically added content
+    const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        {
+            acceptNode: (node) => {
+                const parent = node.parentElement;
+                if (!parent ||
+                    parent.tagName === 'SCRIPT' ||
+                    parent.tagName === 'STYLE' ||
+                    parent.querySelector('svg') ||
+                    parent.classList.contains('no-translate') ||
+                    parent.closest('.no-translate')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        }
+    );
+
+    let node: Node | null;
+    while (node = walker.nextNode()) {
+        if (!originalDOMState.has(node)) {
+            // For any text nodes not in our original state, try to find their English version in the cache
+            const currentText = node.textContent?.trim() || '';
+            if (currentText) {
+                for (const [key, value] of translationCache.entries()) {
+                    if (value === currentText) {
+                        const [originalText] = key.split(':');
+                        node.textContent = originalText;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // Clear translation cache to ensure fresh translations on next language change
+    translationCache.clear();
+}
+
 // Function to translate the entire page
 export async function translatePage(targetLang: string): Promise<void> {
+    if (currentLanguage === 'en' && targetLang !== 'en') {
+        // Store original state when switching from English to another language
+        storeOriginalDOMState();
+    }
+
     currentLanguage = targetLang;
 
     if (targetLang === 'en') {
@@ -243,22 +344,6 @@ export async function translatePage(targetLang: string): Promise<void> {
 
     // Set up mutation observer to detect new content
     setupMutationObserver();
-}
-
-// Function to restore original texts
-function restoreOriginalTexts(): void {
-    // Find all elements with translation IDs
-    const elements = document.querySelectorAll('[data-translation-id]');
-
-    elements.forEach(element => {
-        const translationId = element.getAttribute('data-translation-id');
-        if (translationId) {
-            const originalText = originalTexts.get(translationId);
-            if (originalText) {
-                element.textContent = originalText;
-            }
-        }
-    });
 }
 
 // Set up mutation observer to detect new content
