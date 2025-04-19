@@ -375,12 +375,14 @@ const ConfirmationPage: FC = () => {
                                         className="mt-2 md:mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                         <div className="w-full sm:w-auto mb-3 sm:mb-0">
                                             <h3 className="text-[#2F2F2F] font-bold text-lg md:text-xl leading-[130%]">
-                                                {convertToLocaleCurrency(
-                                                    selectedCurrency.symbol,
-                                                    discountedAverageRate,
-                                                    multiplier,
-                                                    false
-                                                )}{" "}
+                                                <span className="no-translate">
+                                                    {convertToLocaleCurrency(
+                                                        selectedCurrency.symbol,
+                                                        discountedAverageRate,
+                                                        multiplier,
+                                                        false
+                                                    )}
+                                                </span>{" "}
                                                 {special_offer.title}
                                             </h3>
                                             <p className="text-[#5D5D5D] text-sm md:text-base leading-[140%] mt-1">
@@ -391,7 +393,7 @@ const ConfirmationPage: FC = () => {
                                                 {cancellationPolicy}
                                             </p>
                                         </div>
-                                        <p className="text-[#000000] text-lg md:text-xl leading-[140%]">
+                                        <p className="text-[#000000] text-lg md:text-xl leading-[140%] no-translate">
                                             {convertToLocaleCurrency(
                                                 selectedCurrency.symbol,
                                                 discountedAverageRate,
@@ -432,7 +434,7 @@ const ConfirmationPage: FC = () => {
                                     Nightly rate
                                 </span>
                                     <span
-                                        className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
+                                        className="text-[#2F2F2F] text-base md:text-xl leading-[140%] no-translate">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         discountedAverageRate,
@@ -447,7 +449,7 @@ const ConfirmationPage: FC = () => {
                                     Subtotal
                                 </span>
                                     <span
-                                        className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
+                                        className="text-[#2F2F2F] text-base md:text-xl leading-[140%] no-translate">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         baseAmount,
@@ -462,7 +464,7 @@ const ConfirmationPage: FC = () => {
                                     Taxes, Surcharges, Fees
                                 </span>
                                     <span
-                                        className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
+                                        className="text-[#2F2F2F] text-base md:text-xl leading-[140%] no-translate">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         totalTaxes,
@@ -478,7 +480,7 @@ const ConfirmationPage: FC = () => {
                                     Total for stay
                                 </span>
                                     <span
-                                        className="text-[#2F2F2F] text-base md:text-xl leading-[140%]">
+                                        className="text-[#2F2F2F] text-base md:text-xl leading-[140%] no-translate">
                                     {convertToLocaleCurrency(
                                         selectedCurrency.symbol,
                                         totalAmount,

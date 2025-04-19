@@ -200,11 +200,11 @@ export function DatePickerWithRange({
                     (
                         <div className={`${textColor}`}>
                             {originalPrice !== discountedPrice && (
-                                <div className="line-through text-gray-500 text-xs">
+                                <div className="line-through text-gray-500 text-xs no-translate">
                                     {convertToLocaleCurrency(currencySymbol, originalPrice, multiplier)}
                                 </div>
                             )}
-                            <div className="text-xs">
+                            <div className="text-xs no-translate">
                                 {convertToLocaleCurrency(currencySymbol, discountedPrice, multiplier)}
                             </div>
                         </div>
@@ -305,7 +305,7 @@ export function DatePickerWithRange({
                     side="bottom"
                     sideOffset={5}
                 >
-                    <div className="p-2 sm:p-4">
+                    <div className="p-2 sm:p-4 no-translate">
                         {status === StateStatus.LOADING ? (
                             <div className="flex justify-center p-4">Loading rates and discounts...</div>
                         ) : (

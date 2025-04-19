@@ -51,8 +51,8 @@ const PackageCard: FC<HotelPackageCardProps> = ({
                 </p>
             </div>
             {/* Right section */}
-            <div className="w-[200px] min-h-full bg-[#EFF0F1] flex flex-col items-end justify-center p-4 text-right">
-                <span className="text-xl font-bold flex justify-end mb-1">
+            <div className="min-w-[200px] min-h-full bg-[#EFF0F1] flex flex-col items-end justify-center p-4 text-right">
+                <span className="text-xl font-bold flex justify-end mb-1 no-translate">
                     {convertToLocaleCurrency(
                         selectedCurrency.symbol,
                         packageData.price,
@@ -64,7 +64,7 @@ const PackageCard: FC<HotelPackageCardProps> = ({
                     per night
                 </span>
                 <Button
-                    className="mt-2 w-[153px] h-[35px]"
+                    className="mt-2 min-w-[153px] h-[35px]"
                     onClick={onSelectPackage}
                 >
                     SELECT PACKAGE

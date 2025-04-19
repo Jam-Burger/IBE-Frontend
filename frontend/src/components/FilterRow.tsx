@@ -183,8 +183,7 @@ export const FilterRow = ({
 
                 <Button
                     onClick={handleSearch}
-                    className="bg-primary text-white px-6 order-5 lg:order-5"
-                    style={{width: "168px", height: "66px"}}
+                    className="bg-primary text-white px-6 order-5 lg:order-5 min-w-[168px] h-[68px]"
                 >
                     SEARCH DATES
                 </Button>

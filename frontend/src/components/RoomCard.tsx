@@ -32,7 +32,7 @@ const RoomCard = ({room}: RoomCardProps) => {
     return (
         <div
             className={`w-[293px] bg-white rounded-lg shadow-md overflow-hidden ${
-                room.specialDeal ? "h-[513px]" : "h-[450px]"
+                room.specialDeal ? "min-h-[513px]" : "min-h-[450px]"
             }`}
         >
             {/* Image Carousel */}
@@ -103,7 +103,7 @@ const RoomCard = ({room}: RoomCardProps) => {
                             <div
                                 className="bg-primary text-white text-[14px] font-medium flex items-center justify-center w-[120.76px] h-[32px] clip-path -translate-x-[20px]">
                                 <span
-                                    className="font-normal text-base w-[101.95px] h-[22px] flex justify-center items-center">
+                                    className="font-normal text-base min-w-[101.95px] h-[22px] flex justify-center items-center">
                                     Special deal
                                 </span>
                             </div>
@@ -120,7 +120,7 @@ const RoomCard = ({room}: RoomCardProps) => {
 
                 <div className="flex flex-col items-start mt-auto mb-2">
                     <div className="flex flex-col mb-2">
-                        <span className="text-xl font-bold">
+                        <span className="text-xl font-bold no-translate">
                             {convertToLocaleCurrency(
                                 selectedCurrency.symbol,
                                 room.roomRates.reduce((acc, rate) => acc + rate.price, 0) / room.roomRates.length,

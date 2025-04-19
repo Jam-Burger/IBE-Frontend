@@ -166,12 +166,14 @@ const TripItinerary: React.FC = () => {
                 </p>
                 <p className="text-sm text-gray-600 mb-1">{roomDetails.name}</p>
                 <p className="text-sm text-gray-600 mb-1">
-                    {convertToLocaleCurrency(
-                        selectedCurrency.symbol,
-                        roomDetails.rate,
-                        multiplier,
-                        false
-                    )}
+                    <span className="no-translate">
+                        {convertToLocaleCurrency(
+                            selectedCurrency.symbol,
+                            roomDetails.rate,
+                            multiplier,
+                            false
+                        )}
+                    </span>
                     /night
                 </p>
                 <p className="text-sm text-gray-600 mb-1">
@@ -182,12 +184,14 @@ const TripItinerary: React.FC = () => {
                     <div className="flex items-center text-sm text-gray-600 mb-4">
                         <span>
                             {roomDetails.promoName},{" "}
-                            {convertToLocaleCurrency(
-                                selectedCurrency.symbol,
-                                roomDetails.promoRate,
-                                multiplier,
-                                false
-                            )}
+                            <span className="no-translate">
+                                {convertToLocaleCurrency(
+                                    selectedCurrency.symbol,
+                                    roomDetails.promoRate,
+                                    multiplier,
+                                    false
+                                )}
+                            </span>
                             /night
                         </span>
                         <button
@@ -203,7 +207,7 @@ const TripItinerary: React.FC = () => {
             <div className="border-t border-gray-300 pt-4 mb-4">
                 <div className="flex justify-between mb-2">
                     <span className="text-sm text-gray-600">Subtotal</span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium no-translate">
                         {convertToLocaleCurrency(
                             selectedCurrency.symbol,
                             bookingDetails.subtotal,
@@ -225,7 +229,7 @@ const TripItinerary: React.FC = () => {
                             <CiCircleInfo className="w-4 h-4"/>
                         </button>
                     </div>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium no-translate">
                         {convertToLocaleCurrency(
                             selectedCurrency.symbol,
                             bookingDetails.taxes,
@@ -241,7 +245,7 @@ const TripItinerary: React.FC = () => {
                     <span className="text-sm text-gray-600 font-medium">
                         Due Now
                     </span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium no-translate">
                         {convertToLocaleCurrency(
                             selectedCurrency.symbol,
                             bookingDetails.dueNow,
@@ -255,7 +259,7 @@ const TripItinerary: React.FC = () => {
                     <span className="text-sm text-gray-600 font-medium">
                         Due at Resort
                     </span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium no-translate">
                         {convertToLocaleCurrency(
                             selectedCurrency.symbol,
                             bookingDetails.dueAtResort,

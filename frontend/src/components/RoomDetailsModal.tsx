@@ -349,7 +349,7 @@ const RoomDetailsModal = ({
                                 disabled={promoOffer !== null}
                             />
                             <button
-                                className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm h-[48px] disabled:opacity-50 disabled:cursor-not-allowed w-[65px]"
+                                className="flex justify-center items-center bg-primary text-white px-4 py-2 rounded text-sm h-[48px] disabled:opacity-50 disabled:cursor-not-allowed min-w-[65px]"
                                 onClick={validatePromoCode}
                                 disabled={
                                     isValidatingPromo || promoOffer !== null
