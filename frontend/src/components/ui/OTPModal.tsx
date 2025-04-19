@@ -9,7 +9,7 @@ interface OTPModalProps {
     isOpen: boolean;
     onClose: () => void;
     email: string;
-    purpose: 'cancellation' | 'booking';
+    purpose: 'cancellation' | 'booking'|'bookingList';
     onSuccess: (otp: string) => void;
 }
 
@@ -86,15 +86,15 @@ const OTPModal: React.FC<OTPModalProps> = ({
 
                 <div>
                     <h2 className="w-full text-[#000000] font-bold text-[24px] leading-[140%] tracking-normal">
-                        {purpose === "cancellation" ? "Enter OTP for cancelling the room booking" :
-                            "Enter OTP for booking the room"}
+                        {purpose === "cancellation" ? "Enter OTP for cancelling the room booking" :purpose === "bookingList" ?
+                            "Enter OTP for accesing your booking": "Enter OTP for booking the room"}
                     </h2>
 
                     <p className="text-gray-600 mt-2 text-sm">
                         An OTP has been sent
                         to <strong>{email}</strong>. {purpose === "cancellation" ?
                         "Please enter it below to confirm cancellation."
-                        : " Please enter it below to confirm booking."}
+                        :purpose==="bookingList"?"Please enter it below to access Booking" :" Please enter it below to confirm booking."}
                     </p>
 
                     <input
