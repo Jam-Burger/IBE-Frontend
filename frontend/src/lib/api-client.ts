@@ -1,6 +1,7 @@
 import axios from "axios";
-import {ApiResponse, Booking, ConfigType, PaginationParams, PaginationResponse, PropertyDetails, Room,} from "../types";
-import {formatDateToYYYYMMDD} from "./utils";
+import { ApiResponse, Booking, ConfigType, PaginationParams, PaginationResponse, PropertyDetails, Room, } from "../types";
+import { formatDateToYYYYMMDD } from "./utils";
+
 
 
 const apiClient = axios.create({
@@ -42,7 +43,7 @@ export const api = {
     },
 
     getRoomRates: async (params: RoomRateParams & { tenantId: string }) => {
-        const {propertyId, startDate, endDate, tenantId} = params;
+        const { propertyId, startDate, endDate, tenantId } = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-rates/daily-minimum`,
             {
@@ -58,10 +59,10 @@ export const api = {
     getSpecialDiscounts: async (
         params: SpecialDiscountParams & { tenantId: string }
     ) => {
-        const {propertyId, startDate, endDate, tenantId} = params;
+        const { propertyId, startDate, endDate, tenantId } = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts`,
-            {params: {start_date: startDate, end_date: endDate}}
+            { params: { start_date: startDate, end_date: endDate } }
         );
         return response.data;
     },
@@ -79,7 +80,7 @@ export const api = {
         };
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/room-types/filter`,
-            {params}
+            { params }
         );
         return response.data;
     },
@@ -108,7 +109,7 @@ export const api = {
         endDate: string;
         promoCode: string;
     }) => {
-        const {tenantId, propertyId, startDate, endDate, promoCode} = params;
+        const { tenantId, propertyId, startDate, endDate, promoCode } = params;
         const response = await apiClient.get(
             `${tenantId}/${propertyId}/special-discounts/promo-offer`,
             {
@@ -185,7 +186,7 @@ export const api = {
         const response = await apiClient.post(`${tenantId}/bookings`,
             bookingData,
             {
-                params: {otp, accessToken},
+                params: { otp, accessToken },
             }
         );
         return response.data;
@@ -202,21 +203,37 @@ export const api = {
         return await apiClient.put(`${tenantId}/bookings/${bookingId}/cancel`,
             null,
             {
-                params: {otp, accessToken},
+                params: { otp, accessToken },
             }
         );
     },
 
     sendOtp: async (tenantId: string, email: string) => {
         return await apiClient.post(`${tenantId}/otp/send`, null, {
-            params: {email},
+            params: { email },
         });
     },
 
+    getBookingHistoryWithDetails: async (tenantId: string, email: string,  accessToken: string | null) => {
+       const guestToken = localStorage.getItem('guestToken');
+        const bookingsResponse = await apiClient.get(`${tenantId}/bookings/my-bookings`, {
+            params: { billingEmail: email, accessToken, guestToken },
+        });
+
+        const bookings = bookingsResponse.data.data;
+
+        return bookings;
+
+    }
+
+    ,
     verifyOtp: async (tenantId: string, email: string, otp: string) => {
         const response = await apiClient.post(`${tenantId}/otp/verify`, null, {
-            params: {email, otp},
+            params: { email, otp },
         });
+        if(response.data?.data?.guestToken) {
+            localStorage.setItem('guestToken', response.data.data.guestToken);
+        }
         return response.data;
     },
 

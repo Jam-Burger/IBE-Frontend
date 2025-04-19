@@ -7,5 +7,6 @@ export const Routes = {
     CHECKOUT: "/:tenantId/checkout",
     CONFIRMATION: "/:tenantId/confirmation/:bookingId",
     REVIEW: "/:tenantId/review/:bookingId",
+    BOOKINGS: "/:tenantId/bookings",
     NOT_FOUND: "*",
 } as const;

@@ -14,3 +14,4 @@ export type {StandardPackage, SpecialDiscount, PromoOffer, PackageData} from "./
 export type {BookingDetails, Transaction, GuestDetails} from "./BookingDetails";
 export type {PropertyDetails} from "./PropertyDetails";
 export type {Booking} from "./Booking";
+export type{BookingType} from "./BookingType";

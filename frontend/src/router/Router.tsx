@@ -1,6 +1,6 @@
 import {createBrowserRouter, Navigate} from "react-router-dom";
 import {AppLayout} from "../layouts/AppLayout";
-import {CheckoutPage, HomePage, NotFoundPage, RoomsListPage} from "../pages";
+import {CheckoutPage, HomePage, NotFoundPage, RoomsListPage,MyBookings} from "../pages";
 import {Routes} from "./routes";
 import {AuthCallback} from "../components/auth/AuthCallback";
 import ConfirmationPage from "../pages/ConfirmationPage";
@@ -47,6 +47,13 @@ export const Router = createBrowserRouter([
         element: <AppLayout/>,
         children: [
             {index: true, element: <ConfirmationPage/>},
+        ],
+    },
+    {
+        path: Routes.BOOKINGS,
+        element: <AppLayout/>,
+        children: [
+            {index: true, element: <MyBookings/>},
         ],
     },
     {
