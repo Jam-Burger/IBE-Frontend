@@ -110,8 +110,8 @@ const Header: React.FC = () => {
     const {brand} = globalConfig.configData;
     return (
         <header
-            className="fixed top-0 left-0 right-0 z-50 flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
-            <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
+            className="fixed top-0 left-0 right-0 z-50 flex h-[84px] justify-between items-center py-4 px-6 lg:px-14 bg-white shadow-md">
+            <div className="flex items-center space-x-2 md:space-x-4">
                 <Link
                     to={`/${tenantId}`}
                     className="flex items-center space-x-2 md:space-x-4"
@@ -122,7 +122,7 @@ const Header: React.FC = () => {
                         className="w-28 h-6 md:w-36 md:h-7"
                     />
                     <span
-                        className="font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">
+                        className="hidden lg:block font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">
                         {brand.pageTitle}
                     </span>
                 </Link>
@@ -257,7 +257,7 @@ const Header: React.FC = () => {
                 </Sheet>
             </div>
 
-            <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
+            <div className="hidden md:flex items-center space-x-6 lg:space-x-10">
                 <a
                     href="/#"
                     className="text-[14px] font-bold uppercase text-primary h-[20px] min-w-[102px]"
@@ -266,7 +266,7 @@ const Header: React.FC = () => {
                 </a>
                 <div className="relative no-translate">
                     <button
-                        className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                        className="flex w-[45px] h-[19px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleLanguageDropdown}
                     >
                         <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125"/>

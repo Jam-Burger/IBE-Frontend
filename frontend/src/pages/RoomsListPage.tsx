@@ -68,7 +68,7 @@ const RoomsListPage = () => {
     useEffect(() => {
         if (filter && !loading) {
             const params = filterToSearchParams(filter);
-            setSearchParams(params);
+            setSearchParams(params, { replace: true });
         }
     }, [filter, setSearchParams, loading]);
 

@@ -1,17 +1,21 @@
 import React from "react";
-import {useAppSelector} from "../redux/hooks";
+import { useAppSelector } from "../redux/hooks";
 
 const Footer: React.FC = () => {
-    const {globalConfig} = useAppSelector(state => state.config);
+    const { globalConfig } = useAppSelector((state) => state.config);
     const companyName = globalConfig?.configData.brand.companyName ?? "";
+    const footerLogoUrl = globalConfig?.configData.brand.footerLogoUrl ?? null;
 
     return (
         <footer className="bg-[#0d0524] text-white py-4 w-full font-['Mulish'] min-h-[84px]">
-            <div
-                className="container mx-auto flex flex-col md:flex-row justify-between items-center px-4 md:px-10 text-center md:text-left">
-                <span className="font-bold text-lg md:text-2xl flex items-center leading-[28px] no-translate">
-                    {companyName.split(" ")[0]}
-                </span>
+            <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-4 md:px-10 text-center md:text-left">
+                {footerLogoUrl ? (
+                    <img className="max-w-[141.43px] max-h-[25px]" src={footerLogoUrl} alt={companyName}/>
+                ) : (
+                    <span className="font-bold text-lg md:text-2xl flex items-center leading-[28px] no-translate">
+                        {companyName.split(" ")[0]}
+                    </span>
+                )}
 
                 <div className="text-sm md:text-base mt-2 md:mt-0 md:text-right text-center leading-[28px]">
                     <p className="mb-1 no-translate">&copy; {companyName}.</p>
@@ -21,6 +25,5 @@ const Footer: React.FC = () => {
         </footer>
     );
 };
-
 
 export default Footer;

@@ -1,25 +1,13 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {BaseState, Filter, SortOption, StateStatus} from '../types';
-import {formatDateToYYYYMMDD} from '../lib/utils';
 
 export interface RoomFiltersState extends BaseState {
     filter: Filter;
 }
 
-// Default values
-const today = new Date();
-const tomorrow = new Date();
-tomorrow.setDate(today.getDate() + 1);
-
-const todayFormatted: string = formatDateToYYYYMMDD(today);
-const tomorrowFormatted: string = formatDateToYYYYMMDD(tomorrow);
-
 const initialFilter: Filter = {
     propertyId: 0,
-    dateRange: {
-        from: todayFormatted,
-        to: tomorrowFormatted
-    },
+    dateRange: {},
     roomCount: 1,
     isAccessible: false,
     guests: {},
