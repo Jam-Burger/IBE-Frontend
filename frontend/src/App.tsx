@@ -1,25 +1,31 @@
 import React from 'react';
 import './App.css';
 import {RouterProvider} from 'react-router-dom';
-import * as Sentry from '@sentry/react';
-import {Router} from './router';
+import { browserTracingIntegration } from "@sentry/react";
+import { init as sentryInit } from "@sentry/react";
+import { ErrorBoundary } from "@sentry/react";
+import { Router } from './router';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
 import {persistor, store} from './redux/store';
 
-Sentry.init({
+// Initialize Sentry
+sentryInit({
     dsn: import.meta.env.VITE_SENTRY_DSN,
-    integrations: [Sentry.browserTracingIntegration()],
+    integrations: [browserTracingIntegration()],
     tracesSampleRate: 1.0,
+    environment: import.meta.env.MODE
 });
 
 const App: React.FC = () => {
     return (
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
-                <Sentry.ErrorBoundary fallback={<p>An error has occurred</p>}>
+                <ErrorBoundary fallback={
+                    <p>An error has occurred</p>
+                }>
                     <RouterProvider router={Router}/>
-                </Sentry.ErrorBoundary>
+                </ErrorBoundary>
             </PersistGate>
         </Provider>
     );
