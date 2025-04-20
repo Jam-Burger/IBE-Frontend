@@ -49,7 +49,7 @@ const Stepper: React.FC = () => {
                         {steps.map((step, index) => (
                             <div
                                 key={index}
-                                className="flex flex-col items-center z-10"
+                                className="flex flex-col items-center z-10 max-w-[200px] text-center"
                                 onClick={() => handleStepClick(step.id)}
                             >
                                 <div

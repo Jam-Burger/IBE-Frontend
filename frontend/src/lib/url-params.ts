@@ -18,6 +18,7 @@ export const filterToSearchParams = (filter: Filter): URLSearchParams => {
     // Add simple params
     if (filter.propertyId) paramsRecord['propertyId'] = filter.propertyId.toString();
     if (filter.roomCount) paramsRecord['roomCount'] = filter.roomCount.toString();
+    if (filter.bedCount) paramsRecord['bedCount'] = filter.roomCount.toString();
     if (filter.isAccessible) paramsRecord['isAccessible'] = filter.isAccessible.toString();
 
     // Add guest counts with preserved case
@@ -134,11 +135,11 @@ export const searchParamsToFilter = (params: URLSearchParams, roomsListConfig: R
     const {configData} = roomsListConfig;
 
     // Parse simple params with validation
-    const propertyId = validateNumber(paramsRecord.propertyId || paramsRecord.propertyid);
+    const propertyId = validateNumber(paramsRecord.propertyId);
     if (propertyId !== null && propertyId > 0) filter.propertyId = propertyId;
 
     // Validate room count against bedCount config
-    const roomCount = validateNumber(paramsRecord.roomCount || paramsRecord.roomcount);
+    const roomCount = validateNumber(paramsRecord.roomCount);
     if (roomCount !== null &&
         configData.filters.filterGroups.bedCount.enabled &&
         roomCount >= configData.filters.filterGroups.bedCount.min &&
@@ -146,7 +147,15 @@ export const searchParamsToFilter = (params: URLSearchParams, roomsListConfig: R
         filter.roomCount = roomCount;
     }
 
-    const isAccessible = validateBoolean(paramsRecord.isAccessible || paramsRecord.isaccessible);
+    const bedCount = validateNumber(paramsRecord.bedCount);
+    if (bedCount !== null &&
+        configData.filters.filterGroups.bedCount.enabled &&
+        bedCount >= configData.filters.filterGroups.bedCount.min &&
+        bedCount <= configData.filters.filterGroups.bedCount.max) {
+        filter.bedCount = bedCount;
+    }
+
+    const isAccessible = validateBoolean(paramsRecord.isAccessible);
     if (isAccessible !== null) filter.isAccessible = isAccessible;
 
     // Validate sort option against config
@@ -165,7 +174,7 @@ export const searchParamsToFilter = (params: URLSearchParams, roomsListConfig: R
 
     // Parse guest counts with validation
     const guestEntries: [string, number][] = [];
-    const totalGuests = validateNumber(paramsRecord.totalGuests || paramsRecord.totalguests);
+    const totalGuests = validateNumber(paramsRecord.totalGuests);
 
     // Check for individual guest types
     Object.entries(paramsRecord).forEach(([key, value]) => {

@@ -129,6 +129,13 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
         fetchCountries();
     }, []);
 
+    // Set billing email from authenticated user's profile when logged in
+    useEffect(() => {
+        if (auth.user?.profile.email) {
+            dispatch(updateFormData({name: 'billingEmail', value: auth.user.profile.email}));
+        }
+    }, [auth.user, dispatch]);
+
     useEffect(() => {
         if (formValues.billingCountry) {
             fetchStates(formValues.billingCountry as string);
@@ -206,6 +213,9 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
 
 
     const initialValues: BillingFormValues = useMemo(() => {
+        // For authenticated users, always use their profile email
+        const emailValue = auth.user?.profile.email || formValues.billingEmail?.toString() || '';
+        
         return {
             billingFirstName: formValues.billingFirstName?.toString() || '',
             billingLastName: formValues.billingLastName?.toString() || '',
@@ -215,10 +225,10 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
             billingState: formValues.billingState?.toString() || '',
             billingZip: formValues.billingZip?.toString() || '',
             billingPhone: formValues.billingPhone?.toString() || '',
-            billingEmail: formValues.billingEmail?.toString() || '',
+            billingEmail: emailValue,
             billingCity: formValues.billingCity?.toString() || '',
         }
-    }, [formValues]);
+    }, [formValues, auth.user]);
 
     return (
         <div className="min-w-[680px] py-4">

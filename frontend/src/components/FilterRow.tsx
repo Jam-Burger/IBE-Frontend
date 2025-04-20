@@ -12,6 +12,7 @@ import {
 import {Filter} from "../types";
 import {DateRange} from "react-day-picker";
 import {toSerializableDateRange} from "../lib/utils";
+import toast from "react-hot-toast";
 
 interface SearchForm {
     guestOptions: {
@@ -57,13 +58,40 @@ export const FilterRow = ({
     };
 
     const handleRoomCountChange = (value: string) => {
-        const roomCount = parseInt(value, 10);
-        setLocalFilter(prev => ({...prev, roomCount}));
+        const newRoomCount = parseInt(value, 10);
+        const adultCount = localFilter.guests?.["Adults"] || 0;
+        
+        if (adultCount < newRoomCount) {
+            toast.error(`You need at least ${newRoomCount} adult${newRoomCount > 1 ? 's' : ''} for ${newRoomCount} room${newRoomCount > 1 ? 's' : ''}`);
+            return;
+        }
+        
+        const currentBeds = localFilter.bedCount || 1;
+        const newBedCount = Math.max(newRoomCount, Math.min(currentBeds, newRoomCount * 2));
+        
+        setLocalFilter(prev => ({
+            ...prev, 
+            roomCount: newRoomCount,
+            bedCount: newBedCount
+        }));
     };
 
     const handleBedCountChange = (value: string) => {
-        const bedCount = parseInt(value, 10);
-        setLocalFilter(prev => ({...prev, bedCount}));
+        const newBedCount = parseInt(value, 10);
+        const minBeds = localFilter.roomCount!;
+        const maxBeds = localFilter.roomCount! * 2;
+        
+        if (newBedCount < minBeds) {
+            toast.error(`Number of beds cannot be less than number of rooms. Please select at least ${minBeds} bed${minBeds > 1 ? 's' : ''}`);
+            return;
+        }
+        
+        if (newBedCount > maxBeds) {
+            toast.error(`Maximum ${maxBeds} beds allowed for ${localFilter.roomCount} room${localFilter.roomCount! > 1 ? 's' : ''}`);
+            return;
+        }
+        
+        setLocalFilter(prev => ({...prev, bedCount: newBedCount}));
     };
 
     const handleDateChange = (dateRange: DateRange | undefined) => {
@@ -87,6 +115,9 @@ export const FilterRow = ({
                             height="68px"
                             value={localFilter.guests}
                             onChange={handleGuestChange}
+                            onValidationFail={() => {
+                                setLocalFilter(prev => ({...prev, roomCount: 1}));
+                            }}
                         />
                     </div>
                 )}
@@ -183,8 +214,7 @@ export const FilterRow = ({
 
                 <Button
                     onClick={handleSearch}
-                    className="bg-primary text-white px-6 order-5 lg:order-5"
-                    style={{width: "168px", height: "66px"}}
+                    className="bg-primary text-white px-6 order-5 lg:order-5 min-w-[168px] h-[68px]"
                 >
                     SEARCH DATES
                 </Button>

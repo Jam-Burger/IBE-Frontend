@@ -3,6 +3,7 @@ import {addDays, addMonths, differenceInDays, format, isBefore, startOfToday, su
 import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {FaChevronLeft, FaChevronRight} from "react-icons/fa";
 import {MdOutlineCalendarMonth} from "react-icons/md";
+import {FaArrowRight} from "react-icons/fa6";
 import {DateRange} from "react-day-picker";
 import {SerializableDateRange, StateStatus} from "../../types";
 
@@ -40,12 +41,16 @@ const toDateRange = (serializableRange?: SerializableDateRange): DateRange | und
     // It can have undefined from/to properties, but TypeScript wants them defined
     // Using a type assertion to work around this
     const result = {} as DateRange;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for fair comparison
 
     if (serializableRange.from) {
-        result.from = new Date(serializableRange.from);
+        const fromDate = new Date(serializableRange.from);
+        result.from = fromDate < today ? undefined : fromDate;
     }
     if (serializableRange.to) {
-        result.to = new Date(serializableRange.to);
+        const toDate = new Date(serializableRange.to);
+        result.to = toDate < today ? undefined : toDate;
     }
     return result;
 };
@@ -83,25 +88,27 @@ export function DatePickerWithRange({
 
     const today = startOfToday();
     const [date, setDate] = React.useState<DateRange | undefined>(dateRangeFromRedux);
+    const [tempDate, setTempDate] = React.useState<DateRange | undefined>(dateRangeFromRedux);
     const [isOpen, setIsOpen] = React.useState(false);
 
     // Update local state when Redux state changes
     React.useEffect(() => {
         setDate(dateRangeFromRedux);
+        setTempDate(dateRangeFromRedux);
     }, [dateRangeFromRedux]);
 
     const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date());
 
     const handleSelect = (newRange: DateRange | undefined) => {
         if (!newRange) {
-            setDate(undefined);
+            setTempDate(undefined);
             return;
         }
 
-        if (date?.from && date?.to &&
-            newRange.from?.getTime() === date.from.getTime() &&
-            newRange.to?.getTime() === date.to.getTime()) {
-            setDate(undefined);
+        if (tempDate?.from && tempDate?.to &&
+            newRange.from?.getTime() === tempDate.from.getTime() &&
+            newRange.to?.getTime() === tempDate.to.getTime()) {
+            setTempDate(undefined);
             return;
         }
 
@@ -109,7 +116,7 @@ export function DatePickerWithRange({
         const maxNights = landingConfig?.configData.searchForm.lengthOfStay.max ?? 0;
 
         if (newRange.from && !newRange.to) {
-            setDate(newRange);
+            setTempDate(newRange);
             return;
         }
 
@@ -117,27 +124,28 @@ export function DatePickerWithRange({
             const diff = differenceInDays(newRange.to, newRange.from);
             if (diff < minNights) {
                 const adjustedTo = addDays(newRange.from, minNights);
-                setDate({
+                setTempDate({
                     from: newRange.from,
                     to: adjustedTo
                 });
             } else if (diff > maxNights) {
                 const adjustedTo = addDays(newRange.from, maxNights);
-                setDate({
+                setTempDate({
                     from: newRange.from,
                     to: adjustedTo
                 });
             } else {
-                setDate(newRange);
+                setTempDate(newRange);
             }
         }
     };
 
     const handleApplyDates = () => {
+        setDate(tempDate);
         // Convert Date objects to serializable ISO strings
-        const serializableRange = toSerializableDateRange(date);
+        const serializableRange = toSerializableDateRange(tempDate);
         if (onChange) {
-            onChange(date);
+            onChange(tempDate);
         } else {
             dispatch(updateFilter({dateRange: serializableRange}));
         }
@@ -200,11 +208,11 @@ export function DatePickerWithRange({
                     (
                         <div className={`${textColor}`}>
                             {originalPrice !== discountedPrice && (
-                                <div className="line-through text-gray-500 text-xs">
+                                <div className="line-through text-gray-500 text-xs no-translate">
                                     {convertToLocaleCurrency(currencySymbol, originalPrice, multiplier)}
                                 </div>
                             )}
-                            <div className="text-xs">
+                            <div className="text-xs no-translate">
                                 {convertToLocaleCurrency(currencySymbol, discountedPrice, multiplier)}
                             </div>
                         </div>
@@ -242,25 +250,31 @@ export function DatePickerWithRange({
         // Default display style for CardWithForm
         if (!date?.from) {
             return (
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center">
-                        <span className="text-gray-500 text-base ml-2">Check-in</span>
-                        <span className="mx-4 text-gray-500">→</span>
-                        <span className="text-gray-500 text-base">Check out</span>
+                <div className="flex items-center justify-between w-full px-2">
+                    <div className="flex gap-2 items-center text-[#2F2F2F]">
+                        <span className="text-base ml-2">Check-in</span>
+                        <FaArrowRight/>
+                        <span className="text-base">Check-out</span>
                     </div>
-                    <MdOutlineCalendarMonth className="h-5 w-5 text-gray-500 mr-2"/>
+                    <MdOutlineCalendarMonth className="h-5 w-5 text-[#2F2F2F] mr-2"/>
                 </div>
             );
         }
 
         return (
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full px-2">
                 <div className="ml-2">
                     {date?.from ? (
                         date.to ? (
-                            <>
-                                {format(date.from, "LLL dd, y")} → {format(date.to, "LLL dd, y")}
-                            </>
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <span>
+                                    {format(date.from, "LLL dd, y")}
+                                </span>
+                                <FaArrowRight/>
+                                <span>
+                                    {format(date.to, "LLL dd, y")}
+                                </span>
+                            </div>
                         ) : (
                             format(date.from, "LLL dd, y")
                         )
@@ -268,7 +282,7 @@ export function DatePickerWithRange({
                         <span>Select dates</span>
                     )}
                 </div>
-                <MdOutlineCalendarMonth className="h-4 w-4 text-gray-500 mr-2"/>
+                <MdOutlineCalendarMonth className="h-4 w-4 text-black mr-2"/>
             </div>
         );
     };
@@ -305,7 +319,7 @@ export function DatePickerWithRange({
                     side="bottom"
                     sideOffset={5}
                 >
-                    <div className="p-2 sm:p-4">
+                    <div className="p-2 sm:p-4 no-translate">
                         {status === StateStatus.LOADING ? (
                             <div className="flex justify-center p-4">Loading rates and discounts...</div>
                         ) : (
@@ -351,7 +365,7 @@ export function DatePickerWithRange({
                                             mode="range"
                                             defaultMonth={currentMonth}
                                             month={currentMonth}
-                                            selected={date ?? undefined}
+                                            selected={tempDate ?? undefined}
                                             onSelect={handleSelect}
                                             onMonthChange={handleMonthChange}
                                             numberOfMonths={1}
@@ -380,7 +394,7 @@ export function DatePickerWithRange({
                                                 head_cell: "w-[50px] text-center font-medium text-gray-500",
                                                 row: "flex justify-between mb-3",
                                                 cell: "w-[50px] h-[60px] flex flex-col items-center justify-center mx-0.5",
-                                                day: "h-[60px] w-[50px] flex flex-col items-center justify-center p-0",
+                                                day: "h-[58px] w-[50px] flex flex-col items-center justify-center p-0",
                                                 day_today: "bg-none",
                                                 day_range_middle: "!bg-[#AAA] text-black font-normal",
                                                 day_disabled: "!text-gray-400 font-light !cursor-not-allowed",
@@ -422,7 +436,7 @@ export function DatePickerWithRange({
                                             mode="range"
                                             defaultMonth={addMonths(currentMonth, 1)}
                                             month={addMonths(currentMonth, 1)}
-                                            selected={date}
+                                            selected={tempDate}
                                             onSelect={handleSelect}
                                             onMonthChange={handleMonthChange}
                                             numberOfMonths={1}
@@ -451,7 +465,7 @@ export function DatePickerWithRange({
                                                 head_cell: "w-[50px] text-center font-medium text-gray-500",
                                                 row: "flex justify-between mb-3",
                                                 cell: "w-[50px] h-[60px] flex flex-col items-center justify-center mx-0.5",
-                                                day: "h-[60px] w-[50px] flex flex-col items-center justify-center p-0",
+                                                day: "h-[58px] w-[50px] flex flex-col items-center justify-center p-0",
                                                 day_today: "bg-none",
                                                 day_range_middle: "!bg-[#AAA] text-black font-normal",
                                                 day_disabled: "!text-gray-400 font-light !cursor-not-allowed",
@@ -477,7 +491,7 @@ export function DatePickerWithRange({
                                         mode="range"
                                         defaultMonth={currentMonth}
                                         month={currentMonth}
-                                        selected={date}
+                                        selected={tempDate}
                                         onSelect={handleSelect}
                                         onMonthChange={handleMonthChange}
                                         numberOfMonths={1}
@@ -506,7 +520,7 @@ export function DatePickerWithRange({
                                             head_cell: "w-[50px] text-center font-medium text-gray-500",
                                             row: "flex justify-between mb-3",
                                             cell: "w-[50px] h-[60px] flex flex-col items-center justify-center mx-0.5",
-                                            day: "h-[60px] w-[50px] flex flex-col items-center justify-center p-0",
+                                            day: "h-[58px] w-[50px] flex flex-col items-center justify-center p-0",
                                             day_today: "bg-none",
                                             day_range_middle: "!bg-[#AAA] text-black font-normal",
                                             day_disabled: "!text-gray-400 font-light !cursor-not-allowed",
@@ -537,16 +551,16 @@ export function DatePickerWithRange({
                         className="p-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
                         <div className="flex flex-col items-start mb-2 sm:mb-0">
                             <span className="text-red-500 text-xs mr-4">
-                                {date?.from && date?.to && differenceInDays(date.to, date.from) > 14
+                                {tempDate?.from && tempDate?.to && differenceInDays(tempDate.to, tempDate.from) > 14
                                     ? "Max. length of stay: 14 days"
                                     : ""}
                             </span>
-                            {date?.from && date?.to && (
+                            {tempDate?.from && tempDate?.to && (
                                 <div className="text-sm text-gray-700 mt-2">
                                     Total price: {(() => {
                                     let total = 0;
-                                    let currentDate = new Date(date.from);
-                                    while (currentDate < date.to) {
+                                    let currentDate = new Date(tempDate.from);
+                                    while (currentDate < tempDate.to) {
                                         const dayStr = format(currentDate, "yyyy-MM-dd");
                                         const rate = formattedRoomRates[dayStr];
                                         if (rate) {
@@ -561,7 +575,7 @@ export function DatePickerWithRange({
                         </div>
                         <Button
                             className="h-8 text-sm px-6"
-                            disabled={!date?.from || !date?.to}
+                            disabled={!tempDate?.from || !tempDate?.to}
                             onClick={handleApplyDates}
                         >
                             APPLY DATES

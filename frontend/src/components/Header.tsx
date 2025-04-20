@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { PulseLoader } from "react-spinners";
-import { HiGlobeAlt } from "react-icons/hi";
-import { updateLanguage } from "../redux/languageSlice";
-import { fetchExchangeRates, setSelectedCurrency, } from "../redux/currencySlice";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { Button, Separator, Sheet, SheetContent, SheetTrigger } from "./ui";
-import { FiMenu } from "react-icons/fi";
-import { fetchConfig } from "../redux/configSlice.ts";
-import { ConfigType } from "../types";
-import { useAuth } from "react-oidc-context";
+
+
+import React, {useEffect, useState} from "react";
+import {useAppDispatch, useAppSelector} from "../redux/hooks";
+import {PulseLoader} from "react-spinners";
+import {HiGlobeAlt} from "react-icons/hi";
+import {updateLanguage} from "../redux/languageSlice";
+import {fetchExchangeRates, setSelectedCurrency,} from "../redux/currencySlice";
+import {Link, useParams} from "react-router-dom";
+import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
+import {FiMenu} from "react-icons/fi";
+import {fetchConfig} from "../redux/configSlice.ts";
+import {ConfigType} from "../types";
+import {useAuth} from "react-oidc-context";
+import {translatePage} from "../services/translationService";
 
 
 const Header: React.FC = () => {
@@ -46,6 +49,13 @@ const Header: React.FC = () => {
         }
     }, [dispatch, rates, selectedCurrency]);
 
+    // Add effect to translate the page when language changes
+    useEffect(() => {
+        if (selectedLanguage && selectedLanguage.code) {
+            translatePage(selectedLanguage.code);
+        }
+    }, [selectedLanguage]);
+
     const toggleLanguageDropdown = () => {
         setLanguageDropdownOpen(!languageDropdownOpen);
         setCurrencyDropdownOpen(false);
@@ -73,21 +83,28 @@ const Header: React.FC = () => {
     };
 
     const handleLogin = () => {
+        // Save current path for redirect after login
+        const currentPath = window.location.pathname;
+        localStorage.setItem('redirectPath', currentPath);
+        
         auth.signinRedirect({
             extraQueryParams: {
-                path: "hello"
+                path: currentPath
             },
         });
     };
 
     const handleLogout = () => {
+        const currentPath = window.location.pathname;
+        localStorage.setItem('redirectPath', currentPath);
+        
         auth.removeUser();
         const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
         const logoutUri = window.location.origin + "/auth/logout";
         const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
-        window.location.href = `https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(
-            logoutUri
-        )}`;
+        
+        const fullLogoutUrl = `https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;        
+        window.location.href = fullLogoutUrl;
     };
 
     if (isLoading) {
@@ -104,8 +121,8 @@ const Header: React.FC = () => {
     const { brand } = globalConfig.configData;
     return (
         <header
-            className="fixed top-0 left-0 right-0 z-50 flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
-            <div className="flex items-center space-x-2 md:space-x-4 lg:mx-20">
+            className="fixed top-0 left-0 right-0 z-50 flex h-[84px] justify-between items-center py-4 px-6 lg:px-14 bg-white shadow-md">
+            <div className="flex items-center space-x-2 md:space-x-4">
                 <Link
                     to={`/${tenantId}`}
                     className="flex items-center space-x-2 md:space-x-4"
@@ -116,7 +133,7 @@ const Header: React.FC = () => {
                         className="w-28 h-6 md:w-36 md:h-7"
                     />
                     <span
-                        className="font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">
+                        className="hidden lg:block font-bold text-lg md:text-xl text-primary cursor-pointer hover:text-primary/90 transition-colors">
                         {brand.pageTitle}
                     </span>
                 </Link>
@@ -178,7 +195,7 @@ const Header: React.FC = () => {
 
                             <div className="space-y-4">
                                 {/* Language selection */}
-                                <div>
+                                <div className="no-translate">
                                     <div className="flex items-center mb-2">
                                         <HiGlobeAlt className="w-5 h-5 text-primary mr-2" />
                                         <h3 className="font-medium text-sm text-primary">
@@ -211,7 +228,7 @@ const Header: React.FC = () => {
                                 </div>
 
                                 {/* Currency selection */}
-                                <div>
+                                <div className="no-translate">
                                     <div className="flex items-center mb-2">
                                         <span
                                             className="w-4 h-4 text-primary mr-2 flex items-center justify-center font-medium text-base">
@@ -251,18 +268,27 @@ const Header: React.FC = () => {
                 </Sheet>
             </div>
 
+
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
                 <Link
+
+            <div className="hidden md:flex items-center space-x-6 lg:space-x-10">
+                <a
+                    href="/#"
+
                     className="text-[14px] font-bold uppercase text-primary h-[20px] min-w-[102px]"
                     to={`/${tenantId}/bookings`}
                 >
                     MY BOOKINGS
+
                 </Link>
 
-
                 <div className="relative">
+
+                </a>
+                <div className="relative no-translate">
                     <button
-                        className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
+                        className="flex w-[45px] h-[19px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleLanguageDropdown}
                     >
                         <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125" />
@@ -294,7 +320,7 @@ const Header: React.FC = () => {
                             </div>
                         )}
                 </div>
-                <div className="relative">
+                <div className="relative no-translate">
                     <button
                         className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleCurrencyDropdown}

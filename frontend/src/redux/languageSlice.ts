@@ -1,8 +1,9 @@
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
-import {BaseState, StateStatus} from "../types/common";
+import {BaseState, StateStatus} from "../types";
 import {RootState} from "./store";
 import {setSelectedCurrency} from "./currencySlice";
 import {api} from "../lib/api-client";
+import {translatePage} from "../services/translationService";
 
 export interface Language {
     code: string;
@@ -23,12 +24,6 @@ const initialState: LanguageState = {
     error: null,
     hasInitialized: false
 };
-
-declare global {
-    interface Window {
-        translatePage?: (langCode: string) => void;
-    }
-}
 
 export const fetchLocationInfo = createAsyncThunk(
     "location/fetchInfo",
@@ -53,7 +48,7 @@ export const fetchLocationInfo = createAsyncThunk(
                 language = {code: "en", name: "English"};
             }
 
-            dispatch(setLanguage(language));
+            dispatch(updateLanguage(language));
 
             const currencyCode = response.currency?.code;
             let currency;
@@ -78,14 +73,9 @@ const languageSlice = createSlice({
     name: "language",
     initialState,
     reducers: {
-        setLanguage: (state, action) => {
-            state.selectedLanguage = action.payload;
-            window.translatePage?.(action.payload.code);
-        },
         updateLanguage: (state, action) => {
             state.selectedLanguage = action.payload;
-            window.translatePage?.(action.payload.code);
-            window.location.reload();
+            translatePage(action.payload.code);
         }
     },
     extraReducers: (builder) => {
@@ -106,5 +96,5 @@ const languageSlice = createSlice({
     },
 });
 
-export const {updateLanguage, setLanguage} = languageSlice.actions;
+export const {updateLanguage} = languageSlice.actions;
 export default languageSlice.reducer; 

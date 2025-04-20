@@ -252,7 +252,7 @@ const CheckoutPage: React.FC = () => {
         }
         const email = formData.billingEmail as string;
 
-        if(auth.user?.profile.email){
+        if (auth.user?.profile.email) {
             await handleSubmitBooking();
             return;
         }

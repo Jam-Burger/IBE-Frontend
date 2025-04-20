@@ -249,7 +249,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({setActiveSection, fields, isSe
                         </div>
                         <div className='flex flex-row justify-end items-center gap-4 pt-4 text-lg'>
                             <span>Total Due</span>
-                            <span className='font-bold'>{totalDue}</span>
+                            <span className='font-bold no-translate'>{totalDue}</span>
                         </div>
                         <div className='flex flex-row justify-end items-center gap-4 pt-4'>
                             <button

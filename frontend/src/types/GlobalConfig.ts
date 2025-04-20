@@ -8,6 +8,7 @@ export interface GlobalConfig {
             logoUrl: string;
             companyName: string;
             pageTitle: string;
+            footerLogoUrl: string;
         };
         languages: { code: string; name: string }[];
         currencies: { code: string; symbol: string }[];

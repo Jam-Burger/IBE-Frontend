@@ -82,11 +82,11 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                                     <span>{formatDate(dayRate.date)}</span>
                                     <div className="text-right">
                                         {dayRate.minimumRate !== dayRate.discountedRate && (
-                                            <span className="line-through text-gray-500 mr-2">
+                                            <span className="line-through text-gray-500 mr-2 no-translate">
                                                 {convertToLocaleCurrency(selectedCurrency.symbol, dayRate.minimumRate, multiplier, false)}
                                             </span>
                                         )}
-                                        <span>
+                                        <span className="no-translate">
                                             {convertToLocaleCurrency(selectedCurrency.symbol, dayRate.discountedRate, multiplier, false)}
                                         </span>
                                     </div>
@@ -94,7 +94,7 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                             ))}
                             <div className="flex justify-between py-2 mt-2">
                                 <span className="font-medium">Room Subtotal</span>
-                                <span className="font-medium">
+                                <span className="font-medium no-translate">
                                     {convertToLocaleCurrency(selectedCurrency.symbol, subtotal, multiplier, false)}
                                 </span>
                             </div>
@@ -108,19 +108,19 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                                 {resortFeeRate > 0 && (
                                     <div className="flex justify-between">
                                         <span>Resort fee ({resortFeeRate}%)</span>
-                                        <span>{convertToLocaleCurrency(selectedCurrency.symbol, resortFee, multiplier, false)}</span>
+                                        <span className="no-translate">{convertToLocaleCurrency(selectedCurrency.symbol, resortFee, multiplier, false)}</span>
                                     </div>
                                 )}
                                 {occupancyTaxRate > 0 && (
                                     <div className="flex justify-between">
                                         <span>Occupancy tax ({occupancyTaxRate}%)</span>
-                                        <span>{convertToLocaleCurrency(selectedCurrency.symbol, occupancyTax, multiplier, false)}</span>
+                                        <span className="no-translate">{convertToLocaleCurrency(selectedCurrency.symbol, occupancyTax, multiplier, false)}</span>
                                     </div>
                                 )}
                                 {additionalFeesRate > 0 && (
                                     <div className="flex justify-between">
                                         <span>Additional fees ({additionalFeesRate}%)</span>
-                                        <span>{convertToLocaleCurrency(selectedCurrency.symbol, additionalFees, multiplier, false)}</span>
+                                        <span className="no-translate">{convertToLocaleCurrency(selectedCurrency.symbol, additionalFees, multiplier, false)}</span>
                                     </div>
                                 )}
                             </div>
@@ -129,7 +129,7 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                         <div className="border-t pt-4 space-y-2">
                             <div className="flex justify-between">
                                 <span className="font-medium">Due now (5%)</span>
-                                <span className="font-medium">
+                                <span className="font-medium no-translate">
                                     {convertToLocaleCurrency(selectedCurrency.symbol, dueNow, multiplier, false)}
                                 </span>
                             </div>
@@ -137,7 +137,7 @@ const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
                                 <span className="font-medium">
                                     Due at resort
                                 </span>
-                                <span className="font-medium">
+                                <span className="font-medium no-translate">
                                     {convertToLocaleCurrency(selectedCurrency.symbol, dueAtResort, multiplier, false)}
                                 </span>
                             </div>

@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useCallback, useEffect} from "react";
 import {useAppDispatch, useAppSelector} from "../../redux/hooks";
 import {Select, SelectContent, SelectTrigger, SelectValue} from "./Select";
 import {Button} from "./Button";
@@ -14,6 +14,7 @@ export interface GuestSelectorProps {
     height?: string;
     value?: Record<string, number>;
     onChange?: (guests: Record<string, number>) => void;
+    onValidationFail?: () => void;
 }
 
 export const GuestSelector = ({
@@ -23,6 +24,7 @@ export const GuestSelector = ({
                                   height,
                                   value,
                                   onChange,
+                                  onValidationFail,
                               }: GuestSelectorProps) => {
     const dispatch = useAppDispatch();
     const guestOptions = useAppSelector(
@@ -36,6 +38,24 @@ export const GuestSelector = ({
         (sum, count) => sum + count,
         0
     );
+    const adultCount = allGuests["Adults"] ?? null;
+
+    // Minimum adults per room validation
+    const validateAdultsPerRoom = useCallback(() => {
+        const minAdultsPerRoom = 1;
+        if (adultCount != null && adultCount < roomCount * minAdultsPerRoom) {
+            toast.error(`Please add at least ${minAdultsPerRoom} adult per room. Current: ${adultCount} adults for ${roomCount} rooms`);
+            if (onValidationFail) {
+                onValidationFail();
+            }
+            return false;
+        }
+        return true;
+    }, [adultCount, roomCount, onValidationFail]);
+
+    useEffect(() => {
+        validateAdultsPerRoom();
+    }, [validateAdultsPerRoom]);
 
     useEffect(() => {
         if (guestOptions?.categories) {
@@ -72,6 +92,18 @@ export const GuestSelector = ({
         );
         if (!category?.enabled) return;
 
+        const currentCount = allGuests[categoryName] || 0;
+        const newCount = increment ? currentCount + 1 : currentCount - 1;
+        const newAdultCount = categoryName === "Adults" ?
+            adultCount + (increment ? 1 : -1) :
+            adultCount;
+
+        // Check minimum adults
+        if (categoryName === "Adults" && !increment && newAdultCount < roomCount) {
+            toast.error(`You need at least ${roomCount} adult${roomCount > 1 ? 's' : ''} for ${roomCount} room${roomCount > 1 ? 's' : ''}`);
+            return;
+        }
+
         if (!increment && totalGuests <= guestOptions.min) {
             toast.error(`Minimum of ${guestOptions.min} guest required`);
             return;
@@ -85,8 +117,6 @@ export const GuestSelector = ({
             );
             return;
         }
-
-        const currentCount = allGuests[categoryName] || 0;
 
         if (increment && currentCount >= category.max) {
             toast.error(
@@ -106,7 +136,7 @@ export const GuestSelector = ({
 
         const newCounts = {
             ...allGuests,
-            [categoryName]: increment ? currentCount + 1 : currentCount - 1,
+            [categoryName]: newCount,
         };
 
         if (onChange) {

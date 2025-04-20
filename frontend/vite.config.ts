@@ -1,17 +1,20 @@
 import {defineConfig} from 'vitest/config';
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import {sentryVitePlugin} from "@sentry/vite-plugin";
 import path from "path";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
+import dotenv from "dotenv";
 
+dotenv.config();
 export default defineConfig({
-    plugins: [react(),
+    plugins: [
+        react(),
         tailwindcss(),
         sentryVitePlugin({
-            org: "kdu",
-            project: "hufflepuff_ibe",
-            authToken: process.env.SENTRY_AUTH_TOKEN,
-        })
+            org: process.env.VITE_SENTRY_ORG,
+            project: process.env.VITE_SENTRY_PROJECT,
+            authToken: process.env.VITE_SENTRY_AUTH_TOKEN,
+        }),
     ],
     resolve: {
         alias: {
@@ -45,5 +48,8 @@ export default defineConfig({
                 resources: 'usable',
             },
         },
+    },
+    build: {
+        sourcemap: true,
     },
 });

@@ -21,6 +21,7 @@ import {FaWheelchair} from "react-icons/fa";
 import {useNavigate, useParams} from 'react-router-dom';
 import {updateFilter} from "../../redux/filterSlice.ts";
 import {setCurrentStep} from "../../redux/stepperSlice.ts";
+import {toast} from "react-hot-toast";
 
 interface Property {
     propertyId: number;
@@ -85,7 +86,22 @@ const CardWithForm = () => {
     };
 
     const handleRoomCountChange = (value: string) => {
-        dispatch(updateFilter({roomCount: parseInt(value, 10)}));
+        const newRoomCount = parseInt(value, 10);
+        const adultCount = filter.guests["Adults"] || 0;
+        
+        // Check adults validation
+        if (adultCount < newRoomCount) {
+            toast.error(`You need at least ${newRoomCount} adult${newRoomCount > 1 ? 's' : ''} for ${newRoomCount} room${newRoomCount > 1 ? 's' : ''}`);
+            return;
+        }
+
+        // Check if new room count would exceed current bed count
+        if (newRoomCount > (filter.bedCount || 1)) {
+            toast.error(`Please increase the number of beds to at least match the number of rooms`);
+            return;
+        }
+        
+        dispatch(updateFilter({roomCount: newRoomCount}));
     };
 
     const handleAccessibilityChange = (checked: boolean) => {
@@ -106,22 +122,22 @@ const CardWithForm = () => {
 
     if (loading || configLoading) {
         return (
-            <Card className="w-[380px] h-[585px] p-4 shadow-lg rounded-lg flex items-center justify-center">
+            <Card className="w-[380px] h-[585px] p-[44px] shadow-lg rounded-lg flex items-center justify-center">
                 <PulseLoader color="var(--primary)" size={10}/>
             </Card>
         );
     }
 
     return (
-        <Card className="w-[380px] h-[585px] py-8 sm:py-12 px-4 sm:px-8 shadow-lg rounded-lg mx-auto">
+        <Card className="w-[380px] h-[585px] py-8 sm:py-12 px-4 sm:p-[44px] shadow-lg rounded-lg mx-auto">
             {/* Add the style tag to inject our custom CSS */}
             <style>{hideRightCheckmarkStyle}</style>
 
-            <CardContent className="flex flex-col h-full">
+            <CardContent className="flex flex-col h-full sm:px-0">
                 <form className="space-y-4 flex-1">
                     {/* Property Name */}
                     <div className="flex flex-col space-y-2">
-                        <Label htmlFor="property">Property name</Label>
+                        <Label htmlFor="property">Property name*</Label>
                         <Select value={propertyId.toString()}
                                 onValueChange={(value) => handlePropertyChange(parseInt(value))}>
                             <SelectTrigger
@@ -129,7 +145,7 @@ const CardWithForm = () => {
                                 className="w-full min-h-[48px] text-gray-700 px-4 py-2 flex items-center border border-gray-200 shadow-sm rounded-md"
                             >
                                 {propertyId === 0 &&
-                                    <p className="text-muted-foreground italic font-light">Search all properties</p>}
+                                    <p className="text-muted-foreground italic font-[400]">Search all properties</p>}
                                 {propertyId !== 0 && (
                                     <span>{getSelectedPropertyName()}</span>
                                 )}
@@ -158,7 +174,7 @@ const CardWithForm = () => {
                     </div>
 
                     <div className="flex flex-col space-y-2">
-                        <Label>Select dates</Label>
+                        <Label className="font-[400]">Select dates</Label>
                         {
                             <DatePickerWithRange
                                 propertyId={propertyId}
@@ -173,25 +189,33 @@ const CardWithForm = () => {
                     {/* Guests & Rooms */}
                     {searchForm.guestOptions && searchForm.roomOptions && (
                         <div className={searchForm.guestOptions.enabled && searchForm.roomOptions.enabled
-                            ? "flex gap-2"
+                            ? "flex gap-2 justify-between"
                             : "w-full"
                         }>
                             {searchForm.guestOptions.enabled && (
                                 <div
                                     className={`flex flex-col space-y-1 ${searchForm.roomOptions.enabled
-                                        ? 'flex-6'
+                                        ? 'w-[200px]'
                                         : 'w-full'
                                     }`}
                                 >
                                     <Label htmlFor="guests">Guests</Label>
-                                    <GuestSelector roomCount={roomCount} className="w-[200px]" height="48px"/>
+                                    <GuestSelector 
+                                        roomCount={roomCount} 
+                                        className="w-[200px]" 
+                                        height="48px"
+                                        onValidationFail={() => {
+                                            // Reset room count to minimum when validation fails
+                                            dispatch(updateFilter({roomCount: 1}));
+                                        }}
+                                    />
                                 </div>
                             )}
 
                             {searchForm.roomOptions.enabled && (
                                 <div
                                     className={`flex flex-col space-y-1 ${searchForm.guestOptions.enabled
-                                        ? 'flex-4'
+                                        ? 'w-[77px]'
                                         : 'w-full'
                                     }`}
                                 >
