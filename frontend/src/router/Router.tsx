@@ -3,6 +3,7 @@ import {AppLayout} from "../layouts/AppLayout";
 import {CheckoutPage, HomePage, NotFoundPage, RoomsListPage,MyBookings} from "../pages";
 import {Routes} from "./routes";
 import {AuthCallback} from "../components/auth/AuthCallback";
+import {LogoutRedirect} from "../components/auth/LogoutRedirect";
 import ConfirmationPage from "../pages/ConfirmationPage";
 import ReviewPage from "../pages/ReviewPage";
 
@@ -19,7 +20,7 @@ export const Router = createBrowserRouter([
     },
     {
         path: Routes.AUTH_LOGOUT,
-        element: <Navigate to="/" replace/>,
+        element: <LogoutRedirect/>,
     },
     {
         path: Routes.HOME,

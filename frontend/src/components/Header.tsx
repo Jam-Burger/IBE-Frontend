@@ -79,21 +79,28 @@ const Header: React.FC = () => {
     };
 
     const handleLogin = () => {
+        // Save current path for redirect after login
+        const currentPath = window.location.pathname;
+        localStorage.setItem('redirectPath', currentPath);
+        
         auth.signinRedirect({
             extraQueryParams: {
-                path: "hello"
+                path: currentPath
             },
         });
     };
 
     const handleLogout = () => {
+        const currentPath = window.location.pathname;
+        localStorage.setItem('redirectPath', currentPath);
+        
         auth.removeUser();
         const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
         const logoutUri = window.location.origin + "/auth/logout";
         const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
-        window.location.href = `https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(
-            logoutUri
-        )}`;
+        
+        const fullLogoutUrl = `https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;        
+        window.location.href = fullLogoutUrl;
     };
 
     if (isLoading) {

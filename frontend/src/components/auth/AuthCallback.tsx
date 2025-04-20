@@ -1,42 +1,51 @@
-import React, {useEffect} from 'react';
-import {useAuth} from 'react-oidc-context';
-import {useNavigate, useSearchParams} from 'react-router-dom';
-import {PulseLoader} from "react-spinners";
-import {updateFormData} from "../../redux/checkoutSlice.ts";
-import {useDispatch} from "react-redux";
+import React, { useEffect } from "react";
+import { useAuth } from "react-oidc-context";
+import { useNavigate } from "react-router-dom";
+import { PulseLoader } from "react-spinners";
 
 export const AuthCallback: React.FC = () => {
     const auth = useAuth();
     const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const params = useSearchParams();
 
     useEffect(() => {
         const handleCallback = async () => {
             try {
                 if (!auth.isLoading && !auth.error) {
-                    if (auth.user?.profile.email) {
-                        dispatch(updateFormData({name: 'billingEmail', value: auth.user.profile.email}));
-                    }
-                    navigate('/');
+                    const redirectPath = localStorage.getItem("redirectPath") || "/";
+                    localStorage.removeItem("redirectPath");
+                    
+                    navigate(redirectPath);
                 }
             } catch (error) {
-                console.error('Error during sign-in callback:', error);
-                navigate('/');
+                console.error("Error during sign-in callback:", error);
+                navigate("/");
             }
         };
 
         handleCallback();
-    }, [auth, navigate, params]);
+    }, [auth, navigate]);
 
     if (auth.isLoading) {
-        return <PulseLoader
-            loading={auth.isLoading}
-            className="text-primary w-full h-full flex justify-center items-center"/>
+        return (
+            <div className="w-full h-screen flex flex-col justify-center items-center">
+                <PulseLoader color="var(--primary)" size={10} />
+                <p className="mt-4 text-gray-600">Logging in...</p>
+            </div>
+        );
     }
 
     if (auth.error) {
-        return <div>Authentication error: {auth.error.message}</div>;
+        return (
+            <div className="w-full h-screen flex flex-col justify-center items-center">
+                <p className="text-gray-600">Authentication error: {auth.error.message}</p>
+                <button onClick={() => auth.signinRedirect()}>Try again</button>
+            </div>
+        );
     }
-    return <div>Redirecting...</div>;
-}; 
+
+    return (
+        <div className="w-full h-screen flex flex-col justify-center items-center">
+            <p className="text-gray-600">Redirecting...</p>
+        </div>
+    );
+};
