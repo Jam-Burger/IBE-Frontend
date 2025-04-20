@@ -1,0 +1,70 @@
+name: Deploy IaC - QA
+
+on:
+  workflow_call:
+    outputs:
+      bucket_name:
+        description: "The name of the S3 bucket"
+        value: ${{ jobs.deploy.outputs.bucket_name }}
+      cloudfront_id:
+        description: "The CloudFront distribution ID"
+        value: ${{ jobs.deploy.outputs.cloudfront_id }}
+      aws_region:
+        description: "The AWS region"
+        value: ${{ jobs.deploy.outputs.aws_region }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy IaC
+    defaults:
+      run:
+        working-directory: ./iac
+    outputs:
+      bucket_name: ${{ steps.output-vars.outputs.bucket_name }}
+      cloudfront_id: ${{ steps.output-vars.outputs.cloudfront_id }}
+    env:
+      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+      TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
+      TF_VAR_team_name: ${{ vars.TEAM_NAME }}
+      TF_VAR_google_client_id: ${{ vars.GOOGLE_CLIENT_ID }}
+      TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      TF_VAR_fb_app_id: ${{ vars.FB_APP_ID }}
+      TF_VAR_fb_app_secret: ${{ secrets.FB_APP_SECRET }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Select Workspace
+        run: terraform workspace select qa || terraform workspace new qa
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve tfplan
+
+      - name: Output Terraform Variables
+        id: output-vars
+        run: |
+          echo "bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+          echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT

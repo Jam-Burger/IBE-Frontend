@@ -1,9 +1,12 @@
 resource "aws_s3_bucket" "frontend" {
-  bucket = "${var.project_name}-${var.team_name}-frontend"
+  bucket = "${var.project_name}-frontend-bucket"
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-frontend-bucket"
+  })
 }
 
 resource "aws_cloudfront_origin_access_control" "oac" {
-  name                              = "${var.project_name}-${var.team_name}-oac"
+  name                              = "${var.project_name}-frontend-oac"
   description                       = "Origin Access Control for S3 bucket"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -33,8 +36,10 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
 
 resource "aws_cloudfront_distribution" "cdn" {
   origin {
+    connection_attempts      = 3
+    connection_timeout       = 10
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_id                = "S3-${aws_s3_bucket.frontend.id}"
+    origin_id                = "S3-${var.project_name}-frontend-bucket"
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
 
@@ -43,10 +48,10 @@ resource "aws_cloudfront_distribution" "cdn" {
   default_root_object = "index.html"
 
   default_cache_behavior {
-    target_origin_id       = "S3-${aws_s3_bucket.frontend.id}"
+    target_origin_id       = "S3-${var.project_name}-frontend-bucket"
     viewer_protocol_policy = "redirect-to-https"
-    allowed_methods = ["GET", "HEAD", "OPTIONS"]
-    cached_methods = ["GET", "HEAD"]
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD"]
     compress               = true
 
     forwarded_values {
@@ -61,6 +66,21 @@ resource "aws_cloudfront_distribution" "cdn" {
     max_ttl     = 86400
   }
 
+  # Add custom error responses for SPA routing
+  custom_error_response {
+    error_code         = 403
+    response_code      = 200
+    response_page_path = "/index.html"
+    error_caching_min_ttl = 10
+  }
+
+  custom_error_response {
+    error_code         = 404
+    response_code      = 200
+    response_page_path = "/index.html"
+    error_caching_min_ttl = 10
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
@@ -70,6 +90,10 @@ resource "aws_cloudfront_distribution" "cdn" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-cdn"
+  })
 }
 
 resource "aws_s3_bucket_policy" "frontend_policy" {
@@ -88,8 +112,8 @@ resource "aws_s3_bucket_cors_configuration" "frontend" {
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "HEAD"]
-    allowed_origins = ["*"]  # In production, you might want to restrict this to your domain
-    expose_headers = ["ETag"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
     max_age_seconds = 3600
   }
 }

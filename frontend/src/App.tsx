@@ -1,21 +1,28 @@
 import React from 'react';
 import './App.css';
-import { BrowserRouter as Router } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import { Route, Routes } from 'react-router-dom';
-import Header from './components/Header';
-import Footer from './components/Footer';
+import {RouterProvider} from 'react-router-dom';
+import * as Sentry from '@sentry/react';
+import {Router} from './router';
+import {Provider} from 'react-redux';
+import {PersistGate} from 'redux-persist/integration/react';
+import {persistor, store} from './redux/store';
+
+Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [Sentry.browserTracingIntegration()],
+    tracesSampleRate: 1.0,
+});
 
 const App: React.FC = () => {
-  return (
-    <Router>
-      <Header />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-      </Routes>
-      <Footer />
-    </Router>
-  );
+    return (
+        <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+                <Sentry.ErrorBoundary fallback={<p>An error has occurred</p>}>
+                    <RouterProvider router={Router}/>
+                </Sentry.ErrorBoundary>
+            </PersistGate>
+        </Provider>
+    );
 };
 
 export default App;

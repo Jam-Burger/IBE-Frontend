@@ -13,21 +13,25 @@ variable "team_name" {
   type        = string
 }
 
-variable "github_org" {
-  description = "GitHub organization name"
+# Social Provider Variables
+variable "google_client_id" {
+  description = "Google OAuth client ID"
   type        = string
 }
 
-variable "github_repo" {
-  description = "GitHub repository name"
+variable "google_client_secret" {
+  description = "Google OAuth client secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "fb_app_id" {
+  description = "Facebook App ID"
   type        = string
 }
 
-variable "tags" {
-  description = "Tags"
-  type = map(string)
-  default = {
-    Creator     = "team-hufflepuff"
-    Purpose     = "IBE-Project"
-  }
+variable "fb_app_secret" {
+  description = "Facebook App secret"
+  type        = string
+  sensitive   = true
 }
