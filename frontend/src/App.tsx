@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import {RouterProvider} from 'react-router-dom';
 import { browserTracingIntegration } from "@sentry/react";
@@ -9,8 +9,14 @@ import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
 import {persistor, store} from './redux/store';
 
-// Initialize Sentry
-sentryInit({
+
+import ReactGA from "react-ga4";
+
+
+
+
+Sentry.init({
+
     dsn: import.meta.env.VITE_SENTRY_DSN,
     integrations: [browserTracingIntegration()],
     tracesSampleRate: 1.0,
@@ -18,6 +24,12 @@ sentryInit({
 });
 
 const App: React.FC = () => {
+   useEffect(() => {
+        const trackingId = import.meta.env.VITE_GA_MEASUREMENT_ID as string;
+        ReactGA.initialize(trackingId);
+        ReactGA.send({hitType:"pageview", page: window.location.pathname, title: document.title});
+    }
+    , []);
     return (
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>

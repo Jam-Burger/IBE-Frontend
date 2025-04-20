@@ -887,14 +887,15 @@
     "@radix-ui/react-primitive" "2.0.2"
     "@radix-ui/react-slot" "1.1.2"
 
-"@radix-ui/react-collection@1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-collection/-/react-collection-1.1.4.tgz#45fb4215ca26a84bd61b9b1337105e4d4e01b686"
-  integrity sha512-cv4vSf7HttqXilDnAnvINd53OTl1/bjUYVZrkFnA7nwmY9Ob2POUy0WY0sfqBAe1s5FyKsyceQlqiEGPYNTadg==
+"@radix-ui/react-collection@1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-collection/-/react-collection-1.1.3.tgz#cfd46dcea5a8ab064d91798feeb46faba4032930"
+  integrity sha512-mM2pxoQw5HJ49rkzwOs7Y6J4oYH22wS8BfK2/bBxROlI4xuR0c4jEenQP63LlTlDkO6Buj2Vt+QYAYcOgqtrXA==
   dependencies:
     "@radix-ui/react-compose-refs" "1.1.2"
     "@radix-ui/react-context" "1.1.2"
-    "@radix-ui/react-primitive" "2.1.0"
+    "@radix-ui/react-primitive" "2.0.3"
+
     "@radix-ui/react-slot" "1.2.0"
 
 "@radix-ui/react-compose-refs@1.1.1":
@@ -1098,10 +1099,12 @@
   dependencies:
     "@radix-ui/react-slot" "1.1.2"
 
-"@radix-ui/react-primitive@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-primitive/-/react-primitive-2.1.0.tgz#9233e17a22d0010195086f8b5eb1808ebbca8437"
-  integrity sha512-/J/FhLdK0zVcILOwt5g+dH4KnkonCtkVJsa2G6JmvbbtZfBEI1gMsO3QMjseL4F/SwfAMt1Vc/0XKYKq+xJ1sw==
+"@radix-ui/react-primitive@2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-primitive/-/react-primitive-2.0.3.tgz#13c654dc4754558870a9c769f6febe5980a1bad8"
+  integrity sha512-Pf/t/GkndH7CQ8wE2hbkXA+WyZ83fhQQn5DDmwDiDo6AwN/fhaH8oqZ0jRjMrO2iaMhDi6P1HRx6AZwyMinY1g==
+
+
   dependencies:
     "@radix-ui/react-slot" "1.2.0"
 
@@ -1120,20 +1123,23 @@
     "@radix-ui/react-use-callback-ref" "1.1.0"
     "@radix-ui/react-use-controllable-state" "1.1.0"
 
-"@radix-ui/react-roving-focus@1.1.6":
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-roving-focus/-/react-roving-focus-1.1.6.tgz#d956616bef9d4290f0c1113d0e31e4ddf00d1873"
-  integrity sha512-D2ReXCuIueKf5L2f1ks/wTj3bWck1SvK1pjLmEHPbwksS1nOHBsvgY0b9Hypt81FczqBqSyLHQxn/vbsQ0gDHw==
+"@radix-ui/react-roving-focus@1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-roving-focus/-/react-roving-focus-1.1.3.tgz#c992b9d30c795f5f5a668853db8f4a6e07b7284d"
+  integrity sha512-ufbpLUjZiOg4iYgb2hQrWXEPYX6jOLBbR27bDyAff5GYMRrCzcze8lukjuXVUQvJ6HZe8+oL+hhswDcjmcgVyg==
   dependencies:
     "@radix-ui/primitive" "1.1.2"
-    "@radix-ui/react-collection" "1.1.4"
+    "@radix-ui/react-collection" "1.1.3"
+
     "@radix-ui/react-compose-refs" "1.1.2"
     "@radix-ui/react-context" "1.1.2"
     "@radix-ui/react-direction" "1.1.1"
     "@radix-ui/react-id" "1.1.1"
-    "@radix-ui/react-primitive" "2.1.0"
+
+    "@radix-ui/react-primitive" "2.0.3"
     "@radix-ui/react-use-callback-ref" "1.1.1"
-    "@radix-ui/react-use-controllable-state" "1.2.2"
+    "@radix-ui/react-use-controllable-state" "1.1.1"
+
 
 "@radix-ui/react-select@^2.1.6":
   version "2.1.6"
@@ -1186,33 +1192,40 @@
     "@radix-ui/react-use-previous" "1.1.0"
     "@radix-ui/react-use-size" "1.1.0"
 
-"@radix-ui/react-slot@1.1.2", "@radix-ui/react-slot@^1.1.2":
+"@radix-ui/react-slot@1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-1.1.2.tgz#daffff7b2bfe99ade63b5168407680b93c00e1c6"
   integrity sha512-YAKxaiGsSQJ38VzKH86/BPRC4rh+b1Jpa+JneA5LRE7skmLPNAyeG8kPJj/oo4STLvlrs8vkf/iYyc3A5stYCQ==
   dependencies:
     "@radix-ui/react-compose-refs" "1.1.1"
 
-"@radix-ui/react-slot@1.2.0":
+
+"@radix-ui/react-slot@1.2.0", "@radix-ui/react-slot@^1.2.0":
+
+
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-1.2.0.tgz#57727fc186ddb40724ccfbe294e1a351d92462ba"
   integrity sha512-ujc+V6r0HNDviYqIK3rW4ffgYiZ8g5DEHrGJVk4x7kTlLXRDILnKX9vAUYeIsLOoDpDJ0ujpqMkjH4w2ofuo6w==
   dependencies:
     "@radix-ui/react-compose-refs" "1.1.2"
 
-"@radix-ui/react-tabs@^1.1.7":
-  version "1.1.7"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-tabs/-/react-tabs-1.1.7.tgz#55caac4902824fa309caf84517cbeb683276e47e"
-  integrity sha512-sawt4HkD+6haVGjYOC3BMIiCumBpqTK6o407n6zN/6yReed2EN7bXyykNrpqg+xCfudpBUZg7Y2cJBd/x/iybA==
+
+"@radix-ui/react-tabs@^1.1.4":
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-tabs/-/react-tabs-1.1.4.tgz#2e43f3ef3450143281e7c1491da1e5d7941b9826"
+  integrity sha512-fuHMHWSf5SRhXke+DbHXj2wVMo+ghVH30vhX3XVacdXqDl+J4XWafMIGOOER861QpBx1jxgwKXL2dQnfrsd8MQ==
+
   dependencies:
     "@radix-ui/primitive" "1.1.2"
     "@radix-ui/react-context" "1.1.2"
     "@radix-ui/react-direction" "1.1.1"
     "@radix-ui/react-id" "1.1.1"
     "@radix-ui/react-presence" "1.1.3"
-    "@radix-ui/react-primitive" "2.1.0"
-    "@radix-ui/react-roving-focus" "1.1.6"
-    "@radix-ui/react-use-controllable-state" "1.2.2"
+
+    "@radix-ui/react-primitive" "2.0.3"
+    "@radix-ui/react-roving-focus" "1.1.3"
+    "@radix-ui/react-use-controllable-state" "1.1.1"
+
 
 "@radix-ui/react-tooltip@^1.1.8":
   version "1.1.8"
@@ -1249,19 +1262,20 @@
   dependencies:
     "@radix-ui/react-use-callback-ref" "1.1.0"
 
+
+"@radix-ui/react-use-controllable-state@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-use-controllable-state/-/react-use-controllable-state-1.1.1.tgz#ec9c572072a6f269df7435c1652fbeebabe0f0c1"
+  integrity sha512-YnEXIy8/ga01Y1PN0VfaNH//MhA91JlEGVBDxDzROqwrAtG5Yr2QGEPz8A/rJA3C7ZAHryOYGaUv8fLSW2H/mg==
+  dependencies:
+    "@radix-ui/react-use-callback-ref" "1.1.1"
+
 "@radix-ui/react-use-controllable-state@1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-use-controllable-state/-/react-use-controllable-state-1.2.2.tgz#905793405de57d61a439f4afebbb17d0645f3190"
   integrity sha512-BjasUjixPFdS+NKkypcyyN5Pmg83Olst0+c6vGov0diwTEo6mgdqVR6hxcEgFuh4QrAs7Rc+9KuGJ9TVCj0Zzg==
   dependencies:
     "@radix-ui/react-use-effect-event" "0.0.2"
-    "@radix-ui/react-use-layout-effect" "1.1.1"
-
-"@radix-ui/react-use-effect-event@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-use-effect-event/-/react-use-effect-event-0.0.2.tgz#090cf30d00a4c7632a15548512e9152217593907"
-  integrity sha512-Qp8WbZOBe+blgpuUT+lw2xheLP8q0oatc9UpmiemEICxGvFLYmHm9QowVZGHtJlGbS6A6yJ3iViad/2cVjnOiA==
-  dependencies:
     "@radix-ui/react-use-layout-effect" "1.1.1"
 
 "@radix-ui/react-use-escape-keydown@1.1.0":
@@ -5135,6 +5149,11 @@ react-fast-compare@^2.0.1:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/react-fast-compare/-/react-fast-compare-2.0.4.tgz#e84b4d455b0fec113e0402c329352715196f81f9"
   integrity sha512-suNP+J1VU1MWFKcyt7RtjiSWUjvidmQSlqu+eHslq+342xCbGTYmC0mEhPCOHxlW0CywylOC1u2DFAT+bv4dBw==
+
+react-ga4@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/react-ga4/-/react-ga4-2.1.0.tgz#56601f59d95c08466ebd6edfbf8dede55c4678f9"
+  integrity sha512-ZKS7PGNFqqMd3PJ6+C2Jtz/o1iU9ggiy8Y8nUeksgVuvNISbmrQtJiZNvC/TjDsqD0QlU5Wkgs7i+w9+OjHhhQ==
 
 react-hot-toast@^2.5.2:
   version "2.5.2"
