@@ -204,7 +204,7 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
             : Yup.string(),
     });
 
-    // Create initial values from Redux store or defaults
+
     const initialValues: BillingFormValues = useMemo(() => {
         return {
             billingFirstName: formValues.billingFirstName?.toString() || '',

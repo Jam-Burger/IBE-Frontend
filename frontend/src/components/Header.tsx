@@ -1,24 +1,26 @@
-import React, {useEffect, useState} from "react";
-import {useAppDispatch, useAppSelector} from "../redux/hooks";
-import {PulseLoader} from "react-spinners";
-import {HiGlobeAlt} from "react-icons/hi";
-import {updateLanguage} from "../redux/languageSlice";
-import {fetchExchangeRates, setSelectedCurrency,} from "../redux/currencySlice";
-import {Link, useParams} from "react-router-dom";
-import {Button, Separator, Sheet, SheetContent, SheetTrigger} from "./ui";
-import {FiMenu} from "react-icons/fi";
-import {fetchConfig} from "../redux/configSlice.ts";
-import {ConfigType} from "../types";
-import {useAuth} from "react-oidc-context";
+import React, { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { PulseLoader } from "react-spinners";
+import { HiGlobeAlt } from "react-icons/hi";
+import { updateLanguage } from "../redux/languageSlice";
+import { fetchExchangeRates, setSelectedCurrency, } from "../redux/currencySlice";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Button, Separator, Sheet, SheetContent, SheetTrigger } from "./ui";
+import { FiMenu } from "react-icons/fi";
+import { fetchConfig } from "../redux/configSlice.ts";
+import { ConfigType } from "../types";
+import { useAuth } from "react-oidc-context";
+
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
-    const {tenantId} = useParams<{ tenantId: string }>();
+    const { tenantId } = useParams<{ tenantId: string }>();
     const auth = useAuth();
+    const navigate = useNavigate();
 
-    const {selectedLanguage} = useAppSelector((state) => state.language);
-    const {selectedCurrency, rates} = useAppSelector((state) => state.currency);
-    const {globalConfig} = useAppSelector((state) => state.config);
+    const { selectedLanguage } = useAppSelector((state) => state.language);
+    const { selectedCurrency, rates } = useAppSelector((state) => state.currency);
+    const { globalConfig } = useAppSelector((state) => state.config);
     const isLoading = !globalConfig;
 
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
@@ -32,7 +34,7 @@ const Header: React.FC = () => {
             console.error("Tenant ID is not available");
             return;
         }
-        dispatch(fetchConfig({tenantId, configType: ConfigType.GLOBAL}));
+        dispatch(fetchConfig({ tenantId, configType: ConfigType.GLOBAL }));
     }, [tenantId, dispatch]);
 
     useEffect(() => {
@@ -93,13 +95,13 @@ const Header: React.FC = () => {
             <header
                 className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center py-4 px-6 bg-white shadow-md">
                 <div className="w-full flex justify-center items-center h-16">
-                    <PulseLoader color="var(--primary)" size={10}/>
+                    <PulseLoader color="var(--primary)" size={10} />
                 </div>
             </header>
         );
     }
 
-    const {brand} = globalConfig.configData;
+    const { brand } = globalConfig.configData;
     return (
         <header
             className="fixed top-0 left-0 right-0 z-50 flex h-[84px] justify-between items-center py-4 px-6 bg-white shadow-md">
@@ -128,7 +130,7 @@ const Header: React.FC = () => {
                             onClick={toggleMobileMenu}
                             aria-label="Toggle menu"
                         >
-                            <FiMenu className="h-6 w-6"/>
+                            <FiMenu className="h-6 w-6" />
                         </button>
                     </SheetTrigger>
                     <SheetContent
@@ -141,7 +143,9 @@ const Header: React.FC = () => {
                                     variant="ghost"
                                     className="w-full justify-start text-primary font-medium"
                                     onClick={() => {
+                                        alert("Home clicked");
                                         setMobileMenuOpen(false);
+                                        navigate(`/${tenantId}/bookings`);
                                     }}
                                 >
                                     MY BOOKINGS
@@ -170,13 +174,13 @@ const Header: React.FC = () => {
                                 )}
                             </div>
 
-                            <Separator className="my-4"/>
+                            <Separator className="my-4" />
 
                             <div className="space-y-4">
                                 {/* Language selection */}
                                 <div>
                                     <div className="flex items-center mb-2">
-                                        <HiGlobeAlt className="w-5 h-5 text-primary mr-2"/>
+                                        <HiGlobeAlt className="w-5 h-5 text-primary mr-2" />
                                         <h3 className="font-medium text-sm text-primary">
                                             Language
                                         </h3>
@@ -187,12 +191,11 @@ const Header: React.FC = () => {
                                                 <Button
                                                     key={lang.code}
                                                     variant="ghost"
-                                                    className={`w-full justify-start py-1 h-auto ${
-                                                        selectedLanguage.code ===
-                                                        lang.code
+                                                    className={`w-full justify-start py-1 h-auto ${selectedLanguage.code ===
+                                                            lang.code
                                                             ? "bg-gray-100 font-medium text-primary"
                                                             : "text-gray-700"
-                                                    }`}
+                                                        }`}
                                                     onClick={() => {
                                                         selectLanguage(lang);
                                                         setMobileMenuOpen(
@@ -224,12 +227,11 @@ const Header: React.FC = () => {
                                                 <Button
                                                     key={curr.code}
                                                     variant="ghost"
-                                                    className={`w-full justify-start py-1 h-auto ${
-                                                        selectedCurrency.code ===
-                                                        curr.code
+                                                    className={`w-full justify-start py-1 h-auto ${selectedCurrency.code ===
+                                                            curr.code
                                                             ? "bg-gray-100 font-medium text-primary"
                                                             : "text-gray-700"
-                                                    }`}
+                                                        }`}
                                                     onClick={() => {
                                                         selectCurrency(curr);
                                                         setMobileMenuOpen(
@@ -250,18 +252,20 @@ const Header: React.FC = () => {
             </div>
 
             <div className="hidden md:flex items-center space-x-6 md:space-x-10 lg:mx-20">
-                <a
-                    href="/#"
+                <Link
                     className="text-[14px] font-bold uppercase text-primary h-[20px] min-w-[102px]"
+                    to={`/${tenantId}/bookings`}
                 >
                     MY BOOKINGS
-                </a>
+                </Link>
+
+
                 <div className="relative">
                     <button
                         className="flex w-[51px] h-[20px] items-center text-blue-900 text-xs md:text-sm cursor-pointer"
                         onClick={toggleLanguageDropdown}
                     >
-                        <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125"/>
+                        <HiGlobeAlt className="text-primary w-[16px] h-[16px] scale-125" />
 
                         <span className="text-sm md:text-base text-primary ml-1 capitalize">
                             {selectedLanguage.code}

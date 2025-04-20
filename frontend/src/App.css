@@ -43,6 +43,23 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(0.376 0.148 293.465 / 30%);
     --sidebar-ring: oklch(0.45 0.12 293.465);
+
+    /* MyBooking specific colors */
+    --mybooking-background: var(--color-background);
+    --mybooking-card-background: var(--color-card);
+    --mybooking-primary: var(--color-primary);
+
+    /* BookingCard specific colors */
+    --bookingcard-title: var(--color-foreground);
+    --bookingcard-subtitle: var(--color-muted-foreground);
+    --bookingcard-badge-booked: var(--color-primary);
+    --bookingcard-badge-booked-hover: var(--color-primary-foreground);
+    --bookingcard-badge-cancelled: var(--color-destructive);
+    --bookingcard-icon: var(--color-primary);
+    --bookingcard-border: var(--color-border);
+    --bookingcard-button-bg: var(--color-primary);
+    --bookingcard-button-hover-bg: var(--color-muted);
+    --bookingcard-button-hover-text: var(--color-primary-foreground);
 }
 
 .dark {
@@ -82,6 +99,23 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(0.426 0.198 293.465 / 30%);
     --sidebar-ring: oklch(0.376 0.148 293.465);
+
+    /* MyBooking specific colors */
+    --mybooking-background: var(--color-background);
+    --mybooking-card-background: var(--color-card);
+    --mybooking-primary: var(--color-primary);
+
+    /* BookingCard specific colors */
+    --bookingcard-title: var(--color-foreground);
+    --bookingcard-subtitle: var(--color-muted-foreground);
+    --bookingcard-badge-booked: var(--color-primary);
+    --bookingcard-badge-booked-hover: var(--color-primary-foreground);
+    --bookingcard-badge-cancelled: var(--color-destructive);
+    --bookingcard-icon: var(--color-primary);
+    --bookingcard-border: var(--color-border);
+    --bookingcard-button-bg: var(--color-primary);
+    --bookingcard-button-hover-bg: var(--color-muted);
+    --bookingcard-button-hover-text: var(--color-primary-foreground);
 }
 
 @theme inline {

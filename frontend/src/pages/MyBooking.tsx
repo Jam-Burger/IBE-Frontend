@@ -9,6 +9,11 @@ import { useAuth } from "react-oidc-context";
 
 const tenantId = import.meta.env.VITE_TENANT_ID as string;
 
+enum BookingStatus {
+    BOOKED = "BOOKED",
+    CANCELLED = "CANCELLED",
+}
+
 const MyBookings = () => {
 
     const auth = useAuth();
@@ -21,15 +26,11 @@ const MyBookings = () => {
 
     useEffect(() => {
         const guestToken = localStorage.getItem("guestToken");
-
         if (auth.user?.profile.email) {
-
             setEmail(auth.user.profile.email);
             setIsVerified(true);
         } else if (guestToken) {
-
             setIsVerified(true);
-
         }
     }, [auth.user]);
 
@@ -46,8 +47,8 @@ const MyBookings = () => {
             api
                 .getBookingHistoryWithDetails(tenantId, email, idToken) 
                 .then((response) => {
-                    const booked = response.filter((booking: BookingType) => booking.status === "BOOKED");
-                    const cancelled = response.filter((booking: BookingType) => booking.status === "CANCELLED");
+                    const booked = response.filter((booking: BookingType) => booking.status === BookingStatus.BOOKED);
+                    const cancelled = response.filter((booking: BookingType) => booking.status === BookingStatus.CANCELLED);
                     setBookedHotels(booked);
                     setCancelledHotels(cancelled);
                 })
@@ -84,8 +85,8 @@ const MyBookings = () => {
         api
             .getBookingHistoryWithDetails(tenantId, email, null)
             .then((response) => {
-                const booked = response.filter((booking: BookingType) => booking.status === "BOOKED");
-                const cancelled = response.filter((booking: BookingType) => booking.status === "CANCELLED");
+                const booked = response.filter((booking: BookingType) => booking.status === BookingStatus.BOOKED);
+                const cancelled = response.filter((booking: BookingType) => booking.status === BookingStatus.CANCELLED);
 
                 setBookedHotels(booked);
                 setCancelledHotels(cancelled);
@@ -98,8 +99,14 @@ const MyBookings = () => {
 
     if (!isVerified) {
         return (
-            <div className="min-h-screen bg-[#F1F0FB] flex items-center justify-center p-4">
-                <div className="bg-white shadow-md rounded-lg p-6 max-w-md w-full text-center">
+            <div
+                className="min-h-screen flex items-center justify-center p-4"
+                style={{ backgroundColor: "var(--mybooking-background)" }}
+            >
+                <div
+                    className="shadow-md rounded-lg p-6 max-w-md w-full text-center"
+                    style={{ backgroundColor: "var(--mybooking-card-background)" }}
+                >
                     <h1 className="text-2xl font-semibold mb-4">Access Your Bookings</h1>
                     <p className="text-gray-600 mb-6">
                         Enter your email to view your bookings. We'll send you a one-time code for secure access.
@@ -114,7 +121,8 @@ const MyBookings = () => {
                     <button
                         onClick={handleSendOtp}
                         disabled={isSendingOtp}
-                        className="w-full bg-primary text-white py-2 rounded disabled:opacity-50"
+                        className="w-full py-2 rounded disabled:opacity-50"
+                        style={{ backgroundColor: "var(--mybooking-primary)", color: "var(--color-primary-foreground)" }}
                     >
                         {isSendingOtp ? "Sending OTP..." : "Get My Bookings"}
                     </button>
@@ -131,7 +139,7 @@ const MyBookings = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#F1F0FB] p-4 md:p-8">
+        <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: "var(--mybooking-background)" }}>
             <div className="max-w-7xl mx-auto">
                 <BookingHeader />
                 <main className="mt-8">
