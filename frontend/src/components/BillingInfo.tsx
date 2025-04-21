@@ -8,6 +8,7 @@ import {updateFormData} from '../redux/checkoutSlice';
 import {api} from '../lib/api-client';
 import {Button} from "./ui";
 import {useAuth} from "react-oidc-context";
+import {cache} from '../lib/cache';
 
 interface BillingInfoProps {
     onNext: (section: number) => void;
@@ -71,12 +72,35 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
     const fetchStates = async (countryCode: string) => {
         setIsLoadingStates(true);
         try {
-            const response = await api.getStates(countryCode);
-            if (response.status !== 200) {
-                throw new Error('Failed to fetch states');
+            const cacheKey = `states_${countryCode}`;
+            const cachedStates = cache.get<State[]>(cacheKey);
+            
+            if (cachedStates) {
+                setStates(cachedStates);
+                return;
             }
 
-            setStates(response.data);
+            // Check for pending request
+            const pendingRequest = cache.getPendingRequest<State[]>(cacheKey);
+            if (pendingRequest) {
+                const states = await pendingRequest;
+                setStates(states);
+                return;
+            }
+
+            // Create new request
+            const promise = api.getStates(countryCode).then(response => {
+                if (response.status !== 200) {
+                    throw new Error('Failed to fetch states');
+                }
+                const statesData = response.data;
+                cache.set(cacheKey, statesData);
+                return statesData;
+            });
+
+            cache.setPendingRequest(cacheKey, promise);
+            const states = await promise;
+            setStates(states);
         } catch (error) {
             console.error('Error fetching states:', error);
         } finally {
@@ -93,13 +117,35 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
 
         setIsLoadingCities(true);
         try {
-            const response = await api.getCities(countryCode, stateCode);
-
-            if (response.status !== 200) {
-                throw new Error('Failed to fetch cities');
+            const cacheKey = `cities_${countryCode}_${stateCode}`;
+            const cachedCities = cache.get<City[]>(cacheKey);
+            
+            if (cachedCities) {
+                setCities(cachedCities);
+                return;
             }
 
-            setCities(response.data);
+            // Check for pending request
+            const pendingRequest = cache.getPendingRequest<City[]>(cacheKey);
+            if (pendingRequest) {
+                const cities = await pendingRequest;
+                setCities(cities);
+                return;
+            }
+
+            // Create new request
+            const promise = api.getCities(countryCode, stateCode).then(response => {
+                if (response.status !== 200) {
+                    throw new Error('Failed to fetch cities');
+                }
+                const citiesData = response.data;
+                cache.set(cacheKey, citiesData);
+                return citiesData;
+            });
+
+            cache.setPendingRequest(cacheKey, promise);
+            const cities = await promise;
+            setCities(cities);
         } catch (error) {
             console.error('Error fetching cities:', error);
         } finally {
@@ -112,13 +158,35 @@ const BillingInfo: React.FC<BillingInfoProps> = ({onNext, setActiveSection, fiel
         const fetchCountries = async () => {
             setIsLoadingCountries(true);
             try {
-                const response = await api.getCountries();
-
-                if (response.status !== 200) {
-                    throw new Error('Failed to fetch countries');
+                const cacheKey = 'countries';
+                const cachedCountries = cache.get<Country[]>(cacheKey);
+                
+                if (cachedCountries) {
+                    setCountries(cachedCountries);
+                    return;
                 }
 
-                setCountries(response.data);
+                // Check for pending request
+                const pendingRequest = cache.getPendingRequest<Country[]>(cacheKey);
+                if (pendingRequest) {
+                    const countries = await pendingRequest;
+                    setCountries(countries);
+                    return;
+                }
+
+                // Create new request
+                const promise = api.getCountries().then(response => {
+                    if (response.status !== 200) {
+                        throw new Error('Failed to fetch countries');
+                    }
+                    const countriesData = response.data;
+                    cache.set(cacheKey, countriesData);
+                    return countriesData;
+                });
+
+                cache.setPendingRequest(cacheKey, promise);
+                const countries = await promise;
+                setCountries(countries);
             } catch (error) {
                 console.error('Error fetching countries:', error);
             } finally {
