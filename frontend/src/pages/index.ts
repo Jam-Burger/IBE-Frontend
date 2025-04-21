@@ -1,5 +1,2 @@
-export {default as HomePage} from './HomePage';
-export {default as NotFoundPage} from './NotFoundPage';
-export {default as RoomsListPage} from "./RoomsListPage.tsx"
-export {default as CheckoutPage} from "./CheckoutPage";
-export {default as MyBookings} from "./MyBooking";
+export { default as HomePage } from './HomePage';
+export { default as RoomsListPage } from './RoomsListPage';
